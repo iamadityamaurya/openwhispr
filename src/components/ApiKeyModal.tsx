@@ -228,7 +228,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
         <View style={styles.sheetContainer}>
           {/* Top Sheet Glow & Ambient Gradient */}
           <LinearGradient
-            colors={['rgba(0, 240, 255, 0.12)', 'rgba(0, 102, 255, 0.02)']}
+            colors={['rgba(233, 160, 99, 0.12)', 'rgba(208, 132, 72, 0.02)']}
             start={{ x: 0.5, y: 0 }}
             end={{ x: 0.5, y: 1 }}
             style={styles.sheetTopGlow}
@@ -246,8 +246,8 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                 <Ionicons name="key" size={16} color={Theme.colors.cyan} />
               </View>
               <View>
-                <Text style={styles.title}>API Keys & Engines</Text>
-                <Text style={styles.subtitle}>Configure STT, Gemini, & Custom endpoints</Text>
+                <Text style={styles.title}>API keys <Text style={styles.title}>API Keys & Engines</Text> engines</Text>
+                <Text style={styles.subtitle}>Set up providers, models, and custom endpoints</Text>
               </View>
             </View>
             <TouchableOpacity
@@ -268,7 +268,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
               <View style={styles.stageNumberPill}>
                 <Text style={styles.stageNumberText}>01</Text>
               </View>
-              <Text style={styles.stageTitle}>SPEECH-TO-TEXT ENGINE</Text>
+              <Text style={styles.stageTitle}>Speech-to-text engine</Text>
             </View>
 
             {/* STT Provider Selection Tabs */}
@@ -288,7 +288,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                 <View
                   style={[
                     styles.tabDot,
-                    { backgroundColor: sttProvider === 'surplus' ? '#C084FC' : '#334155' },
+                    { backgroundColor: sttProvider === 'surplus' ? '#DFAF82' : '#4A4438' },
                   ]}
                 />
                 <Text
@@ -316,7 +316,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                 <View
                   style={[
                     styles.tabDot,
-                    { backgroundColor: sttProvider === 'deepgram' ? '#10B981' : '#334155' },
+                    { backgroundColor: sttProvider === 'deepgram' ? '#93B884' : '#4A4438' },
                   ]}
                 />
                 <Text
@@ -344,7 +344,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                 <View
                   style={[
                     styles.tabDot,
-                    { backgroundColor: sttProvider === 'groq' ? Theme.colors.cyan : '#334155' },
+                    { backgroundColor: sttProvider === 'groq' ? Theme.colors.cyan : '#4A4438' },
                   ]}
                 />
                 <Text
@@ -372,7 +372,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                 <View
                   style={[
                     styles.tabDot,
-                    { backgroundColor: sttProvider === 'openai' ? '#A78BFA' : '#334155' },
+                    { backgroundColor: sttProvider === 'openai' ? '#DFAF82' : '#4A4438' },
                   ]}
                 />
                 <Text
@@ -400,7 +400,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                 <View
                   style={[
                     styles.tabDot,
-                    { backgroundColor: sttProvider === 'custom' ? '#F59E0B' : '#334155' },
+                    { backgroundColor: sttProvider === 'custom' ? '#D9A441' : '#4A4438' },
                   ]}
                 />
                 <Text
@@ -421,19 +421,19 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                   {/* Surplus Special Banner */}
                   <View style={styles.surplusBanner}>
                     <LinearGradient
-                      colors={['rgba(168, 85, 247, 0.25)', 'rgba(99, 102, 241, 0.12)']}
+                      colors={['rgba(214, 169, 124, 0.25)', 'rgba(181, 135, 96, 0.12)']}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 0 }}
                       style={styles.surplusBannerGrad}
                     >
                       <View style={styles.surplusBannerIconWrap}>
-                        <Ionicons name="flash" size={15} color="#C084FC" />
+                        <Ionicons name="flash" size={15} color="#DFAF82" />
                       </View>
                       <View style={{ flex: 1 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                          <Text style={styles.surplusBannerTitle}>SURPLUS INTELLIGENCE</Text>
+                          <Text style={styles.surplusBannerTitle}>Surplus Intelligence</Text>
                           <View style={styles.surplusSpecialBadge}>
-                            <Text style={styles.surplusSpecialText}>SPECIAL FOCUS</Text>
+                            <Text style={styles.surplusSpecialText}>Recommended</Text>
                           </View>
                         </View>
                         <Text style={styles.surplusBannerSub}>
@@ -461,7 +461,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                         style={styles.input}
                         secureTextEntry={!showSttKey}
                         placeholder="inf_... from surplusintelligence.ai"
-                        placeholderTextColor="#475569"
+                        placeholderTextColor="#6B6254"
                         value={surplusKey}
                         onChangeText={(text) => {
                           setSurplusKey(text);
@@ -478,7 +478,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                         <Ionicons
                           name={showSttKey ? 'eye-off-outline' : 'eye-outline'}
                           size={16}
-                          color="#64748B"
+                          color="#857B6C"
                         />
                       </TouchableOpacity>
                     </View>
@@ -518,7 +518,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                           <View style={styles.modelCardFooter}>
                             <Text style={styles.modelCardProvider}>{item.provider}</Text>
                             {isSelected && (
-                              <Ionicons name="checkmark-circle" size={15} color="#C084FC" />
+                              <Ionicons name="checkmark-circle" size={15} color="#DFAF82" />
                             )}
                           </View>
                         </TouchableOpacity>
@@ -528,7 +528,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                 </>
               ) : sttProvider === 'custom' ? (
                 <>
-                  <Text style={styles.sectionSublabel}>CUSTOM WHISPER ENDPOINT</Text>
+                  <Text style={styles.sectionSublabel}>Custom Whisper endpoint</Text>
 
                   {/* Base URL */}
                   <View style={styles.inputFieldBlock}>
@@ -537,7 +537,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                       <TextInput
                         style={styles.input}
                         placeholder="e.g. http://10.0.2.2:8000/v1 or https://api.runpod.ai/v1"
-                        placeholderTextColor="#475569"
+                        placeholderTextColor="#6B6254"
                         value={customSttBaseUrl}
                         onChangeText={(text) => {
                           setCustomSttBaseUrl(text);
@@ -556,7 +556,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                       <TextInput
                         style={styles.input}
                         placeholder="whisper-1 or whisper-large-v3"
-                        placeholderTextColor="#475569"
+                        placeholderTextColor="#6B6254"
                         value={customSttModel}
                         onChangeText={(text) => setCustomSttModel(text)}
                         autoCapitalize="none"
@@ -583,7 +583,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                         style={styles.input}
                         secureTextEntry={!showSttKey}
                         placeholder="Bearer token if required"
-                        placeholderTextColor="#475569"
+                        placeholderTextColor="#6B6254"
                         value={customSttKey}
                         onChangeText={(text) => {
                           setCustomSttKey(text);
@@ -600,7 +600,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                         <Ionicons
                           name={showSttKey ? 'eye-off-outline' : 'eye-outline'}
                           size={16}
-                          color="#64748B"
+                          color="#857B6C"
                         />
                       </TouchableOpacity>
                     </View>
@@ -641,7 +641,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                           ? 'gsk_... from console.groq.com'
                           : 'sk-... from platform.openai.com'
                       }
-                      placeholderTextColor="#475569"
+                      placeholderTextColor="#6B6254"
                       value={activeSttKey}
                       onChangeText={(text) => {
                         if (sttProvider === 'deepgram') setDeepgramKey(text);
@@ -660,7 +660,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                       <Ionicons
                         name={showSttKey ? 'eye-off-outline' : 'eye-outline'}
                         size={16}
-                        color="#64748B"
+                        color="#857B6C"
                       />
                     </TouchableOpacity>
                   </View>
@@ -710,10 +710,10 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
 
             {/* STAGE 2: AI REFACTORING */}
             <View style={[styles.stageHeader, { marginTop: 22 }]}>
-              <View style={[styles.stageNumberPill, { backgroundColor: '#7C3AED' }]}>
+              <View style={[styles.stageNumberPill, { backgroundColor: '#B58760' }]}>
                 <Text style={styles.stageNumberText}>02</Text>
               </View>
-              <Text style={styles.stageTitle}>AI REFACTORING & CLEANUP ENGINE</Text>
+              <Text style={styles.stageTitle}>AI cleanup engine</Text>
             </View>
 
             {/* LLM Provider Selection Tabs */}
@@ -730,7 +730,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                 <Ionicons
                   name="flash"
                   size={12}
-                  color={llmProvider === 'surplus' ? '#C084FC' : '#475569'}
+                  color={llmProvider === 'surplus' ? '#DFAF82' : '#6B6254'}
                 />
                 <Text style={[styles.tabText, llmProvider === 'surplus' && styles.tabTextActiveSurplus]}>
                   Surplus ⚡
@@ -749,7 +749,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                 <Ionicons
                   name="flash"
                   size={12}
-                  color={llmProvider === 'groq' ? Theme.colors.cyan : '#475569'}
+                  color={llmProvider === 'groq' ? Theme.colors.cyan : '#6B6254'}
                 />
                 <Text style={[styles.tabText, llmProvider === 'groq' && styles.tabTextActiveGroq]}>
                   Groq
@@ -768,7 +768,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                 <Ionicons
                   name="sparkles"
                   size={12}
-                  color={llmProvider === 'openai' ? '#A78BFA' : '#475569'}
+                  color={llmProvider === 'openai' ? '#DFAF82' : '#6B6254'}
                 />
                 <Text style={[styles.tabText, llmProvider === 'openai' && styles.tabTextActiveOpenAI]}>
                   OpenAI
@@ -787,7 +787,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                 <Ionicons
                   name="logo-google"
                   size={12}
-                  color={llmProvider === 'gemini' ? '#38BDF8' : '#475569'}
+                  color={llmProvider === 'gemini' ? '#F2C08A' : '#6B6254'}
                 />
                 <Text style={[styles.tabText, llmProvider === 'gemini' && styles.tabTextActiveGemini]}>
                   Gemini
@@ -806,7 +806,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                 <Ionicons
                   name="construct-outline"
                   size={12}
-                  color={llmProvider === 'custom' ? '#F59E0B' : '#475569'}
+                  color={llmProvider === 'custom' ? '#D9A441' : '#6B6254'}
                 />
                 <Text style={[styles.tabText, llmProvider === 'custom' && styles.tabTextActiveCustom]}>
                   Extra / URL
@@ -821,19 +821,19 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                   {/* Surplus Special Banner */}
                   <View style={styles.surplusBanner}>
                     <LinearGradient
-                      colors={['rgba(168, 85, 247, 0.25)', 'rgba(99, 102, 241, 0.12)']}
+                      colors={['rgba(214, 169, 124, 0.25)', 'rgba(181, 135, 96, 0.12)']}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 0 }}
                       style={styles.surplusBannerGrad}
                     >
                       <View style={styles.surplusBannerIconWrap}>
-                        <Ionicons name="sparkles" size={15} color="#C084FC" />
+                        <Ionicons name="sparkles" size={15} color="#DFAF82" />
                       </View>
                       <View style={{ flex: 1 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                          <Text style={styles.surplusBannerTitle}>SURPLUS INTELLIGENCE</Text>
+                          <Text style={styles.surplusBannerTitle}>Surplus Intelligence</Text>
                           <View style={styles.surplusSpecialBadge}>
-                            <Text style={styles.surplusSpecialText}>SPECIAL FOCUS</Text>
+                            <Text style={styles.surplusSpecialText}>Recommended</Text>
                           </View>
                         </View>
                         <Text style={styles.surplusBannerSub}>
@@ -861,7 +861,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                         style={styles.input}
                         secureTextEntry={!showLlmKey}
                         placeholder="inf_... from surplusintelligence.ai"
-                        placeholderTextColor="#475569"
+                        placeholderTextColor="#6B6254"
                         value={surplusKey}
                         onChangeText={(text) => {
                           setSurplusKey(text);
@@ -878,7 +878,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                         <Ionicons
                           name={showLlmKey ? 'eye-off-outline' : 'eye-outline'}
                           size={16}
-                          color="#64748B"
+                          color="#857B6C"
                         />
                       </TouchableOpacity>
                     </View>
@@ -918,7 +918,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                           <View style={styles.modelCardFooter}>
                             <Text style={styles.modelCardProvider}>{item.provider}</Text>
                             {isSelected && (
-                              <Ionicons name="checkmark-circle" size={15} color="#C084FC" />
+                              <Ionicons name="checkmark-circle" size={15} color="#DFAF82" />
                             )}
                           </View>
                         </TouchableOpacity>
@@ -928,14 +928,14 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
 
                   {/* Custom Model ID input */}
                   <View style={[styles.inputFieldBlock, { marginTop: 10 }]}>
-                    <Text style={[styles.inputLabel, { fontSize: 11, color: '#94A3B8' }]}>
+                    <Text style={[styles.inputLabel, { fontSize: 11, color: '#B3A897' }]}>
                       Or enter custom Surplus model identifier:
                     </Text>
                     <View style={styles.inputWrapper}>
                       <TextInput
                         style={styles.input}
                         placeholder="e.g. deepseek-v4-flash, gpt-5-mini"
-                        placeholderTextColor="#475569"
+                        placeholderTextColor="#6B6254"
                         value={surplusLlmModel}
                         onChangeText={(text) => setSurplusLlmModel(text)}
                         autoCapitalize="none"
@@ -963,7 +963,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                       style={styles.input}
                       secureTextEntry={!showLlmKey}
                       placeholder="AIzaSy... from aistudio.google.com"
-                      placeholderTextColor="#475569"
+                      placeholderTextColor="#6B6254"
                       value={geminiKey}
                       onChangeText={(text) => {
                         setGeminiKey(text);
@@ -980,7 +980,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                       <Ionicons
                         name={showLlmKey ? 'eye-off-outline' : 'eye-outline'}
                         size={16}
-                        color="#64748B"
+                        color="#857B6C"
                       />
                     </TouchableOpacity>
                   </View>
@@ -1054,7 +1054,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                       <TextInput
                         style={styles.input}
                         placeholder="https://openrouter.ai/api/v1 or http://10.0.2.2:11434/v1"
-                        placeholderTextColor="#475569"
+                        placeholderTextColor="#6B6254"
                         value={customLlmBaseUrl}
                         onChangeText={(text) => {
                           setCustomLlmBaseUrl(text);
@@ -1073,7 +1073,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                       <TextInput
                         style={styles.input}
                         placeholder="deepseek-chat, mistral, llama3.2"
-                        placeholderTextColor="#475569"
+                        placeholderTextColor="#6B6254"
                         value={customLlmModel}
                         onChangeText={(text) => setCustomLlmModel(text)}
                         autoCapitalize="none"
@@ -1100,7 +1100,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                         style={styles.input}
                         secureTextEntry={!showLlmKey}
                         placeholder="Bearer token or API Key"
-                        placeholderTextColor="#475569"
+                        placeholderTextColor="#6B6254"
                         value={customLlmKey}
                         onChangeText={(text) => {
                           setCustomLlmKey(text);
@@ -1117,7 +1117,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                         <Ionicons
                           name={showLlmKey ? 'eye-off-outline' : 'eye-outline'}
                           size={16}
-                          color="#64748B"
+                          color="#857B6C"
                         />
                       </TouchableOpacity>
                     </View>
@@ -1151,7 +1151,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                           ? 'gsk_... from console.groq.com'
                           : 'sk-... from platform.openai.com'
                       }
-                      placeholderTextColor="#475569"
+                      placeholderTextColor="#6B6254"
                       value={activeLlmKey}
                       onChangeText={(text) => {
                         if (llmProvider === 'groq') setGroqKey(text);
@@ -1169,7 +1169,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                       <Ionicons
                         name={showLlmKey ? 'eye-off-outline' : 'eye-outline'}
                         size={16}
-                        color="#64748B"
+                        color="#857B6C"
                       />
                     </TouchableOpacity>
                   </View>
@@ -1218,10 +1218,10 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
 
             {/* Quick Preferences */}
             <View style={[styles.stageHeader, { marginTop: 22 }]}>
-              <View style={[styles.stageNumberPill, { backgroundColor: '#0284C7' }]}>
+              <View style={[styles.stageNumberPill, { backgroundColor: '#D08448' }]}>
                 <Text style={styles.stageNumberText}>03</Text>
               </View>
-              <Text style={styles.stageTitle}>AUTOMATION & VOICE PREFERENCES</Text>
+              <Text style={styles.stageTitle}>Automation <Text style={styles.stageTitle}>AUTOMATION & VOICE PREFERENCES</Text> voice</Text>
             </View>
 
             <View style={styles.preferencesCard}>
@@ -1238,7 +1238,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                     setAutoCopy(val);
                     Haptics.selectionAsync();
                   }}
-                  trackColor={{ false: '#1E293B', true: '#00F0FF' }}
+                  trackColor={{ false: '#2A241C', true: '#E9A063' }}
                   thumbColor="#FFFFFF"
                 />
               </View>
@@ -1258,7 +1258,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                     setAutoSpeak(val);
                     Haptics.selectionAsync();
                   }}
-                  trackColor={{ false: '#1E293B', true: '#00F0FF' }}
+                  trackColor={{ false: '#2A241C', true: '#E9A063' }}
                   thumbColor="#FFFFFF"
                 />
               </View>
@@ -1302,7 +1302,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
               activeOpacity={0.85}
             >
               <LinearGradient
-                colors={['#00F0FF', '#0066FF']}
+                colors={['#E9A063', '#D08448']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.saveBtnGradient}
@@ -1321,16 +1321,16 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(2, 4, 8, 0.85)',
+    backgroundColor: 'rgba(21, 18, 16, 0.85)',
     justifyContent: 'flex-end',
   },
   sheetContainer: {
-    backgroundColor: '#0A0E17',
+    backgroundColor: '#1B1714',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     maxHeight: '94%',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(0, 240, 255, 0.2)',
+    borderTopColor: 'rgba(233, 160, 99, 0.2)',
     overflow: 'hidden',
   },
   sheetTopGlow: {
@@ -1349,7 +1349,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 4,
     borderRadius: 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(255, 246, 230, 0.2)',
   },
   header: {
     flexDirection: 'row',
@@ -1359,7 +1359,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 14,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+    borderBottomColor: 'rgba(255, 246, 230, 0.06)',
   },
   titleRow: {
     flexDirection: 'row',
@@ -1371,9 +1371,9 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(0, 240, 255, 0.1)',
+    backgroundColor: 'rgba(233, 160, 99, 0.1)',
     borderWidth: 1,
-    borderColor: 'rgba(0, 240, 255, 0.25)',
+    borderColor: 'rgba(233, 160, 99, 0.25)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1393,7 +1393,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: 'rgba(255, 246, 230, 0.06)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1411,7 +1411,7 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: '#0066FF',
+    backgroundColor: '#D08448',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1421,19 +1421,19 @@ const styles = StyleSheet.create({
     fontFamily: Theme.fonts.monoBold,
   },
   stageTitle: {
-    color: '#94A3B8',
+    color: '#B3A897',
     fontSize: 11,
     fontFamily: Theme.fonts.heading,
     letterSpacing: 0.8,
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#06080D',
+    backgroundColor: '#151210',
     borderRadius: 14,
     padding: 3,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: 'rgba(255, 246, 230, 0.06)',
     gap: 4,
   },
   tab: {
@@ -1451,64 +1451,64 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   tabActiveSurplus: {
-    backgroundColor: 'rgba(168, 85, 247, 0.18)',
+    backgroundColor: 'rgba(214, 169, 124, 0.18)',
     borderWidth: 1,
-    borderColor: 'rgba(168, 85, 247, 0.45)',
+    borderColor: 'rgba(214, 169, 124, 0.45)',
   },
   tabActiveDeepgram: {
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    backgroundColor: 'rgba(147, 184, 132, 0.15)',
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.35)',
+    borderColor: 'rgba(147, 184, 132, 0.35)',
   },
   tabActiveGroq: {
-    backgroundColor: 'rgba(0, 240, 255, 0.12)',
+    backgroundColor: 'rgba(233, 160, 99, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(0, 240, 255, 0.35)',
+    borderColor: 'rgba(233, 160, 99, 0.35)',
   },
   tabActiveOpenAI: {
-    backgroundColor: 'rgba(139, 92, 246, 0.15)',
+    backgroundColor: 'rgba(201, 151, 112, 0.15)',
     borderWidth: 1,
-    borderColor: 'rgba(139, 92, 246, 0.35)',
+    borderColor: 'rgba(201, 151, 112, 0.35)',
   },
   tabActiveGemini: {
-    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    backgroundColor: 'rgba(242, 192, 138, 0.15)',
     borderWidth: 1,
-    borderColor: 'rgba(56, 189, 248, 0.4)',
+    borderColor: 'rgba(242, 192, 138, 0.4)',
   },
   tabActiveCustom: {
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    backgroundColor: 'rgba(217, 164, 65, 0.15)',
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.4)',
+    borderColor: 'rgba(217, 164, 65, 0.4)',
   },
   tabText: {
-    color: '#64748B',
+    color: '#857B6C',
     fontSize: 10.5,
     fontFamily: Theme.fonts.semiBold,
   },
   tabTextActiveSurplus: {
-    color: '#C084FC',
+    color: '#DFAF82',
   },
   tabTextActiveDeepgram: {
-    color: '#10B981',
+    color: '#93B884',
   },
   tabTextActiveGroq: {
     color: Theme.colors.cyan,
   },
   tabTextActiveOpenAI: {
-    color: '#A78BFA',
+    color: '#DFAF82',
   },
   tabTextActiveGemini: {
-    color: '#38BDF8',
+    color: '#F2C08A',
   },
   tabTextActiveCustom: {
-    color: '#F59E0B',
+    color: '#D9A441',
   },
   surplusBanner: {
     borderRadius: 12,
     overflow: 'hidden',
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: 'rgba(168, 85, 247, 0.3)',
+    borderColor: 'rgba(214, 169, 124, 0.3)',
   },
   surplusBannerGrad: {
     flexDirection: 'row',
@@ -1521,11 +1521,11 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: 'rgba(168, 85, 247, 0.25)',
+    backgroundColor: 'rgba(214, 169, 124, 0.25)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(168, 85, 247, 0.4)',
+    borderColor: 'rgba(214, 169, 124, 0.4)',
   },
   surplusBannerTitle: {
     color: '#FFFFFF',
@@ -1534,7 +1534,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   surplusSpecialBadge: {
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#B58760',
     paddingHorizontal: 5,
     paddingVertical: 1.5,
     borderRadius: 4,
@@ -1546,7 +1546,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   surplusBannerSub: {
-    color: '#CBD5E1',
+    color: '#D7CDBE',
     fontSize: 10,
     fontFamily: Theme.fonts.regular,
     marginTop: 2,
@@ -1558,7 +1558,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   modelCountBadge: {
-    color: '#A855F7',
+    color: '#C99770',
     fontSize: 10.5,
     fontFamily: Theme.fonts.monoBold,
   },
@@ -1567,15 +1567,15 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   modelCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: 'rgba(255, 246, 230, 0.03)',
     borderRadius: 12,
     padding: 10,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: 'rgba(255, 246, 230, 0.08)',
   },
   modelCardActiveSurplus: {
-    backgroundColor: 'rgba(168, 85, 247, 0.12)',
-    borderColor: '#C084FC',
+    backgroundColor: 'rgba(214, 169, 124, 0.12)',
+    borderColor: '#DFAF82',
   },
   modelCardTop: {
     flexDirection: 'row',
@@ -1584,29 +1584,29 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   modelCardName: {
-    color: '#E2E8F0',
+    color: '#E9E2D4',
     fontSize: 12.5,
     fontFamily: Theme.fonts.heading,
   },
   modelCardNameActiveSurplus: {
-    color: '#F3E8FF',
+    color: '#F2E7D6',
   },
   modelTagPill: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(255, 246, 230, 0.08)',
     paddingHorizontal: 5,
     paddingVertical: 2,
     borderRadius: 4,
   },
   modelTagPillActiveSurplus: {
-    backgroundColor: 'rgba(168, 85, 247, 0.3)',
+    backgroundColor: 'rgba(214, 169, 124, 0.3)',
   },
   modelTagText: {
-    color: '#E9D5FF',
+    color: '#EFE3CF',
     fontSize: 9,
     fontFamily: Theme.fonts.monoBold,
   },
   modelCardDesc: {
-    color: '#94A3B8',
+    color: '#B3A897',
     fontSize: 11,
     fontFamily: Theme.fonts.regular,
     lineHeight: 15,
@@ -1618,16 +1618,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modelCardProvider: {
-    color: '#64748B',
+    color: '#857B6C',
     fontSize: 10,
     fontFamily: Theme.fonts.medium,
   },
   inputCard: {
-    backgroundColor: '#0F1522',
+    backgroundColor: '#211C18',
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.07)',
+    borderColor: 'rgba(255, 246, 230, 0.07)',
   },
   sectionSublabel: {
     color: Theme.colors.cyan,
@@ -1646,7 +1646,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   inputLabel: {
-    color: '#CBD5E1',
+    color: '#D7CDBE',
     fontSize: 11.5,
     fontFamily: Theme.fonts.semiBold,
   },
@@ -1654,12 +1654,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(0, 240, 255, 0.08)',
+    backgroundColor: 'rgba(233, 160, 99, 0.08)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(0, 240, 255, 0.2)',
+    borderColor: 'rgba(233, 160, 99, 0.2)',
   },
   pasteText: {
     color: Theme.colors.cyan,
@@ -1669,10 +1669,10 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#06080D',
+    backgroundColor: '#151210',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.09)',
+    borderColor: 'rgba(255, 246, 230, 0.09)',
     marginBottom: 8,
   },
   input: {
@@ -1697,16 +1697,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(255, 246, 230, 0.05)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 246, 230, 0.1)',
   },
   presetChipActive: {
-    backgroundColor: 'rgba(0, 240, 255, 0.15)',
+    backgroundColor: 'rgba(233, 160, 99, 0.15)',
     borderColor: Theme.colors.cyan,
   },
   presetChipText: {
-    color: '#94A3B8',
+    color: '#B3A897',
     fontSize: 11,
     fontFamily: Theme.fonts.medium,
   },
@@ -1719,11 +1719,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: 'rgba(0, 240, 255, 0.06)',
+    backgroundColor: 'rgba(233, 160, 99, 0.06)',
     paddingVertical: 10,
     borderRadius: 11,
     borderWidth: 1,
-    borderColor: 'rgba(0, 240, 255, 0.22)',
+    borderColor: 'rgba(233, 160, 99, 0.22)',
     marginTop: 4,
   },
   testBtnText: {
@@ -1740,14 +1740,14 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   testSuccess: {
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    backgroundColor: 'rgba(147, 184, 132, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.3)',
+    borderColor: 'rgba(147, 184, 132, 0.3)',
   },
   testError: {
-    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    backgroundColor: 'rgba(229, 72, 77, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderColor: 'rgba(229, 72, 77, 0.3)',
   },
   testResultText: {
     fontSize: 12,
@@ -1755,11 +1755,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   preferencesCard: {
-    backgroundColor: '#0F1522',
+    backgroundColor: '#211C18',
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.07)',
+    borderColor: 'rgba(255, 246, 230, 0.07)',
     marginBottom: 16,
   },
   toggleRow: {
@@ -1770,7 +1770,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(255, 246, 230, 0.05)',
     marginVertical: 10,
   },
   toggleInfo: {
@@ -1801,17 +1801,17 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 9,
     borderRadius: 10,
-    backgroundColor: '#06080D',
+    backgroundColor: '#151210',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: 'rgba(255, 246, 230, 0.08)',
   },
   rateBtnActive: {
-    backgroundColor: 'rgba(0, 240, 255, 0.15)',
+    backgroundColor: 'rgba(233, 160, 99, 0.15)',
     borderColor: Theme.colors.cyan,
   },
   rateBtnText: {
-    color: '#64748B',
+    color: '#857B6C',
     fontSize: 12,
     fontFamily: Theme.fonts.monoBold,
   },
@@ -1823,12 +1823,12 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 10,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.06)',
+    borderTopColor: 'rgba(255, 246, 230, 0.06)',
   },
   saveBtn: {
     borderRadius: 14,
     overflow: 'hidden',
-    shadowColor: '#00F0FF',
+    shadowColor: '#E9A063',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 12,

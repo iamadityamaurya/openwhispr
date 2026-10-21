@@ -87,17 +87,17 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
 
         // Color transition across bars
         const normIndex = index / barCount;
-        let barColor = 'rgba(255, 255, 255, 0.09)';
+        let barColor = 'rgba(255, 246, 230, 0.09)';
 
         if (isRecording) {
           if (normIndex < 0.25) {
-            barColor = '#00F0FF';
+            barColor = '#E9A063';
           } else if (normIndex < 0.5) {
-            barColor = '#38BDF8';
+            barColor = '#F2C08A';
           } else if (normIndex < 0.75) {
-            barColor = '#818CF8';
+            barColor = '#E0B584';
           } else {
-            barColor = '#C084FC';
+            barColor = '#DFAF82';
           }
         }
 
@@ -109,7 +109,7 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
                 {
                   height: barHeight,
                   backgroundColor: barColor,
-                  shadowColor: isRecording ? '#00F0FF' : 'transparent',
+                  shadowColor: isRecording ? '#E9A063' : 'transparent',
                   shadowOpacity: isRecording ? 0.7 : 0,
                   shadowRadius: 8,
                   elevation: isRecording ? 4 : 0,

@@ -16,10 +16,10 @@ export default function AppTabs() {
           bottom: Platform.OS === 'ios' ? 24 : 16,
           left: 20,
           right: 20,
-          backgroundColor: 'rgba(13, 18, 30, 0.95)',
+          backgroundColor: 'rgba(27, 23, 20, 0.95)',
           borderRadius: 24,
           borderWidth: 1.2,
-          borderColor: 'rgba(255, 255, 255, 0.08)',
+          borderColor: 'rgba(255, 246, 230, 0.08)',
           height: 66,
           paddingBottom: Platform.OS === 'ios' ? 12 : 8,
           paddingTop: 8,
@@ -30,7 +30,7 @@ export default function AppTabs() {
           elevation: 16,
         },
         tabBarActiveTintColor: Theme.colors.cyan,
-        tabBarInactiveTintColor: '#64748B',
+        tabBarInactiveTintColor: '#857B6C',
         tabBarLabelStyle: {
           fontSize: 11,
           fontFamily: Theme.fonts.semiBold,
@@ -42,13 +42,13 @@ export default function AppTabs() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Dictation Studio',
+          title: 'Dictate',
           tabBarIcon: ({ color, focused }) => (
             <View style={[styles.iconWrapper, focused && styles.iconWrapperActive]}>
               <Ionicons
                 name={focused ? 'mic' : 'mic-outline'}
                 size={21}
-                color={focused ? Theme.colors.cyan : '#64748B'}
+                color={focused ? Theme.colors.cyan : '#857B6C'}
               />
             </View>
           ),
@@ -62,13 +62,13 @@ export default function AppTabs() {
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Engines & Keys',
+          title: 'Engines',
           tabBarIcon: ({ color, focused }) => (
             <View style={[styles.iconWrapper, focused && styles.iconWrapperActive]}>
               <Ionicons
                 name={focused ? 'hardware-chip' : 'hardware-chip-outline'}
                 size={21}
-                color={focused ? Theme.colors.cyan : '#64748B'}
+                color={focused ? Theme.colors.cyan : '#857B6C'}
               />
             </View>
           ),
@@ -92,9 +92,9 @@ const styles = StyleSheet.create({
     borderRadius: 15,
   },
   iconWrapperActive: {
-    backgroundColor: 'rgba(0, 240, 255, 0.12)',
+    backgroundColor: 'rgba(233, 160, 99, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(0, 240, 255, 0.22)',
+    borderColor: 'rgba(233, 160, 99, 0.22)',
   },
 });
 

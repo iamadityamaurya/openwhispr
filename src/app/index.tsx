@@ -9,10 +9,8 @@ import {
   ActivityIndicator,
   Animated,
   StatusBar,
-  Dimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
@@ -41,7 +39,6 @@ import { OverlayPermissionModal } from '../components/OverlayPermissionModal';
 
 type ProcessStatus = 'idle' | 'recording' | 'transcribing' | 'cleaning' | 'done' | 'error';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function DictationScreen() {
   const insets = useSafeAreaInsets();
@@ -408,13 +405,10 @@ export default function DictationScreen() {
     }
   };
 
+
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#06080D" translucent />
-
-      {/* Ambient Radial Glow Orbs */}
-      <View style={styles.ambientGlowTop} pointerEvents="none" />
-      <View style={styles.ambientGlowCenter} pointerEvents="none" />
+      <StatusBar barStyle="light-content" backgroundColor={Theme.colors.bg} translucent />
 
       {/* Permission Modal */}
       <OverlayPermissionModal
@@ -464,41 +458,29 @@ export default function DictationScreen() {
           styles.contentContainer,
           {
             paddingTop: Math.max(insets.top + 10, 36),
-            paddingLeft: Math.max(insets.left, 18),
-            paddingRight: Math.max(insets.right, 18),
-            paddingBottom: Math.max(insets.bottom + 90, 110),
+            paddingLeft: Math.max(insets.left, 20),
+            paddingRight: Math.max(insets.right, 20),
+            paddingBottom: Math.max(insets.bottom + 96, 120),
           },
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top App Bar */}
+        {/* Top bar */}
         <View style={styles.topBar}>
           <View style={styles.brandContainer}>
-            <LinearGradient
-              colors={['#00F0FF', '#2563EB']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.logoGradient}
-            >
-              <Ionicons name="sparkles" size={16} color="#FFFFFF" />
-            </LinearGradient>
-            <View>
-              <View style={styles.brandTitleRow}>
-                <Text style={styles.brandTitle}>OpenWhispr</Text>
-                <View style={styles.proBadge}>
-                  <Text style={styles.proBadgeText}>AI STUDIO</Text>
-                </View>
-              </View>
-              <View style={styles.engineBadge}>
-                <Text style={styles.enginePipelineText}>
-                  {settings.sttProvider.toUpperCase()} ➔ {settings.llmProvider.toUpperCase()}
-                </Text>
-              </View>
+            <View style={styles.logoMark}>
+              <Ionicons name="mic" size={18} color={Theme.colors.textInverse} />
+            </View>
+            <View style={styles.brandText}>
+              <Text style={styles.brandTitle}>OpenWhispr</Text>
+              <Text style={styles.brandSubtitle}>
+                {settings.sttProvider} → {settings.llmProvider}
+              </Text>
             </View>
           </View>
 
           <View style={styles.topBarActions}>
-            {/* Floating Window Overlay Toggle */}
+            {/* Floating overlay toggle */}
             <TouchableOpacity
               style={[
                 styles.floatingToggleBtn,
@@ -513,22 +495,22 @@ export default function DictationScreen() {
             >
               <Ionicons
                 name={showFloatingWidget ? 'layers' : 'layers-outline'}
-                size={17}
+                size={18}
                 color={showFloatingWidget ? Theme.colors.cyan : Theme.colors.textSecondary}
               />
-              {showFloatingWidget && <View style={styles.activeDot} />}
             </TouchableOpacity>
 
-            {/* Keys Button */}
+            {/* Keys button */}
             <TouchableOpacity
               style={[styles.keyBtn, !isSttKeyConfigured && styles.keyBtnHighlight]}
               onPress={() => setShowKeyModal(true)}
               activeOpacity={0.7}
             >
-              <Ionicons
-                name="key"
-                size={13}
-                color={isSttKeyConfigured ? Theme.colors.cyan : Theme.colors.amber}
+              <View
+                style={[
+                  styles.keyDot,
+                  { backgroundColor: isSttKeyConfigured ? Theme.colors.green : Theme.colors.amber },
+                ]}
               />
               <Text
                 style={[
@@ -536,187 +518,150 @@ export default function DictationScreen() {
                   !isSttKeyConfigured && styles.keyBtnTextHighlight,
                 ]}
               >
-                {isSttKeyConfigured ? 'Ready' : 'Set Keys'}
+                {isSttKeyConfigured ? 'Ready' : 'Set keys'}
               </Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Floating Keyboard Trigger Status Banner */}
+        {/* Overlay status banner */}
         {showFloatingWidget && (
           <View style={styles.floatingBanner}>
-            <LinearGradient
-              colors={['rgba(0, 240, 255, 0.12)', 'rgba(37, 99, 235, 0.04)']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.floatingBannerGradient}
-            >
-              <View style={styles.pulseDot} />
-              <Text style={styles.floatingBannerText}>
-                {settings.smartKeyboardMode
-                  ? 'Smart Keyboard Active • Floating mic appears above keyboard when typing'
-                  : 'Floating Bubble Active • Draggable on top of all apps'}
-              </Text>
-            </LinearGradient>
+            <View style={styles.pulseDot} />
+            <Text style={styles.floatingBannerText}>
+              {settings.smartKeyboardMode
+                ? 'Floating mic follows your keyboard while typing'
+                : 'Floating bubble is on — drag it anywhere, over any app'}
+            </Text>
           </View>
         )}
 
-        {/* Hero Studio Recording Card */}
+        {/* Recording card */}
         <View style={styles.studioCard}>
-          <LinearGradient
-            colors={['rgba(255, 255, 255, 0.05)', 'rgba(255, 255, 255, 0.01)']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.studioCardGradient}
-          >
-            {/* Status Pill Badge */}
-            <View style={styles.statusPill}>
-              <View
-                style={[
-                  styles.statusIndicator,
-                  isRecording && styles.statusIndicatorRecording,
-                  (status === 'transcribing' || status === 'cleaning') &&
-                    styles.statusIndicatorProcessing,
-                ]}
-              />
-              <Text style={styles.statusLabel}>
-                {status === 'recording'
-                  ? 'CAPTURING VOICE (44.1 kHz AAC)'
-                  : status === 'transcribing'
-                  ? `${settings.sttProvider.toUpperCase()} TRANSCRIBING...`
-                  : status === 'cleaning'
-                  ? `OPENWHISPR AI REFACTORING...`
-                  : status === 'done'
-                  ? 'DICTATION READY'
-                  : 'TAP TO DICTATE'}
-              </Text>
-            </View>
-
-            {/* Central Holographic Mic Button with Multi-Tier Radial Halo */}
-            <View style={styles.micContainer}>
-              {/* Outer Glowing Sonar Ring */}
-              <Animated.View
-                style={[
-                  styles.outerPulseRing,
-                  isRecording && styles.outerPulseRingActive,
-                  {
-                    transform: [
-                      { scale: isRecording ? outerPulseAnim : idleBreathAnim },
-                    ],
-                  },
-                ]}
-              />
-
-              {/* Inner Glowing Ring */}
-              <Animated.View
-                style={[
-                  styles.pulseRing,
-                  isRecording && styles.pulseRingActive,
-                  {
-                    transform: [
-                      { scale: isRecording ? pulseAnim : idleBreathAnim },
-                    ],
-                  },
-                ]}
-              />
-
-              {/* Main Disc Trigger */}
-              <TouchableOpacity
-                style={[
-                  styles.micButton,
-                  isRecording && styles.micButtonRecording,
-                  (status === 'transcribing' || status === 'cleaning') &&
-                    styles.micButtonProcessing,
-                ]}
-                onPress={handleToggleRecord}
-                disabled={status === 'transcribing' || status === 'cleaning'}
-                activeOpacity={0.88}
-              >
-                <LinearGradient
-                  colors={
-                    isRecording
-                      ? ['#EF4444', '#B91C1C']
-                      : status === 'transcribing' || status === 'cleaning'
-                      ? ['#8B5CF6', '#4C1D95']
-                      : ['#1A233A', '#0D1322']
-                  }
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.micButtonInner}
-                >
-                  {status === 'transcribing' || status === 'cleaning' ? (
-                    <ActivityIndicator size="large" color="#FFFFFF" />
-                  ) : (
-                    <Ionicons
-                      name={isRecording ? 'stop' : 'mic'}
-                      size={40}
-                      color={isRecording ? '#FFFFFF' : Theme.colors.cyan}
-                    />
-                  )}
-                </LinearGradient>
-              </TouchableOpacity>
-            </View>
-
-            {/* Monospaced Precision Live Timer */}
-            <Text style={styles.timerText}>
-              {isRecording ? formatTimer(durationMs) : '00:00.0'}
+          {/* Status */}
+          <View style={styles.statusPill}>
+            <View
+              style={[
+                styles.statusIndicator,
+                isRecording && styles.statusIndicatorRecording,
+                (status === 'transcribing' || status === 'cleaning') &&
+                  styles.statusIndicatorProcessing,
+                status === 'done' && styles.statusIndicatorDone,
+              ]}
+            />
+            <Text style={styles.statusLabel}>
+              {status === 'recording'
+                ? 'Listening…'
+                : status === 'transcribing'
+                ? 'Transcribing…'
+                : status === 'cleaning'
+                ? 'Polishing with AI…'
+                : status === 'done'
+                ? 'Ready to use'
+                : status === 'error'
+                ? 'Something went wrong'
+                : 'Tap the mic to dictate'}
             </Text>
+          </View>
 
-            {/* Real-time Dynamic 28-Band Waveform Equalizer */}
-            <View style={styles.visualizerContainer}>
-              <AudioVisualizer
-                isRecording={isRecording}
-                meteringLevel={meteringLevel}
-                height={46}
-                barCount={28}
-              />
-            </View>
-
-            {isRecording && (
-              <TouchableOpacity
-                style={styles.cancelBtn}
-                onPress={async () => {
-                  await cancelRecording();
-                  setStatus('idle');
-                }}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="close-circle-outline" size={14} color="#F87171" />
-                <Text style={styles.cancelBtnText}>Discard Recording</Text>
-              </TouchableOpacity>
-            )}
-
-            {errorMessage.length > 0 && (
-              <View style={styles.errorBanner}>
-                <Ionicons name="alert-circle" size={16} color={Theme.colors.red} />
-                <Text style={styles.errorText}>{errorMessage}</Text>
-              </View>
-            )}
-          </LinearGradient>
-        </View>
-
-        {/* Cleaned Result Glass Sheet (The Peak Moment) */}
-        {latestCleanedText.length > 0 ? (
-          <View style={styles.resultCard}>
-            <LinearGradient
-              colors={['#00F0FF', '#2563EB']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.resultTopStripe}
+          {/* Mic button with soft halo */}
+          <View style={styles.micContainer}>
+            <Animated.View
+              style={[
+                styles.outerPulseRing,
+                isRecording && styles.outerPulseRingActive,
+                {
+                  transform: [
+                    { scale: isRecording ? outerPulseAnim : idleBreathAnim },
+                  ],
+                },
+              ]}
+            />
+            <Animated.View
+              style={[
+                styles.pulseRing,
+                isRecording && styles.pulseRingActive,
+                {
+                  transform: [
+                    { scale: isRecording ? pulseAnim : idleBreathAnim },
+                  ],
+                },
+              ]}
             />
 
+            <TouchableOpacity
+              style={[
+                styles.micButton,
+                isRecording && styles.micButtonRecording,
+                (status === 'transcribing' || status === 'cleaning') &&
+                  styles.micButtonProcessing,
+              ]}
+              onPress={handleToggleRecord}
+              disabled={status === 'transcribing' || status === 'cleaning'}
+              activeOpacity={0.85}
+            >
+              {status === 'transcribing' || status === 'cleaning' ? (
+                <ActivityIndicator size="large" color={Theme.colors.textPrimary} />
+              ) : (
+                <Ionicons
+                  name={isRecording ? 'stop' : 'mic'}
+                  size={38}
+                  color={isRecording ? '#FFFFFF' : Theme.colors.textInverse}
+                />
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {/* Timer */}
+          <Text style={styles.timerText}>
+            {isRecording ? formatTimer(durationMs) : '00:00.0'}
+          </Text>
+
+          {/* Waveform */}
+          <View style={styles.visualizerContainer}>
+            <AudioVisualizer
+              isRecording={isRecording}
+              meteringLevel={meteringLevel}
+              height={44}
+              barCount={28}
+            />
+          </View>
+
+          {isRecording && (
+            <TouchableOpacity
+              style={styles.cancelBtn}
+              onPress={async () => {
+                await cancelRecording();
+                setStatus('idle');
+              }}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="close" size={14} color={Theme.colors.red} />
+              <Text style={styles.cancelBtnText}>Discard</Text>
+            </TouchableOpacity>
+          )}
+
+          {errorMessage.length > 0 && (
+            <View style={styles.errorBanner}>
+              <Ionicons name="alert-circle" size={16} color={Theme.colors.red} />
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            </View>
+          )}
+        </View>
+
+        {/* Result card */}
+        {latestCleanedText.length > 0 ? (
+          <View style={styles.resultCard}>
             <View style={styles.resultHeader}>
               <View style={styles.resultBadge}>
                 <Ionicons name="sparkles" size={13} color={Theme.colors.cyan} />
-                <Text style={styles.resultBadgeText}>OpenWhispr AI Refined</Text>
+                <Text style={styles.resultBadgeText}>Refined by AI</Text>
               </View>
 
               <View style={styles.resultStatsRow}>
-                <View style={styles.wordCountPill}>
-                  <Text style={styles.resultStatText}>
-                    {countWords(latestCleanedText)} words
-                  </Text>
-                </View>
+                <Text style={styles.resultStatText}>
+                  {countWords(latestCleanedText)} words
+                </Text>
                 <TouchableOpacity
                   onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -727,17 +672,15 @@ export default function DictationScreen() {
                   style={styles.dismissBtn}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
-                  <Ionicons name="close-circle-outline" size={18} color={Theme.colors.textMuted} />
+                  <Ionicons name="close" size={18} color={Theme.colors.textMuted} />
                 </TouchableOpacity>
               </View>
             </View>
 
-            {/* Cleaned Text Body */}
             <Text style={styles.resultContent} selectable>
               {latestCleanedText}
             </Text>
 
-            {/* Action Bar Pills */}
             <View style={styles.resultActionBar}>
               <TouchableOpacity
                 style={[
@@ -749,16 +692,16 @@ export default function DictationScreen() {
               >
                 <Ionicons
                   name={copiedToast ? 'checkmark-circle' : 'copy-outline'}
-                  size={15}
-                  color={copiedToast ? '#10B981' : Theme.colors.cyan}
+                  size={16}
+                  color={copiedToast ? Theme.colors.green : Theme.colors.cyan}
                 />
                 <Text
                   style={[
                     styles.resultActionText,
-                    copiedToast && { color: '#10B981' },
+                    copiedToast && { color: Theme.colors.green },
                   ]}
                 >
-                  {copiedToast ? 'Copied!' : 'Copy Text'}
+                  {copiedToast ? 'Copied' : 'Copy'}
                 </Text>
               </TouchableOpacity>
 
@@ -773,15 +716,15 @@ export default function DictationScreen() {
                 <Ionicons
                   name={isSpeaking ? 'pause-circle' : 'volume-high-outline'}
                   size={16}
-                  color={isSpeaking ? '#FFFFFF' : Theme.colors.purpleBright}
+                  color={isSpeaking ? Theme.colors.textPrimary : Theme.colors.cyan}
                 />
                 <Text
                   style={[
                     styles.resultActionText,
-                    isSpeaking && { color: '#FFFFFF' },
+                    isSpeaking && { color: Theme.colors.textPrimary },
                   ]}
                 >
-                  {isSpeaking ? 'Pause' : 'TTS Speak'}
+                  {isSpeaking ? 'Pause' : 'Listen'}
                 </Text>
               </TouchableOpacity>
 
@@ -790,12 +733,12 @@ export default function DictationScreen() {
                 onPress={handleShare}
                 activeOpacity={0.7}
               >
-                <Ionicons name="share-social-outline" size={15} color={Theme.colors.textSecondary} />
+                <Ionicons name="share-social-outline" size={16} color={Theme.colors.textSecondary} />
                 <Text style={styles.resultActionText}>Share</Text>
               </TouchableOpacity>
             </View>
 
-            {/* Raw Transcript Comparison Drawer */}
+            {/* Raw transcript drawer */}
             {latestRawText.length > 0 && (
               <View style={styles.comparisonBox}>
                 <TouchableOpacity
@@ -809,21 +752,19 @@ export default function DictationScreen() {
                   <View style={styles.comparisonToggleLeft}>
                     <Ionicons name="git-compare-outline" size={14} color={Theme.colors.cyan} />
                     <Text style={styles.comparisonToggleText}>
-                      {showRawAccordion
-                        ? `Hide Raw ${settings.sttProvider.toUpperCase()}`
-                        : `Compare Raw STT vs AI Refinement`}
+                      {showRawAccordion ? 'Hide raw transcript' : 'Compare with raw transcript'}
                     </Text>
                   </View>
                   <Ionicons
                     name={showRawAccordion ? 'chevron-up' : 'chevron-down'}
-                    size={15}
+                    size={16}
                     color={Theme.colors.textMuted}
                   />
                 </TouchableOpacity>
 
                 {showRawAccordion && (
                   <View style={styles.rawTextContainer}>
-                    <Text style={styles.rawTextLabel}>RAW SPEECH-TO-TEXT BEFORE REFACTORING:</Text>
+                    <Text style={styles.rawTextLabel}>Raw speech-to-text</Text>
                     <Text style={styles.rawText}>{latestRawText}</Text>
                   </View>
                 )}
@@ -831,22 +772,17 @@ export default function DictationScreen() {
             )}
           </View>
         ) : !isRecording ? (
-          /* Inspiration Prompts (Smart Pattern: Guidance in Empty State) */
+          /* Empty state — what you can dictate */
           <View style={styles.inspirationCard}>
-            <View style={styles.inspirationHeader}>
-              <View style={styles.inspirationIconWrapper}>
-                <Ionicons name="sparkles" size={12} color={Theme.colors.cyan} />
-              </View>
-              <Text style={styles.inspirationTitle}>WHAT YOU CAN DICTATE</Text>
-            </View>
+            <Text style={styles.inspirationTitle}>What you can dictate</Text>
 
             <View style={styles.promptList}>
               <View style={styles.promptItem}>
                 <Text style={styles.promptEmoji}>✉️</Text>
                 <View style={styles.promptTextContainer}>
-                  <Text style={styles.promptItemTitle}>Emails & Slack Messages</Text>
+                  <Text style={styles.promptItemTitle}>Emails & messages</Text>
                   <Text style={styles.promptItemSubtitle}>
-                    "Hey team, just wanted to follow up on the launch timeline..."
+                    “Hey team, just following up on the launch timeline…”
                   </Text>
                 </View>
               </View>
@@ -854,9 +790,9 @@ export default function DictationScreen() {
               <View style={styles.promptItem}>
                 <Text style={styles.promptEmoji}>💡</Text>
                 <View style={styles.promptTextContainer}>
-                  <Text style={styles.promptItemTitle}>Thoughts & Brain Dumps</Text>
+                  <Text style={styles.promptItemTitle}>Thoughts & brain dumps</Text>
                   <Text style={styles.promptItemSubtitle}>
-                    Speak stream-of-consciousness — AI organizes it with bullet points.
+                    Speak freely — AI organizes it into clear notes.
                   </Text>
                 </View>
               </View>
@@ -864,9 +800,9 @@ export default function DictationScreen() {
               <View style={styles.promptItem}>
                 <Text style={styles.promptEmoji}>📝</Text>
                 <View style={styles.promptTextContainer}>
-                  <Text style={styles.promptItemTitle}>Meeting Notes & Action Items</Text>
+                  <Text style={styles.promptItemTitle}>Meeting notes</Text>
                   <Text style={styles.promptItemSubtitle}>
-                    "Key takeaways from discussion with design team..."
+                    Key takeaways and action items, hands-free.
                   </Text>
                 </View>
               </View>
@@ -874,7 +810,7 @@ export default function DictationScreen() {
           </View>
         ) : null}
 
-        {/* History List */}
+        {/* History */}
         <HistoryList
           items={history}
           onSpeakItem={(txt) => handleSpeak(txt)}
@@ -897,24 +833,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Theme.colors.bg,
   },
-  ambientGlowTop: {
-    position: 'absolute',
-    top: -60,
-    left: SCREEN_WIDTH * 0.1,
-    width: SCREEN_WIDTH * 0.8,
-    height: 180,
-    borderRadius: SCREEN_WIDTH,
-    backgroundColor: 'rgba(0, 240, 255, 0.06)',
-  },
-  ambientGlowCenter: {
-    position: 'absolute',
-    top: 260,
-    left: SCREEN_WIDTH * 0.15,
-    width: SCREEN_WIDTH * 0.7,
-    height: 220,
-    borderRadius: SCREEN_WIDTH,
-    backgroundColor: 'rgba(99, 102, 241, 0.05)',
-  },
   container: {
     flex: 1,
   },
@@ -923,59 +841,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   brandContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
-  logoGradient: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
+  logoMark: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    backgroundColor: Theme.colors.cyan,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#00F0FF',
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-    elevation: 6,
   },
-  brandTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+  brandText: {
+    gap: 1,
   },
   brandTitle: {
-    color: '#FFFFFF',
+    color: Theme.colors.textPrimary,
     fontSize: 20,
     fontFamily: Theme.fonts.heading,
-    letterSpacing: -0.4,
+    letterSpacing: -0.3,
   },
-  proBadge: {
-    backgroundColor: 'rgba(0, 240, 255, 0.12)',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 240, 255, 0.3)',
-  },
-  proBadgeText: {
-    color: Theme.colors.cyan,
-    fontSize: 9,
-    fontFamily: Theme.fonts.monoBold,
-    letterSpacing: 0.6,
-  },
-  engineBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 2,
-  },
-  enginePipelineText: {
-    color: Theme.colors.cyan,
-    fontSize: 10.5,
-    fontFamily: Theme.fonts.monoBold,
-    letterSpacing: 0.4,
+  brandSubtitle: {
+    color: Theme.colors.textMuted,
+    fontSize: 12,
+    fontFamily: Theme.fonts.medium,
   },
   topBarActions: {
     flexDirection: 'row',
@@ -983,189 +876,168 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   floatingToggleBtn: {
-    padding: 9,
-    borderRadius: 12,
-    backgroundColor: Theme.colors.cardGlass,
-    borderWidth: 1.2,
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Theme.colors.card,
+    borderWidth: 1,
     borderColor: Theme.colors.border,
-    position: 'relative',
   },
   floatingToggleActive: {
-    borderColor: Theme.colors.cyan,
-    backgroundColor: 'rgba(0, 240, 255, 0.14)',
-  },
-  activeDot: {
-    position: 'absolute',
-    top: 5,
-    right: 5,
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: Theme.colors.cyan,
+    borderColor: Theme.colors.borderHighlight,
+    backgroundColor: Theme.colors.cyanMuted,
   },
   keyBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    backgroundColor: Theme.colors.cardGlass,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
-    borderWidth: 1.2,
+    gap: 7,
+    backgroundColor: Theme.colors.card,
+    paddingLeft: 12,
+    paddingRight: 14,
+    paddingVertical: 10,
+    borderRadius: 14,
+    borderWidth: 1,
     borderColor: Theme.colors.border,
   },
   keyBtnHighlight: {
-    borderColor: Theme.colors.amber,
-    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+    borderColor: 'rgba(217, 164, 65, 0.45)',
+    backgroundColor: Theme.colors.amberMuted,
+  },
+  keyDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
   },
   keyBtnText: {
-    color: '#FFFFFF',
-    fontSize: 11.5,
+    color: Theme.colors.textPrimary,
+    fontSize: 12,
     fontFamily: Theme.fonts.semiBold,
   },
   keyBtnTextHighlight: {
     color: Theme.colors.amber,
   },
   floatingBanner: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    marginBottom: 16,
-    borderWidth: 1.2,
-    borderColor: 'rgba(0, 240, 255, 0.25)',
-  },
-  floatingBannerGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
+    borderRadius: 16,
     paddingHorizontal: 14,
-    paddingVertical: 10,
+    paddingVertical: 12,
+    backgroundColor: Theme.colors.cyanSubtle,
+    borderWidth: 1,
+    borderColor: 'rgba(233, 160, 99, 0.2)',
+    marginBottom: 16,
   },
   pulseDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: Theme.colors.cyan,
   },
   floatingBannerText: {
-    color: '#E2E8F0',
-    fontSize: 12,
+    color: Theme.colors.textSecondary,
+    fontSize: 12.5,
     fontFamily: Theme.fonts.medium,
     flex: 1,
     lineHeight: 17,
   },
   studioCard: {
     borderRadius: 28,
-    borderWidth: 1.4,
-    borderColor: 'rgba(255, 255, 255, 0.09)',
-    backgroundColor: Theme.colors.cardGlass,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.6,
-    shadowRadius: 28,
-    elevation: 20,
-    marginBottom: 16,
-  },
-  studioCardGradient: {
-    paddingVertical: 26,
+    borderWidth: 1,
+    borderColor: Theme.colors.border,
+    backgroundColor: Theme.colors.card,
+    paddingVertical: 28,
     paddingHorizontal: 20,
     alignItems: 'center',
+    marginBottom: 16,
+    ...Theme.shadows.card,
   },
   statusPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    paddingHorizontal: 13,
-    paddingVertical: 5,
+    gap: 8,
+    backgroundColor: Theme.colors.surfaceGlass,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    marginBottom: 24,
+    marginBottom: 28,
   },
   statusIndicator: {
-    width: 6.5,
-    height: 6.5,
-    borderRadius: 3.5,
-    backgroundColor: '#64748B',
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: Theme.colors.textMuted,
   },
   statusIndicatorRecording: {
-    backgroundColor: '#EF4444',
+    backgroundColor: Theme.colors.red,
   },
   statusIndicatorProcessing: {
-    backgroundColor: '#A855F7',
+    backgroundColor: Theme.colors.amber,
+  },
+  statusIndicatorDone: {
+    backgroundColor: Theme.colors.green,
   },
   statusLabel: {
-    color: '#94A3B8',
-    fontSize: 10.5,
-    fontFamily: Theme.fonts.monoBold,
-    letterSpacing: 0.6,
+    color: Theme.colors.textSecondary,
+    fontSize: 12,
+    fontFamily: Theme.fonts.medium,
   },
   micContainer: {
-    width: 140,
-    height: 140,
+    width: 150,
+    height: 150,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
     position: 'relative',
   },
   outerPulseRing: {
     position: 'absolute',
-    width: 136,
-    height: 136,
-    borderRadius: 68,
-    borderWidth: 1.5,
-    borderColor: 'rgba(0, 240, 255, 0.12)',
-    backgroundColor: 'rgba(0, 240, 255, 0.02)',
+    width: 138,
+    height: 138,
+    borderRadius: 69,
+    borderWidth: 1,
+    borderColor: 'rgba(233, 160, 99, 0.12)',
   },
   outerPulseRingActive: {
-    borderColor: 'rgba(239, 68, 68, 0.45)',
-    backgroundColor: 'rgba(239, 68, 68, 0.06)',
+    borderColor: 'rgba(229, 72, 77, 0.35)',
   },
   pulseRing: {
     position: 'absolute',
-    width: 110,
-    height: 110,
-    borderRadius: 55,
-    borderWidth: 1.8,
-    borderColor: 'rgba(0, 240, 255, 0.25)',
-    backgroundColor: 'rgba(0, 240, 255, 0.04)',
+    width: 116,
+    height: 116,
+    borderRadius: 58,
+    borderWidth: 1.5,
+    borderColor: 'rgba(233, 160, 99, 0.28)',
   },
   pulseRingActive: {
-    borderColor: 'rgba(239, 68, 68, 0.75)',
-    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    borderColor: 'rgba(229, 72, 77, 0.55)',
   },
   micButton: {
-    width: 86,
-    height: 86,
-    borderRadius: 43,
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: 'rgba(0, 240, 255, 0.5)',
-    shadowColor: '#00F0FF',
-    shadowOpacity: 0.6,
-    shadowRadius: 18,
-    elevation: 12,
-  },
-  micButtonRecording: {
-    borderColor: '#FCA5A5',
-    shadowColor: '#EF4444',
-  },
-  micButtonProcessing: {
-    borderColor: '#C084FC',
-    shadowColor: '#8B5CF6',
-  },
-  micButtonInner: {
-    flex: 1,
+    width: 92,
+    height: 92,
+    borderRadius: 46,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: Theme.colors.cyan,
+    ...Theme.shadows.idleGlow,
+  },
+  micButtonRecording: {
+    backgroundColor: Theme.colors.red,
+    shadowColor: '#E5484D',
+  },
+  micButtonProcessing: {
+    backgroundColor: Theme.colors.surfaceActive,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   timerText: {
-    color: '#FFFFFF',
-    fontSize: 26,
+    color: Theme.colors.textPrimary,
+    fontSize: 28,
     fontFamily: Theme.fonts.monoBold,
-    letterSpacing: 1.2,
-    marginBottom: 14,
+    letterSpacing: 1,
+    marginBottom: 12,
   },
   visualizerContainer: {
     width: '100%',
@@ -1174,53 +1046,44 @@ const styles = StyleSheet.create({
   cancelBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    marginTop: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    gap: 6,
+    marginTop: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 12,
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    backgroundColor: Theme.colors.redMuted,
   },
   cancelBtnText: {
-    color: '#F87171',
-    fontSize: 12,
+    color: '#E0857E',
+    fontSize: 12.5,
     fontFamily: Theme.fonts.semiBold,
   },
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginTop: 14,
+    marginTop: 16,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    backgroundColor: Theme.colors.redMuted,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderColor: 'rgba(229, 72, 77, 0.25)',
   },
   errorText: {
-    color: '#FCA5A5',
-    fontSize: 12,
+    color: '#E8A19C',
+    fontSize: 12.5,
     fontFamily: Theme.fonts.regular,
     flex: 1,
   },
   resultCard: {
-    backgroundColor: Theme.colors.cardGlass,
+    backgroundColor: Theme.colors.card,
     borderRadius: 24,
     padding: 20,
-    borderWidth: 1.4,
+    borderWidth: 1,
     borderColor: Theme.colors.border,
     marginBottom: 16,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  resultTopStripe: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 3,
-    backgroundColor: Theme.colors.cyan,
+    ...Theme.shadows.subtle,
   },
   resultHeader: {
     flexDirection: 'row',
@@ -1231,46 +1094,32 @@ const styles = StyleSheet.create({
   resultBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    backgroundColor: 'rgba(0, 240, 255, 0.1)',
+    gap: 6,
+    backgroundColor: Theme.colors.cyanSubtle,
     paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingVertical: 5,
     borderRadius: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 240, 255, 0.25)',
   },
   resultBadgeText: {
     color: Theme.colors.cyan,
-    fontSize: 11,
-    fontFamily: Theme.fonts.monoBold,
-    letterSpacing: 0.3,
+    fontSize: 12,
+    fontFamily: Theme.fonts.semiBold,
   },
   resultStatsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
   },
   resultStatText: {
     color: Theme.colors.textMuted,
-    fontSize: 11,
-    fontFamily: Theme.fonts.mono,
+    fontSize: 12,
+    fontFamily: Theme.fonts.medium,
   },
-  copiedPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-  },
-  copiedPillText: {
-    color: Theme.colors.green,
-    fontSize: 11,
-    fontFamily: Theme.fonts.semiBold,
+  dismissBtn: {
+    padding: 2,
   },
   resultContent: {
-    color: '#F8FAFC',
+    color: Theme.colors.textPrimary,
     fontSize: 16,
     lineHeight: 25,
     fontFamily: Theme.fonts.regular,
@@ -1280,33 +1129,37 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.06)',
+    borderTopColor: Theme.colors.borderSubtle,
     paddingTop: 14,
   },
   resultActionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    gap: 7,
+    backgroundColor: Theme.colors.surfaceGlass,
     paddingHorizontal: 14,
-    paddingVertical: 9,
+    paddingVertical: 10,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Theme.colors.borderSubtle,
+  },
+  copiedActionBtn: {
+    backgroundColor: Theme.colors.greenMuted,
+    borderColor: 'rgba(147, 184, 132, 0.3)',
   },
   speakingActionBtn: {
-    backgroundColor: 'rgba(0, 240, 255, 0.18)',
-    borderColor: Theme.colors.cyan,
+    backgroundColor: Theme.colors.cyanMuted,
+    borderColor: Theme.colors.borderHighlight,
   },
   resultActionText: {
-    color: '#E2E8F0',
-    fontSize: 12.5,
+    color: Theme.colors.textPrimary,
+    fontSize: 13,
     fontFamily: Theme.fonts.semiBold,
   },
   comparisonBox: {
     marginTop: 14,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.06)',
+    borderTopColor: Theme.colors.borderSubtle,
     paddingTop: 12,
   },
   comparisonToggle: {
@@ -1321,72 +1174,42 @@ const styles = StyleSheet.create({
   },
   comparisonToggleText: {
     color: Theme.colors.cyan,
-    fontSize: 12,
+    fontSize: 12.5,
     fontFamily: Theme.fonts.medium,
   },
   rawTextContainer: {
     marginTop: 10,
     padding: 12,
     borderRadius: 12,
-    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    backgroundColor: Theme.colors.bgSecondary,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: Theme.colors.borderSubtle,
   },
   rawTextLabel: {
     color: Theme.colors.textMuted,
-    fontSize: 9.5,
-    fontFamily: Theme.fonts.monoBold,
-    letterSpacing: 0.5,
+    fontSize: 11,
+    fontFamily: Theme.fonts.medium,
     marginBottom: 4,
   },
   rawText: {
-    color: '#94A3B8',
+    color: Theme.colors.textSecondary,
     fontSize: 13,
     lineHeight: 19,
     fontFamily: Theme.fonts.regular,
   },
-  wordCountPill: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  dismissBtn: {
-    padding: 2,
-  },
-  copiedActionBtn: {
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
-    borderColor: 'rgba(16, 185, 129, 0.35)',
-  },
   inspirationCard: {
-    backgroundColor: Theme.colors.cardGlass,
+    backgroundColor: Theme.colors.card,
     borderRadius: 24,
     padding: 20,
-    borderWidth: 1.2,
+    borderWidth: 1,
     borderColor: Theme.colors.border,
     marginBottom: 16,
   },
-  inspirationHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 14,
-  },
-  inspirationIconWrapper: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: 'rgba(0, 240, 255, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   inspirationTitle: {
     color: Theme.colors.textSecondary,
-    fontSize: 11,
-    fontFamily: Theme.fonts.monoBold,
-    letterSpacing: 0.8,
+    fontSize: 13,
+    fontFamily: Theme.fonts.semiBold,
+    marginBottom: 14,
   },
   promptList: {
     gap: 10,
@@ -1395,11 +1218,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: 14,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: Theme.colors.surfaceGlass,
+    borderRadius: 16,
+    padding: 14,
   },
   promptEmoji: {
     fontSize: 18,
@@ -1409,15 +1230,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   promptItemTitle: {
-    color: '#FFFFFF',
-    fontSize: 13,
+    color: Theme.colors.textPrimary,
+    fontSize: 14,
     fontFamily: Theme.fonts.semiBold,
     marginBottom: 2,
   },
   promptItemSubtitle: {
     color: Theme.colors.textSecondary,
-    fontSize: 12,
+    fontSize: 12.5,
     fontFamily: Theme.fonts.regular,
-    lineHeight: 17,
+    lineHeight: 18,
   },
 });

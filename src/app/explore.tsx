@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import * as Clipboard from 'expo-clipboard';
 
@@ -29,6 +28,15 @@ import { NativeFloatingBubble } from '../services/nativeFloatingBubble';
 import { OverlayPermissionModal } from '../components/OverlayPermissionModal';
 
 import { getRecordingPermissionsAsync, requestRecordingPermissionsAsync } from 'expo-audio';
+
+interface EngineOption {
+  id: SttProvider | LlmProvider;
+  name: string;
+  detail: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  tint: string;
+  recommended?: boolean;
+}
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
@@ -170,9 +178,134 @@ export default function SettingsScreen() {
   const isCustomSttConfigured = Boolean(settings.customSttBaseUrl && settings.customSttBaseUrl.length > 0);
   const isCustomLlmConfigured = Boolean(settings.customLlmBaseUrl && settings.customLlmBaseUrl.length > 0);
 
+  const sttOptions: EngineOption[] = [
+    {
+      id: 'surplus',
+      name: 'Surplus Intelligence',
+      detail: isSurplusConfigured
+        ? `${settings.surplusSttModel || 'venice-whisper-large-v3'} · connected`
+        : 'Key required',
+      icon: 'sparkles',
+      tint: '#E08D76',
+      recommended: true,
+    },
+    {
+      id: 'deepgram',
+      name: 'Deepgram Nova-3',
+      detail: isDeepgramConfigured ? 'Connected' : 'Key required',
+      icon: 'radio',
+      tint: '#93B884',
+    },
+    {
+      id: 'groq',
+      name: 'Groq Whisper Turbo',
+      detail: isGroqConfigured ? 'Connected' : 'Key required',
+      icon: 'flash',
+      tint: '#E9A063',
+    },
+    {
+      id: 'openai',
+      name: 'OpenAI Whisper',
+      detail: isOpenaiConfigured ? 'Connected' : 'Key required',
+      icon: 'sparkles-outline',
+      tint: '#DFAF82',
+    },
+    {
+      id: 'custom',
+      name: 'Custom STT',
+      detail: isCustomSttConfigured
+        ? `${settings.customSttModel || 'whisper-1'} · ${settings.customSttBaseUrl}`
+        : 'Set your own URL & model',
+      icon: 'globe-outline',
+      tint: '#D9A441',
+    },
+  ];
+
+  const llmOptions: EngineOption[] = [
+    {
+      id: 'surplus',
+      name: 'Surplus Intelligence',
+      detail: isSurplusConfigured
+        ? `${settings.surplusLlmModel || 'deepseek-v4-flash'} · 450+ models`
+        : 'Key required',
+      icon: 'planet',
+      tint: '#E08D76',
+      recommended: true,
+    },
+    {
+      id: 'groq',
+      name: 'Groq Llama 3.3 70B',
+      detail: isGroqConfigured ? 'Connected' : 'Key required',
+      icon: 'hardware-chip',
+      tint: '#E9A063',
+    },
+    {
+      id: 'openai',
+      name: 'OpenAI GPT-4o mini',
+      detail: isOpenaiConfigured ? 'Connected' : 'Key required',
+      icon: 'infinite',
+      tint: '#DFAF82',
+    },
+    {
+      id: 'gemini',
+      name: `Google Gemini ${settings.geminiModel || '2.5 Flash'}`,
+      detail: isGeminiConfigured ? 'Connected · 1M context' : 'Key required',
+      icon: 'logo-google',
+      tint: '#F2C08A',
+    },
+    {
+      id: 'custom',
+      name: 'Custom LLM',
+      detail: isCustomLlmConfigured
+        ? `${settings.customLlmModel || 'custom'} · ${settings.customLlmBaseUrl}`
+        : 'DeepSeek, OpenRouter, Ollama…',
+      icon: 'construct-outline',
+      tint: '#D9A441',
+    },
+  ];
+
+  const renderEngineCard = (
+    option: EngineOption,
+    isActive: boolean,
+    onSelect: () => void
+  ) => (
+    <TouchableOpacity
+      key={option.id}
+      style={[styles.engineCard, isActive && styles.engineCardActive]}
+      onPress={onSelect}
+      activeOpacity={0.8}
+    >
+      <View style={styles.engineIdentity}>
+        <View style={[styles.engineIcon, { backgroundColor: `${option.tint}1F` }]}>
+          <Ionicons name={option.icon} size={19} color={option.tint} />
+        </View>
+        <View style={{ flex: 1 }}>
+          {option.recommended && !isActive ? (
+            <View style={[styles.featuredBadge, { backgroundColor: `${option.tint}1F` }]}>
+              <Text style={[styles.featuredBadgeText, { color: option.tint }]}>Recommended</Text>
+            </View>
+          ) : null}
+          <Text style={styles.engineName}>{option.name}</Text>
+          <Text style={styles.engineDetail} numberOfLines={1}>
+            {option.detail}
+          </Text>
+        </View>
+      </View>
+
+      {isActive ? (
+        <View style={styles.activeIndicatorPill}>
+          <Ionicons name="checkmark" size={12} color={Theme.colors.cyan} />
+          <Text style={styles.activeIndicatorText}>Active</Text>
+        </View>
+      ) : (
+        <View style={styles.inactiveDot} />
+      )}
+    </TouchableOpacity>
+  );
+
   return (
     <View style={[styles.root, { paddingTop: Math.max(insets.top, 8) }]}>
-      <StatusBar barStyle="light-content" backgroundColor="#06080D" />
+      <StatusBar barStyle="light-content" backgroundColor={Theme.colors.bg} />
 
       {/* Modals */}
       <ApiKeyModal
@@ -206,9 +339,9 @@ export default function SettingsScreen() {
         contentContainerStyle={[
           styles.contentContainer,
           {
-            paddingLeft: Math.max(insets.left, 16),
-            paddingRight: Math.max(insets.right, 16),
-            paddingBottom: Math.max(insets.bottom + 80, 96),
+            paddingLeft: Math.max(insets.left, 20),
+            paddingRight: Math.max(insets.right, 20),
+            paddingBottom: Math.max(insets.bottom + 96, 120),
           },
         ]}
         showsVerticalScrollIndicator={false}
@@ -216,7 +349,7 @@ export default function SettingsScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerTopRow}>
-            <Text style={styles.headerTitle}>API Keys & Engines</Text>
+            <Text style={styles.headerTitle}>Engines & Keys</Text>
             <TouchableOpacity
               style={styles.keyManageBtn}
               onPress={() => {
@@ -226,392 +359,60 @@ export default function SettingsScreen() {
               activeOpacity={0.7}
             >
               <Ionicons name="key-outline" size={13} color={Theme.colors.cyan} />
-              <Text style={styles.keyManageText}>Edit Keys</Text>
+              <Text style={styles.keyManageText}>Edit keys</Text>
             </TouchableOpacity>
           </View>
           <Text style={styles.headerSubtitle}>
-            Select your preferred speech-to-text and AI cleanup models.
+            Pick the speech-to-text and AI cleanup models you prefer.
           </Text>
         </View>
 
-        {/* SECTION 1: SPEECH-TO-TEXT ENGINES */}
+        {/* SECTION 1: Speech-to-text */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>SPEECH-TO-TEXT</Text>
+          <Text style={styles.sectionTitle}>Speech to text</Text>
         </View>
 
-        {/* Surplus Intelligence Speech-to-Text Card (Featured / Special Focus) */}
-        <TouchableOpacity
-          style={[
-            styles.engineCard,
-            styles.engineCardSurplusFeatured,
-            settings.sttProvider === 'surplus' && styles.engineCardActiveSurplus,
-          ]}
-          onPress={() => handleSelectSttProvider('surplus')}
-          activeOpacity={0.8}
-        >
-          <View style={styles.engineCardHeader}>
-            <View style={styles.engineIdentity}>
-              <View style={[styles.engineIcon, { backgroundColor: 'rgba(255, 77, 141, 0.15)' }]}>
-                <Ionicons name="sparkles" size={18} color="#FF4D8D" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <View style={styles.featuredBadge}>
-                  <Ionicons name="flame" size={9} color="#FF4D8D" />
-                  <Text style={styles.featuredBadgeText}>SPECIAL FOCUS</Text>
-                </View>
-                <Text style={styles.engineName}>Surplus Intelligence STT</Text>
-                <Text style={styles.engineDetail} numberOfLines={1}>
-                  {isSurplusConfigured
-                    ? `${settings.surplusSttModel || 'venice-whisper-large-v3'} • Connected`
-                    : 'inf_... Key required (Decentralized AI)'}
-                </Text>
-              </View>
-            </View>
+        {sttOptions.map((option) =>
+          renderEngineCard(
+            option,
+            settings.sttProvider === option.id,
+            () => handleSelectSttProvider(option.id as SttProvider)
+          )
+        )}
 
-            {settings.sttProvider === 'surplus' ? (
-              <View style={[styles.activeIndicatorPill, { borderColor: '#FF4D8D', backgroundColor: 'rgba(255, 77, 141, 0.15)' }]}>
-                <Ionicons name="checkmark-sharp" size={11} color="#FF4D8D" />
-                <Text style={[styles.activeIndicatorText, { color: '#FF4D8D' }]}>ACTIVE</Text>
-              </View>
-            ) : (
-              <View style={styles.inactiveDot} />
-            )}
-          </View>
-        </TouchableOpacity>
-
-        {/* Deepgram Card */}
-        <TouchableOpacity
-          style={[
-            styles.engineCard,
-            settings.sttProvider === 'deepgram' && styles.engineCardActiveDeepgram,
-          ]}
-          onPress={() => handleSelectSttProvider('deepgram')}
-          activeOpacity={0.8}
-        >
-          <View style={styles.engineCardHeader}>
-            <View style={styles.engineIdentity}>
-              <View style={[styles.engineIcon, { backgroundColor: 'rgba(16, 185, 129, 0.12)' }]}>
-                <Ionicons name="radio" size={18} color="#10B981" />
-              </View>
-              <View>
-                <Text style={styles.engineName}>Deepgram Nova-3</Text>
-                <Text style={styles.engineDetail}>
-                  {isDeepgramConfigured ? 'Connected' : 'Key required'}
-                </Text>
-              </View>
-            </View>
-
-            {settings.sttProvider === 'deepgram' ? (
-              <View style={[styles.activeIndicatorPill, { borderColor: '#10B981', backgroundColor: 'rgba(16, 185, 129, 0.15)' }]}>
-                <Ionicons name="checkmark-sharp" size={11} color="#10B981" />
-                <Text style={[styles.activeIndicatorText, { color: '#10B981' }]}>ACTIVE</Text>
-              </View>
-            ) : (
-              <View style={styles.inactiveDot} />
-            )}
-          </View>
-        </TouchableOpacity>
-
-        {/* Groq Whisper Card */}
-        <TouchableOpacity
-          style={[
-            styles.engineCard,
-            settings.sttProvider === 'groq' && styles.engineCardActiveGroq,
-          ]}
-          onPress={() => handleSelectSttProvider('groq')}
-          activeOpacity={0.8}
-        >
-          <View style={styles.engineCardHeader}>
-            <View style={styles.engineIdentity}>
-              <View style={[styles.engineIcon, { backgroundColor: 'rgba(0, 240, 255, 0.12)' }]}>
-                <Ionicons name="flash" size={18} color={Theme.colors.cyan} />
-              </View>
-              <View>
-                <Text style={styles.engineName}>Groq Whisper Turbo</Text>
-                <Text style={styles.engineDetail}>
-                  {isGroqConfigured ? 'Connected' : 'Key required'}
-                </Text>
-              </View>
-            </View>
-
-            {settings.sttProvider === 'groq' ? (
-              <View style={styles.activeIndicatorPill}>
-                <Ionicons name="checkmark-sharp" size={11} color={Theme.colors.cyan} />
-                <Text style={styles.activeIndicatorText}>ACTIVE</Text>
-              </View>
-            ) : (
-              <View style={styles.inactiveDot} />
-            )}
-          </View>
-        </TouchableOpacity>
-
-        {/* OpenAI Whisper Card */}
-        <TouchableOpacity
-          style={[
-            styles.engineCard,
-            settings.sttProvider === 'openai' && styles.engineCardActiveOpenAI,
-          ]}
-          onPress={() => handleSelectSttProvider('openai')}
-          activeOpacity={0.8}
-        >
-          <View style={styles.engineCardHeader}>
-            <View style={styles.engineIdentity}>
-              <View style={[styles.engineIcon, { backgroundColor: 'rgba(139, 92, 246, 0.12)' }]}>
-                <Ionicons name="sparkles" size={18} color="#A78BFA" />
-              </View>
-              <View>
-                <Text style={styles.engineName}>OpenAI Whisper</Text>
-                <Text style={styles.engineDetail}>
-                  {isOpenaiConfigured ? 'Connected' : 'Key required'}
-                </Text>
-              </View>
-            </View>
-
-            {settings.sttProvider === 'openai' ? (
-              <View style={[styles.activeIndicatorPill, { borderColor: '#A78BFA', backgroundColor: 'rgba(139, 92, 246, 0.15)' }]}>
-                <Ionicons name="checkmark-sharp" size={11} color="#A78BFA" />
-                <Text style={[styles.activeIndicatorText, { color: '#A78BFA' }]}>ACTIVE</Text>
-              </View>
-            ) : (
-              <View style={styles.inactiveDot} />
-            )}
-          </View>
-        </TouchableOpacity>
-
-        {/* Custom / Extra STT Card */}
-        <TouchableOpacity
-          style={[
-            styles.engineCard,
-            settings.sttProvider === 'custom' && styles.engineCardActiveCustom,
-          ]}
-          onPress={() => handleSelectSttProvider('custom')}
-          activeOpacity={0.8}
-        >
-          <View style={styles.engineCardHeader}>
-            <View style={styles.engineIdentity}>
-              <View style={[styles.engineIcon, { backgroundColor: 'rgba(245, 158, 11, 0.12)' }]}>
-                <Ionicons name="globe-outline" size={18} color="#F59E0B" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.engineName}>Custom / Extra STT</Text>
-                <Text style={styles.engineDetail} numberOfLines={1}>
-                  {isCustomSttConfigured
-                    ? `${settings.customSttModel || 'whisper-1'} • ${settings.customSttBaseUrl}`
-                    : 'Configure custom Whisper URL & model'}
-                </Text>
-              </View>
-            </View>
-
-            {settings.sttProvider === 'custom' ? (
-              <View style={[styles.activeIndicatorPill, { borderColor: '#F59E0B', backgroundColor: 'rgba(245, 158, 11, 0.15)' }]}>
-                <Ionicons name="checkmark-sharp" size={11} color="#F59E0B" />
-                <Text style={[styles.activeIndicatorText, { color: '#F59E0B' }]}>ACTIVE</Text>
-              </View>
-            ) : (
-              <View style={styles.inactiveDot} />
-            )}
-          </View>
-        </TouchableOpacity>
-
-        {/* SECTION 2: AI REFACTORING ENGINE */}
-        <View style={[styles.sectionHeader, { marginTop: 22 }]}>
-          <Text style={styles.sectionTitle}>AI REFACTORING & CLEANUP</Text>
+        {/* SECTION 2: AI cleanup */}
+        <View style={[styles.sectionHeader, { marginTop: 24 }]}>
+          <Text style={styles.sectionTitle}>AI cleanup</Text>
         </View>
 
-        {/* Surplus Intelligence LLM Card (Featured / Special Focus) */}
-        <TouchableOpacity
-          style={[
-            styles.engineCard,
-            styles.engineCardSurplusFeatured,
-            settings.llmProvider === 'surplus' && styles.engineCardActiveSurplus,
-          ]}
-          onPress={() => handleSelectLlmProvider('surplus')}
-          activeOpacity={0.8}
-        >
-          <View style={styles.engineCardHeader}>
-            <View style={styles.engineIdentity}>
-              <View style={[styles.engineIcon, { backgroundColor: 'rgba(255, 77, 141, 0.15)' }]}>
-                <Ionicons name="planet" size={18} color="#FF4D8D" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <View style={styles.featuredBadge}>
-                  <Ionicons name="flame" size={9} color="#FF4D8D" />
-                  <Text style={styles.featuredBadgeText}>SPECIAL FOCUS</Text>
-                </View>
-                <Text style={styles.engineName}>Surplus Intelligence LLM</Text>
-                <Text style={styles.engineDetail} numberOfLines={1}>
-                  {isSurplusConfigured
-                    ? `${settings.surplusLlmModel || 'deepseek-v4-flash'} • 450+ Models`
-                    : 'inf_... Key required (Decentralized Marketplace)'}
-                </Text>
-              </View>
-            </View>
+        {llmOptions.map((option) =>
+          renderEngineCard(
+            option,
+            settings.llmProvider === option.id,
+            () => handleSelectLlmProvider(option.id as LlmProvider)
+          )
+        )}
 
-            {settings.llmProvider === 'surplus' ? (
-              <View style={[styles.activeIndicatorPill, { borderColor: '#FF4D8D', backgroundColor: 'rgba(255, 77, 141, 0.15)' }]}>
-                <Ionicons name="checkmark-sharp" size={11} color="#FF4D8D" />
-                <Text style={[styles.activeIndicatorText, { color: '#FF4D8D' }]}>ACTIVE</Text>
-              </View>
-            ) : (
-              <View style={styles.inactiveDot} />
-            )}
-          </View>
-        </TouchableOpacity>
-
-        {/* Groq Llama 3 Card */}
-        <TouchableOpacity
-          style={[
-            styles.engineCard,
-            settings.llmProvider === 'groq' && styles.engineCardActiveGroq,
-          ]}
-          onPress={() => handleSelectLlmProvider('groq')}
-          activeOpacity={0.8}
-        >
-          <View style={styles.engineCardHeader}>
-            <View style={styles.engineIdentity}>
-              <View style={[styles.engineIcon, { backgroundColor: 'rgba(0, 240, 255, 0.12)' }]}>
-                <Ionicons name="hardware-chip" size={18} color={Theme.colors.cyan} />
-              </View>
-              <View>
-                <Text style={styles.engineName}>Groq Llama 3.3 70B</Text>
-                <Text style={styles.engineDetail}>
-                  {isGroqConfigured ? 'Connected' : 'Key required'}
-                </Text>
-              </View>
-            </View>
-
-            {settings.llmProvider === 'groq' ? (
-              <View style={styles.activeIndicatorPill}>
-                <Ionicons name="checkmark-sharp" size={11} color={Theme.colors.cyan} />
-                <Text style={styles.activeIndicatorText}>ACTIVE</Text>
-              </View>
-            ) : (
-              <View style={styles.inactiveDot} />
-            )}
-          </View>
-        </TouchableOpacity>
-
-        {/* OpenAI GPT-4o-mini Card */}
-        <TouchableOpacity
-          style={[
-            styles.engineCard,
-            settings.llmProvider === 'openai' && styles.engineCardActiveOpenAI,
-          ]}
-          onPress={() => handleSelectLlmProvider('openai')}
-          activeOpacity={0.8}
-        >
-          <View style={styles.engineCardHeader}>
-            <View style={styles.engineIdentity}>
-              <View style={[styles.engineIcon, { backgroundColor: 'rgba(139, 92, 246, 0.12)' }]}>
-                <Ionicons name="infinite" size={18} color="#A78BFA" />
-              </View>
-              <View>
-                <Text style={styles.engineName}>OpenAI GPT-4o-mini</Text>
-                <Text style={styles.engineDetail}>
-                  {isOpenaiConfigured ? 'Connected' : 'Key required'}
-                </Text>
-              </View>
-            </View>
-
-            {settings.llmProvider === 'openai' ? (
-              <View style={[styles.activeIndicatorPill, { borderColor: '#A78BFA', backgroundColor: 'rgba(139, 92, 246, 0.15)' }]}>
-                <Ionicons name="checkmark-sharp" size={11} color="#A78BFA" />
-                <Text style={[styles.activeIndicatorText, { color: '#A78BFA' }]}>ACTIVE</Text>
-              </View>
-            ) : (
-              <View style={styles.inactiveDot} />
-            )}
-          </View>
-        </TouchableOpacity>
-
-        {/* Google Gemini Card */}
-        <TouchableOpacity
-          style={[
-            styles.engineCard,
-            settings.llmProvider === 'gemini' && styles.engineCardActiveGemini,
-          ]}
-          onPress={() => handleSelectLlmProvider('gemini')}
-          activeOpacity={0.8}
-        >
-          <View style={styles.engineCardHeader}>
-            <View style={styles.engineIdentity}>
-              <View style={[styles.engineIcon, { backgroundColor: 'rgba(56, 189, 248, 0.12)' }]}>
-                <Ionicons name="logo-google" size={18} color="#38BDF8" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.engineName}>Google Gemini ({settings.geminiModel || '2.5 Flash'})</Text>
-                <Text style={styles.engineDetail}>
-                  {isGeminiConfigured ? 'Connected • Fast 1M Context' : 'Google AI Studio Key required'}
-                </Text>
-              </View>
-            </View>
-
-            {settings.llmProvider === 'gemini' ? (
-              <View style={[styles.activeIndicatorPill, { borderColor: '#38BDF8', backgroundColor: 'rgba(56, 189, 248, 0.15)' }]}>
-                <Ionicons name="checkmark-sharp" size={11} color="#38BDF8" />
-                <Text style={[styles.activeIndicatorText, { color: '#38BDF8' }]}>ACTIVE</Text>
-              </View>
-            ) : (
-              <View style={styles.inactiveDot} />
-            )}
-          </View>
-        </TouchableOpacity>
-
-        {/* Custom / Extra LLM Card */}
-        <TouchableOpacity
-          style={[
-            styles.engineCard,
-            settings.llmProvider === 'custom' && styles.engineCardActiveCustom,
-          ]}
-          onPress={() => handleSelectLlmProvider('custom')}
-          activeOpacity={0.8}
-        >
-          <View style={styles.engineCardHeader}>
-            <View style={styles.engineIdentity}>
-              <View style={[styles.engineIcon, { backgroundColor: 'rgba(245, 158, 11, 0.12)' }]}>
-                <Ionicons name="construct-outline" size={18} color="#F59E0B" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.engineName}>Custom / Extra LLM</Text>
-                <Text style={styles.engineDetail} numberOfLines={1}>
-                  {isCustomLlmConfigured
-                    ? `${settings.customLlmModel || 'custom'} • ${settings.customLlmBaseUrl}`
-                    : 'Set custom URL (DeepSeek, OpenRouter, Ollama...)'}
-                </Text>
-              </View>
-            </View>
-
-            {settings.llmProvider === 'custom' ? (
-              <View style={[styles.activeIndicatorPill, { borderColor: '#F59E0B', backgroundColor: 'rgba(245, 158, 11, 0.15)' }]}>
-                <Ionicons name="checkmark-sharp" size={11} color="#F59E0B" />
-                <Text style={[styles.activeIndicatorText, { color: '#F59E0B' }]}>ACTIVE</Text>
-              </View>
-            ) : (
-              <View style={styles.inactiveDot} />
-            )}
-          </View>
-        </TouchableOpacity>
-
-        {/* SECTION 3: SYSTEM AUTOMATION & FLOATING OVERLAY */}
-        <View style={[styles.sectionHeader, { marginTop: 22 }]}>
-          <Text style={styles.sectionTitle}>FLOATING DOCK & AUTOMATION</Text>
+        {/* SECTION 3: Overlay & automation */}
+        <View style={[styles.sectionHeader, { marginTop: 24 }]}>
+          <Text style={styles.sectionTitle}>Overlay & automation</Text>
         </View>
 
         <View style={styles.cardContainer}>
-          {/* Floating Bubble Master Switch */}
+          {/* Floating bubble master switch */}
           <View style={styles.tileRow}>
             <View style={styles.tileInfo}>
               <View style={styles.tileTitleRow}>
-                <Text style={styles.tileTitle}>Floating Voice Assistant</Text>
+                <Text style={styles.tileTitle}>Floating voice assistant</Text>
                 {settings.overlayEnabled && (
                   <View style={styles.liveServicePill}>
                     <View style={styles.pulseDot} />
-                    <Text style={styles.liveServiceText}>ACTIVE SERVICE</Text>
+                    <Text style={styles.liveServiceText}>Running</Text>
                   </View>
                 )}
               </View>
               <Text style={styles.tileSubtitle}>
-                Persistent background service providing hands-free dictation over all apps
+                A background service that gives you hands-free dictation over any app.
               </Text>
             </View>
             <Switch
@@ -620,28 +421,28 @@ export default function SettingsScreen() {
                 handleToggleOverlay(val);
                 Haptics.selectionAsync();
               }}
-              trackColor={{ false: '#1E293B', true: '#00F0FF' }}
-              thumbColor="#FFFFFF"
+              trackColor={{ false: '#2A241C', true: '#E9A063' }}
+              thumbColor="#F7F1E6"
             />
           </View>
 
           <View style={styles.divider} />
 
-          {/* Smart Keyboard Docking */}
+          {/* Smart keyboard docking */}
           <View style={styles.tileRow}>
             <View style={styles.tileInfo}>
               <View style={styles.tileTitleRow}>
-                <Text style={styles.tileTitle}>Smart Keyboard Docking</Text>
+                <Text style={styles.tileTitle}>Smart keyboard docking</Text>
                 <View
                   style={[
                     styles.tagBadge,
                     {
                       borderColor: settings.smartKeyboardMode
-                        ? 'rgba(0, 240, 255, 0.4)'
-                        : 'rgba(245, 158, 11, 0.4)',
+                        ? 'rgba(233, 160, 99, 0.4)'
+                        : 'rgba(217, 164, 65, 0.4)',
                       backgroundColor: settings.smartKeyboardMode
-                        ? 'rgba(0, 240, 255, 0.1)'
-                        : 'rgba(245, 158, 11, 0.1)',
+                        ? Theme.colors.cyanSubtle
+                        : Theme.colors.amberMuted,
                     },
                   ]}
                 >
@@ -651,16 +452,16 @@ export default function SettingsScreen() {
                       {
                         color: settings.smartKeyboardMode
                           ? Theme.colors.cyan
-                          : '#F59E0B',
+                          : Theme.colors.amber,
                       },
                     ]}
                   >
-                    {settings.smartKeyboardMode ? 'KEYBOARD ATTACHED' : 'ALWAYS VISIBLE'}
+                    {settings.smartKeyboardMode ? 'Follows keyboard' : 'Always visible'}
                   </Text>
                 </View>
               </View>
               <Text style={styles.tileSubtitle}>
-                Automatically shows the floating mic above your soft keyboard when typing, and hides when closed.
+                Shows the floating mic above your keyboard while typing, hides when it closes.
               </Text>
             </View>
             <Switch
@@ -669,14 +470,14 @@ export default function SettingsScreen() {
                 handleUpdate({ smartKeyboardMode: val });
                 Haptics.selectionAsync();
               }}
-              trackColor={{ false: '#1E293B', true: '#00F0FF' }}
-              thumbColor="#FFFFFF"
+              trackColor={{ false: '#2A241C', true: '#E9A063' }}
+              thumbColor="#F7F1E6"
             />
           </View>
 
           <View style={styles.divider} />
 
-          {/* Battery Optimization */}
+          {/* Battery optimization */}
           <TouchableOpacity
             style={styles.tileRow}
             onPress={() => {
@@ -687,44 +488,44 @@ export default function SettingsScreen() {
           >
             <View style={styles.tileInfo}>
               <View style={styles.tileTitleRow}>
-                <Text style={styles.tileTitle}>Uninterrupted Background Service</Text>
+                <Text style={styles.tileTitle}>Keep running in background</Text>
                 <View
                   style={[
                     styles.tagBadge,
                     {
                       borderColor: isBatteryIgnored
-                        ? 'rgba(16, 185, 129, 0.4)'
-                        : 'rgba(245, 158, 11, 0.4)',
+                        ? 'rgba(147, 184, 132, 0.4)'
+                        : 'rgba(217, 164, 65, 0.4)',
                       backgroundColor: isBatteryIgnored
-                        ? 'rgba(16, 185, 129, 0.1)'
-                        : 'rgba(245, 158, 11, 0.1)',
+                        ? Theme.colors.greenMuted
+                        : Theme.colors.amberMuted,
                     },
                   ]}
                 >
                   <Text
                     style={[
                       styles.tagBadgeText,
-                      { color: isBatteryIgnored ? '#10B981' : '#F59E0B' },
+                      { color: isBatteryIgnored ? Theme.colors.green : Theme.colors.amber },
                     ]}
                   >
-                    {isBatteryIgnored ? 'UNRESTRICTED' : 'TAP TO WHITELIST'}
+                    {isBatteryIgnored ? 'Unrestricted' : 'Tap to whitelist'}
                   </Text>
                 </View>
               </View>
               <Text style={styles.tileSubtitle}>
-                Ensures Android never stops or kills the dictation service when closing or swiping away the app.
+                Stops Android from killing the dictation service when you swipe the app away.
               </Text>
             </View>
             <Ionicons
               name={isBatteryIgnored ? 'shield-checkmark' : 'alert-circle'}
-              size={18}
-              color={isBatteryIgnored ? '#10B981' : '#F59E0B'}
+              size={19}
+              color={isBatteryIgnored ? Theme.colors.green : Theme.colors.amber}
             />
           </TouchableOpacity>
 
           <View style={styles.divider} />
 
-          {/* Accessibility Auto-Type */}
+          {/* Accessibility auto-type */}
           <TouchableOpacity
             style={styles.tileRow}
             onPress={() => setPermissionModal({ visible: true, type: 'accessibility' })}
@@ -732,41 +533,41 @@ export default function SettingsScreen() {
           >
             <View style={styles.tileInfo}>
               <View style={styles.tileTitleRow}>
-                <Text style={styles.tileTitle}>Auto-Type into Active Input</Text>
+                <Text style={styles.tileTitle}>Auto-type into any field</Text>
                 <View
                   style={[
                     styles.tagBadge,
                     {
                       borderColor: hasA11yPermission
-                        ? 'rgba(16, 185, 129, 0.4)'
-                        : 'rgba(245, 158, 11, 0.4)',
+                        ? 'rgba(147, 184, 132, 0.4)'
+                        : 'rgba(217, 164, 65, 0.4)',
                       backgroundColor: hasA11yPermission
-                        ? 'rgba(16, 185, 129, 0.1)'
-                        : 'rgba(245, 158, 11, 0.1)',
+                        ? Theme.colors.greenMuted
+                        : Theme.colors.amberMuted,
                     },
                   ]}
                 >
                   <Text
                     style={[
                       styles.tagBadgeText,
-                      { color: hasA11yPermission ? '#10B981' : '#F59E0B' },
+                      { color: hasA11yPermission ? Theme.colors.green : Theme.colors.amber },
                     ]}
                   >
-                    {hasA11yPermission ? 'ACCESSIBILITY ACTIVE' : 'SETUP REQUIRED'}
+                    {hasA11yPermission ? 'Enabled' : 'Setup needed'}
                   </Text>
                 </View>
               </View>
               <Text style={styles.tileSubtitle}>
-                Injects transcribed and cleaned speech directly into WhatsApp, Chrome, or any active field.
+                Types your refined dictation straight into WhatsApp, Chrome, or any input.
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color={Theme.colors.textMuted} />
           </TouchableOpacity>
         </View>
 
-        {/* SECTION 4: SYSTEM PROMPT */}
-        <View style={[styles.sectionHeader, { marginTop: 22 }]}>
-          <Text style={styles.sectionTitle}>SYSTEM PROMPT</Text>
+        {/* SECTION 4: System prompt */}
+        <View style={[styles.sectionHeader, { marginTop: 24 }]}>
+          <Text style={styles.sectionTitle}>System prompt</Text>
         </View>
 
         <View style={styles.cardContainer}>
@@ -779,12 +580,12 @@ export default function SettingsScreen() {
             activeOpacity={0.7}
           >
             <View style={styles.promptHeaderLeft}>
-              <View style={styles.terminalIconBadge}>
+              <View style={styles.promptIconBadge}>
                 <Ionicons name="terminal-outline" size={15} color={Theme.colors.cyan} />
               </View>
               <View>
-                <Text style={styles.tileTitle}>AI Cleanup System Prompt</Text>
-                <Text style={styles.tileSubtitle}>Deterministic speech cleanup instructions</Text>
+                <Text style={styles.tileTitle}>AI cleanup instructions</Text>
+                <Text style={styles.tileSubtitle}>The prompt sent with every dictation</Text>
               </View>
             </View>
             <Ionicons
@@ -795,13 +596,9 @@ export default function SettingsScreen() {
           </TouchableOpacity>
 
           {showPromptDetails && (
-            <View style={styles.terminalBody}>
-              <View style={styles.terminalBar}>
-                <View style={styles.terminalDots}>
-                  <View style={[styles.tDot, { backgroundColor: '#EF4444' }]} />
-                  <View style={[styles.tDot, { backgroundColor: '#F59E0B' }]} />
-                  <View style={[styles.tDot, { backgroundColor: '#10B981' }]} />
-                </View>
+            <View style={styles.promptBody}>
+              <View style={styles.promptToolbar}>
+                <Text style={styles.promptToolbarLabel}>system prompt</Text>
                 <TouchableOpacity
                   style={styles.copyPromptBtn}
                   onPress={handleCopyPrompt}
@@ -810,12 +607,12 @@ export default function SettingsScreen() {
                   <Ionicons
                     name={copiedPrompt ? 'checkmark-circle' : 'copy-outline'}
                     size={12}
-                    color={copiedPrompt ? '#10B981' : Theme.colors.cyan}
+                    color={copiedPrompt ? Theme.colors.green : Theme.colors.cyan}
                   />
                   <Text
                     style={[
                       styles.copyPromptText,
-                      copiedPrompt && { color: '#10B981' },
+                      copiedPrompt && { color: Theme.colors.green },
                     ]}
                   >
                     {copiedPrompt ? 'Copied' : 'Copy'}
@@ -823,11 +620,11 @@ export default function SettingsScreen() {
                 </TouchableOpacity>
               </View>
               <ScrollView
-                style={styles.terminalScroll}
+                style={styles.promptScroll}
                 nestedScrollEnabled={true}
                 showsVerticalScrollIndicator={true}
               >
-                <Text style={styles.terminalCode}>{OPENWHISPR_CLEANUP_SYSTEM_PROMPT}</Text>
+                <Text style={styles.promptCode}>{OPENWHISPR_CLEANUP_SYSTEM_PROMPT}</Text>
               </ScrollView>
             </View>
           )}
@@ -835,15 +632,10 @@ export default function SettingsScreen() {
 
         {/* Footer */}
         <View style={styles.footer}>
-          <LinearGradient
-            colors={['transparent', 'rgba(0, 240, 255, 0.05)', 'transparent']}
-            start={{ x: 0, y: 0.5 }}
-            end={{ x: 1, y: 0.5 }}
-            style={styles.footerGlowLine}
-          />
-          <Text style={styles.footerBrand}>OPENWHISPR MOBILE ARCHITECTURE</Text>
+          <View style={styles.footerDot} />
+          <Text style={styles.footerBrand}>OpenWhispr</Text>
           <Text style={styles.footerSpecs}>
-            Deepgram Nova-3 • Groq Whisper Turbo • Llama 3.3 • GPT-4o-mini
+            Your voice, refined — anywhere on your phone.
           </Text>
         </View>
       </ScrollView>
@@ -854,16 +646,16 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#06080D',
+    backgroundColor: Theme.colors.bg,
   },
   container: {
     flex: 1,
   },
   contentContainer: {
-    paddingTop: 10,
+    paddingTop: 12,
   },
   header: {
-    marginBottom: 18,
+    marginBottom: 20,
   },
   headerTopRow: {
     flexDirection: 'row',
@@ -880,21 +672,21 @@ const styles = StyleSheet.create({
   keyManageBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
+    gap: 6,
+    backgroundColor: Theme.colors.surfaceGlass,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Theme.colors.border,
   },
   keyManageText: {
-    color: '#CBD5E1',
-    fontSize: 11,
+    color: '#D7CDBE',
+    fontSize: 12,
     fontFamily: Theme.fonts.semiBold,
   },
   headerTitle: {
-    color: '#FFFFFF',
+    color: Theme.colors.textPrimary,
     fontSize: 26,
     fontFamily: Theme.fonts.heading,
     letterSpacing: -0.5,
@@ -910,79 +702,37 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   sectionTitle: {
-    color: '#64748B',
-    fontSize: 11,
-    fontFamily: Theme.fonts.heading,
-    letterSpacing: 0.8,
-  },
-  sectionHint: {
-    color: '#475569',
-    fontSize: 10,
-    fontFamily: Theme.fonts.regular,
+    color: Theme.colors.textMuted,
+    fontSize: 12,
+    fontFamily: Theme.fonts.semiBold,
+    letterSpacing: 0.4,
   },
   engineCard: {
-    backgroundColor: Theme.colors.cardGlass,
-    borderRadius: 20,
+    backgroundColor: Theme.colors.card,
+    borderRadius: 18,
     padding: 16,
-    borderWidth: 1.2,
+    borderWidth: 1,
     borderColor: Theme.colors.border,
     marginBottom: 10,
   },
-  engineCardActiveDeepgram: {
-    backgroundColor: 'rgba(16, 185, 129, 0.08)',
-    borderColor: 'rgba(16, 185, 129, 0.45)',
-  },
-  engineCardActiveGroq: {
-    backgroundColor: 'rgba(0, 240, 255, 0.08)',
-    borderColor: 'rgba(0, 240, 255, 0.5)',
-  },
-  engineCardActiveOpenAI: {
-    backgroundColor: 'rgba(139, 92, 246, 0.08)',
-    borderColor: 'rgba(139, 92, 246, 0.5)',
-  },
-  engineCardActiveGemini: {
-    backgroundColor: 'rgba(56, 189, 248, 0.08)',
-    borderColor: 'rgba(56, 189, 248, 0.5)',
-  },
-  engineCardActiveCustom: {
-    backgroundColor: 'rgba(245, 158, 11, 0.08)',
-    borderColor: 'rgba(245, 158, 11, 0.5)',
-  },
-  engineCardActiveSurplus: {
-    backgroundColor: 'rgba(255, 77, 141, 0.08)',
-    borderColor: 'rgba(255, 77, 141, 0.55)',
-  },
-  engineCardSurplusFeatured: {
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 77, 141, 0.35)',
-    backgroundColor: 'rgba(255, 77, 141, 0.03)',
+  engineCardActive: {
+    backgroundColor: 'rgba(233, 160, 99, 0.07)',
+    borderColor: 'rgba(233, 160, 99, 0.45)',
   },
   featuredBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(255, 77, 141, 0.18)',
-    paddingHorizontal: 7,
+    paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 77, 141, 0.4)',
     alignSelf: 'flex-start',
     marginBottom: 4,
   },
   featuredBadgeText: {
-    color: '#FF4D8D',
-    fontSize: 9,
-    fontFamily: Theme.fonts.monoBold,
-    letterSpacing: 0.5,
-  },
-  engineCardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    fontSize: 10,
+    fontFamily: Theme.fonts.semiBold,
+    letterSpacing: 0.2,
   },
   engineIdentity: {
     flexDirection: 'row',
@@ -998,13 +748,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   engineName: {
-    color: '#FFFFFF',
+    color: Theme.colors.textPrimary,
     fontSize: 15,
-    fontFamily: Theme.fonts.heading,
+    fontFamily: Theme.fonts.semiBold,
   },
   engineDetail: {
     color: Theme.colors.textMuted,
-    fontSize: 11.5,
+    fontSize: 12,
     fontFamily: Theme.fonts.regular,
     marginTop: 2,
   },
@@ -1012,31 +762,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingHorizontal: 9,
+    paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: Theme.colors.cyan,
-    backgroundColor: 'rgba(0, 240, 255, 0.12)',
+    borderColor: 'rgba(233, 160, 99, 0.4)',
+    backgroundColor: Theme.colors.cyanMuted,
   },
   activeIndicatorText: {
     color: Theme.colors.cyan,
-    fontSize: 10,
-    fontFamily: Theme.fonts.monoBold,
-    letterSpacing: 0.4,
+    fontSize: 11,
+    fontFamily: Theme.fonts.semiBold,
   },
   inactiveDot: {
     width: 10,
     height: 10,
     borderRadius: 5,
     borderWidth: 1.5,
-    borderColor: '#334155',
+    borderColor: '#4A4438',
   },
   cardContainer: {
-    backgroundColor: Theme.colors.cardGlass,
+    backgroundColor: Theme.colors.card,
     borderRadius: 22,
     padding: 16,
-    borderWidth: 1.2,
+    borderWidth: 1,
     borderColor: Theme.colors.border,
   },
   tileRow: {
@@ -1056,47 +805,45 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   tileTitle: {
-    color: '#FFFFFF',
-    fontSize: 14,
+    color: Theme.colors.textPrimary,
+    fontSize: 14.5,
     fontFamily: Theme.fonts.semiBold,
   },
   tileSubtitle: {
     color: Theme.colors.textMuted,
-    fontSize: 11,
+    fontSize: 12,
     fontFamily: Theme.fonts.regular,
-    marginTop: 2,
-    lineHeight: 16,
+    marginTop: 3,
+    lineHeight: 17,
   },
   liveServicePill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(0, 240, 255, 0.12)',
-    paddingHorizontal: 6,
+    backgroundColor: Theme.colors.cyanMuted,
+    paddingHorizontal: 7,
     paddingVertical: 2,
     borderRadius: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 240, 255, 0.35)',
   },
   liveServiceText: {
     color: Theme.colors.cyan,
-    fontSize: 9,
-    fontFamily: Theme.fonts.monoBold,
+    fontSize: 10,
+    fontFamily: Theme.fonts.semiBold,
   },
   tagBadge: {
-    paddingHorizontal: 6,
+    paddingHorizontal: 7,
     paddingVertical: 2,
     borderRadius: 6,
     borderWidth: 1,
   },
   tagBadgeText: {
-    fontSize: 9,
-    fontFamily: Theme.fonts.monoBold,
+    fontSize: 10,
+    fontFamily: Theme.fonts.semiBold,
   },
   divider: {
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    marginVertical: 10,
+    backgroundColor: Theme.colors.borderSubtle,
+    marginVertical: 11,
   },
   promptHeader: {
     flexDirection: 'row',
@@ -1109,85 +856,82 @@ const styles = StyleSheet.create({
     gap: 12,
     flex: 1,
   },
-  terminalIconBadge: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    backgroundColor: 'rgba(0, 240, 255, 0.08)',
+  promptIconBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: Theme.colors.cyanSubtle,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  terminalBody: {
+  promptBody: {
     marginTop: 12,
-    backgroundColor: '#04060A',
-    borderRadius: 12,
+    backgroundColor: Theme.colors.bgSecondary,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: Theme.colors.borderSubtle,
     overflow: 'hidden',
   },
-  terminalBar: {
+  promptToolbar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#080C14',
+    backgroundColor: Theme.colors.surface,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+    borderBottomColor: Theme.colors.borderSubtle,
   },
-  terminalDots: {
-    flexDirection: 'row',
-    gap: 6,
-  },
-  tDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+  promptToolbarLabel: {
+    color: Theme.colors.textMuted,
+    fontSize: 10.5,
+    fontFamily: Theme.fonts.mono,
   },
   copyPromptBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    gap: 5,
+    backgroundColor: Theme.colors.surfaceGlass,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 7,
   },
   copyPromptText: {
     color: Theme.colors.cyan,
-    fontSize: 10,
-    fontFamily: Theme.fonts.monoBold,
+    fontSize: 11,
+    fontFamily: Theme.fonts.semiBold,
   },
-  terminalScroll: {
+  promptScroll: {
     maxHeight: 220,
     padding: 12,
   },
-  terminalCode: {
-    color: '#94A3B8',
+  promptCode: {
+    color: Theme.colors.textSecondary,
     fontSize: 11,
     lineHeight: 17,
     fontFamily: Theme.fonts.mono,
   },
   footer: {
     alignItems: 'center',
-    marginTop: 28,
+    marginTop: 32,
     marginBottom: 8,
+    gap: 4,
   },
-  footerGlowLine: {
-    width: '80%',
-    height: 1,
-    marginBottom: 14,
+  footerDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Theme.colors.cyan,
+    marginBottom: 6,
   },
   footerBrand: {
-    color: '#64748B',
-    fontSize: 11,
-    fontFamily: Theme.fonts.heading,
-    letterSpacing: 1,
+    color: Theme.colors.textSecondary,
+    fontSize: 13,
+    fontFamily: Theme.fonts.semiBold,
   },
   footerSpecs: {
-    color: '#334155',
-    fontSize: 10,
-    fontFamily: Theme.fonts.mono,
-    marginTop: 4,
+    color: Theme.colors.textMuted,
+    fontSize: 11.5,
+    fontFamily: Theme.fonts.regular,
   },
 });

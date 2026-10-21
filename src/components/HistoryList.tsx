@@ -31,15 +31,15 @@ export const HistoryList: React.FC<HistoryListProps> = ({
         <View style={styles.emptyIconCircle}>
           <Ionicons name="mic" size={26} color={Theme.colors.cyan} />
         </View>
-        <Text style={styles.emptyTitle}>Studio History Ready</Text>
+        <Text style={styles.emptyTitle}>Nothing here yet</Text>
         <Text style={styles.emptySubtitle}>
-          Your speech transcriptions and AI-refined dictations will appear here automatically.
+          Your transcriptions and refined dictations will appear here automatically.
         </Text>
 
         <View style={styles.tipBox}>
           <Ionicons name="sparkles-outline" size={14} color={Theme.colors.cyan} />
           <Text style={styles.tipText}>
-            Tip: Speak naturally — OpenWhispr automatically removes "ums", stutters, and fixes grammar.
+            Tip: Speak naturally — OpenWhispr removes “ums”, stutters, and fixes grammar along the way.
           </Text>
         </View>
       </View>
@@ -66,7 +66,7 @@ export const HistoryList: React.FC<HistoryListProps> = ({
       <View style={styles.header}>
         <View style={styles.headerBadge}>
           <Ionicons name="time-outline" size={13} color={Theme.colors.cyan} />
-          <Text style={styles.headerTitle}>Recent Dictations ({items.length})</Text>
+          <Text style={styles.headerTitle}>Recent dictations · {items.length}</Text>
         </View>
         <TouchableOpacity
           onPress={async () => {
@@ -94,7 +94,7 @@ export const HistoryList: React.FC<HistoryListProps> = ({
               ? Theme.colors.amber
               : item.sttProvider === 'openai'
               ? Theme.colors.purple
-              : '#F59E0B';
+              : '#D9A441';
 
           return (
             <View style={styles.card}>
@@ -106,11 +106,11 @@ export const HistoryList: React.FC<HistoryListProps> = ({
                   <View style={styles.metaRow}>
                     <View style={[styles.providerBadge, { borderColor: providerColor }]}>
                       <Text style={[styles.providerText, { color: providerColor }]}>
-                        {item.sttProvider.toUpperCase()}
+                        {item.sttProvider}
                       </Text>
                     </View>
                     <Text style={styles.pipelineArrow}>➔</Text>
-                    <Text style={styles.llmText}>{item.llmProvider.toUpperCase()}</Text>
+                    <Text style={styles.llmText}>{item.llmProvider}</Text>
                     <Text style={styles.dot}>•</Text>
                     <Text style={styles.timeTag}>{formatTimestamp(item.timestamp)}</Text>
                   </View>
@@ -144,7 +144,7 @@ export const HistoryList: React.FC<HistoryListProps> = ({
                       style={styles.actionIconBtnDelete}
                       activeOpacity={0.7}
                     >
-                      <Ionicons name="trash-outline" size={13} color="#F87171" />
+                      <Ionicons name="trash-outline" size={13} color="#E0857E" />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -195,17 +195,16 @@ const styles = StyleSheet.create({
     color: Theme.colors.textSecondary,
     fontSize: 12,
     fontFamily: Theme.fonts.semiBold,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    letterSpacing: 0.2,
   },
   clearBtn: {
     paddingVertical: 5,
     paddingHorizontal: 10,
     borderRadius: 8,
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    backgroundColor: 'rgba(229, 72, 77, 0.1)',
   },
   clearBtnText: {
-    color: '#F87171',
+    color: '#E0857E',
     fontSize: 11,
     fontFamily: Theme.fonts.semiBold,
   },
@@ -224,9 +223,9 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: 'rgba(0, 240, 255, 0.1)',
+    backgroundColor: 'rgba(233, 160, 99, 0.1)',
     borderWidth: 1,
-    borderColor: 'rgba(0, 240, 255, 0.25)',
+    borderColor: 'rgba(233, 160, 99, 0.25)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
@@ -250,9 +249,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: 'rgba(0, 240, 255, 0.05)',
+    backgroundColor: 'rgba(233, 160, 99, 0.05)',
     borderWidth: 1,
-    borderColor: 'rgba(0, 240, 255, 0.15)',
+    borderColor: 'rgba(233, 160, 99, 0.15)',
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 14,
@@ -297,7 +296,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 6,
     borderWidth: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: 'rgba(255, 246, 230, 0.04)',
   },
   providerText: {
     fontSize: 10,
@@ -328,20 +327,20 @@ const styles = StyleSheet.create({
   },
   actionIconBtn: {
     padding: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(255, 246, 230, 0.05)',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: 'rgba(255, 246, 230, 0.08)',
   },
   actionIconBtnDelete: {
     padding: 6,
-    backgroundColor: 'rgba(239, 68, 68, 0.08)',
+    backgroundColor: 'rgba(229, 72, 77, 0.08)',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.2)',
+    borderColor: 'rgba(229, 72, 77, 0.2)',
   },
   cleanedText: {
-    color: '#F1F5F9',
+    color: '#F7F1E6',
     fontSize: 14.5,
     lineHeight: 22,
     fontFamily: Theme.fonts.regular,
@@ -352,7 +351,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.05)',
+    borderTopColor: 'rgba(255, 246, 230, 0.05)',
     paddingTop: 8,
   },
   statPill: {

@@ -63,8 +63,8 @@ export const OverlayPermissionModal: React.FC<OverlayPermissionModalProps> = ({
           <LinearGradient
             colors={
               isOverlay
-                ? ['rgba(0, 240, 255, 0.18)', 'rgba(0, 102, 255, 0.02)']
-                : ['rgba(139, 92, 246, 0.18)', 'rgba(99, 102, 241, 0.02)']
+                ? ['rgba(233, 160, 99, 0.18)', 'rgba(208, 132, 72, 0.02)']
+                : ['rgba(201, 151, 112, 0.18)', 'rgba(181, 135, 96, 0.02)']
             }
             start={{ x: 0.5, y: 0 }}
             end={{ x: 0.5, y: 1 }}
@@ -78,17 +78,17 @@ export const OverlayPermissionModal: React.FC<OverlayPermissionModalProps> = ({
                 styles.iconAura,
                 {
                   backgroundColor: isOverlay
-                    ? 'rgba(0, 240, 255, 0.15)'
-                    : 'rgba(139, 92, 246, 0.15)',
-                  shadowColor: isOverlay ? '#00F0FF' : '#8B5CF6',
+                    ? 'rgba(233, 160, 99, 0.15)'
+                    : 'rgba(201, 151, 112, 0.15)',
+                  shadowColor: isOverlay ? '#E9A063' : '#C99770',
                 },
               ]}
             />
             <LinearGradient
               colors={
                 isOverlay
-                  ? ['#00F0FF', '#0066FF']
-                  : ['#A78BFA', '#7C3AED']
+                  ? ['#E9A063', '#D08448']
+                  : ['#DFAF82', '#B58760']
               }
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
@@ -121,8 +121,8 @@ export const OverlayPermissionModal: React.FC<OverlayPermissionModalProps> = ({
                     styles.stepBadge,
                     {
                       borderColor: isOverlay
-                        ? 'rgba(0, 240, 255, 0.4)'
-                        : 'rgba(139, 92, 246, 0.4)',
+                        ? 'rgba(233, 160, 99, 0.4)'
+                        : 'rgba(201, 151, 112, 0.4)',
                     },
                   ]}
                 >
@@ -166,8 +166,8 @@ export const OverlayPermissionModal: React.FC<OverlayPermissionModalProps> = ({
               <LinearGradient
                 colors={
                   isOverlay
-                    ? ['#00F0FF', '#0066FF']
-                    : ['#8B5CF6', '#6366F1']
+                    ? ['#E9A063', '#D08448']
+                    : ['#C99770', '#B58760']
                 }
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0.8 }}
@@ -187,7 +187,7 @@ export const OverlayPermissionModal: React.FC<OverlayPermissionModalProps> = ({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(3, 5, 8, 0.88)',
+    backgroundColor: 'rgba(21, 18, 16, 0.88)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
@@ -195,11 +195,11 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 380,
-    backgroundColor: '#0B0F17',
+    backgroundColor: '#1B1714',
     borderRadius: 26,
     padding: 24,
     borderWidth: 1,
-    borderColor: 'rgba(0, 240, 255, 0.16)',
+    borderColor: 'rgba(233, 160, 99, 0.16)',
     alignItems: 'center',
     overflow: 'hidden',
     shadowColor: '#000',
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: 'rgba(255, 246, 230, 0.3)',
   },
   title: {
     fontSize: 20,
@@ -258,11 +258,11 @@ const styles = StyleSheet.create({
   },
   stepsContainer: {
     width: '100%',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: 'rgba(255, 246, 230, 0.03)',
     borderRadius: 18,
     padding: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: 'rgba(255, 246, 230, 0.06)',
     gap: 12,
     marginBottom: 22,
   },
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#06080D',
+    backgroundColor: '#151210',
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -307,9 +307,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: 'rgba(255, 246, 230, 0.06)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: 'rgba(255, 246, 230, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
   },

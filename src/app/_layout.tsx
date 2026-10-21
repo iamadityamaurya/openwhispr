@@ -40,7 +40,19 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={DarkTheme}>
+    <ThemeProvider
+      value={{
+        ...DarkTheme,
+        colors: {
+          ...DarkTheme.colors,
+          primary: '#E9A063',
+          background: '#151210',
+          card: '#211C18',
+          text: '#F7F1E6',
+          border: 'rgba(255, 244, 226, 0.08)',
+        },
+      }}
+    >
       <AppTabs />
     </ThemeProvider>
   );
