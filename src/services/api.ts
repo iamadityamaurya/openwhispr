@@ -25,7 +25,8 @@ export async function transcribeAudio(
   apiKey: string,
   provider: SttProvider,
   modelOverride?: string,
-  customOptions?: { baseUrl?: string; model?: string }
+  customOptions?: { baseUrl?: string; model?: string },
+  language: string = 'en'
 ): Promise<string> {
   if (provider !== 'custom' && (!apiKey || apiKey.trim().length === 0)) {
     throw new Error(`Please enter your ${provider.toUpperCase()} API key in Settings.`);
@@ -33,10 +34,11 @@ export async function transcribeAudio(
 
   const filename = fileUri.split('/').pop() || 'recording.m4a';
   const mimeType = filename.endsWith('.wav') ? 'audio/wav' : 'audio/m4a';
+  const lang = (language && language.trim().length > 0) ? language.trim() : 'en';
 
   if (provider === 'deepgram') {
     const model = modelOverride || 'nova-3';
-    const endpoint = `${DEEPGRAM_BASE_URL}/listen?model=${encodeURIComponent(model)}&smart_format=true&punctuate=true`;
+    const endpoint = `${DEEPGRAM_BASE_URL}/listen?model=${encodeURIComponent(model)}&language=${encodeURIComponent(lang)}&smart_format=true&punctuate=true`;
 
     const response = await FileSystem.uploadAsync(endpoint, fileUri, {
       httpMethod: 'POST',
@@ -89,6 +91,7 @@ export async function transcribeAudio(
       mimeType,
       parameters: {
         model,
+        language: lang,
         response_format: 'json',
       },
       headers,
@@ -123,6 +126,7 @@ export async function transcribeAudio(
       mimeType,
       parameters: {
         model,
+        language: lang,
         response_format: 'json',
       },
       headers: {
@@ -160,6 +164,7 @@ export async function transcribeAudio(
     mimeType,
     parameters: {
       model,
+      language: lang,
       response_format: 'json',
     },
     headers: {

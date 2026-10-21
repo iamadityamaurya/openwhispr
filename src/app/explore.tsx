@@ -198,8 +198,10 @@ export default function SettingsScreen() {
     },
     {
       id: 'groq',
-      name: 'Groq Whisper Turbo',
-      detail: isGroqConfigured ? 'Connected' : 'Key required',
+      name: 'Groq Whisper',
+      detail: isGroqConfigured
+        ? `${settings.groqWhisperModel || 'whisper-large-v3-turbo'} · Connected`
+        : 'Key required',
       icon: 'flash',
       tint: '#E9A063',
     },
@@ -234,8 +236,10 @@ export default function SettingsScreen() {
     },
     {
       id: 'groq',
-      name: 'Groq Llama 3.3 70B',
-      detail: isGroqConfigured ? 'Connected' : 'Key required',
+      name: 'Groq LPU',
+      detail: isGroqConfigured
+        ? `${settings.groqLlmModel || 'llama-3.3-70b-versatile'} · Connected`
+        : 'Key required',
       icon: 'hardware-chip',
       tint: '#E9A063',
     },
@@ -293,12 +297,11 @@ export default function SettingsScreen() {
       </View>
 
       {isActive ? (
-        <View style={styles.activeIndicatorPill}>
-          <Ionicons name="checkmark" size={12} color={Theme.colors.cyan} />
-          <Text style={styles.activeIndicatorText}>Active</Text>
+        <View style={styles.activeTickCircle}>
+          <Ionicons name="checkmark-sharp" size={14} color="#151210" />
         </View>
       ) : (
-        <View style={styles.inactiveDot} />
+        <View style={styles.inactiveTickCircle} />
       )}
     </TouchableOpacity>
   );
@@ -474,6 +477,93 @@ export default function SettingsScreen() {
               thumbColor="#F7F1E6"
             />
           </View>
+
+          {/* Position Above Keyboard Settings */}
+          {settings.smartKeyboardMode && (
+            <View style={styles.positionSubContainer}>
+              <View style={styles.positionSubHeader}>
+                <Ionicons name="arrow-up-circle-outline" size={16} color="#E9A063" />
+                <Text style={styles.positionSubTitle}>Position above keyboard</Text>
+              </View>
+
+              {/* Height Offset */}
+              <Text style={styles.positionFieldLabel}>Height clearance</Text>
+              <View style={styles.pillsRow}>
+                {[
+                  { value: 24, label: 'Just Above', tag: '+24dp' },
+                  { value: 48, label: 'Lifted (Default)', tag: '+48dp' },
+                  { value: 80, label: 'High', tag: '+80dp' },
+                  { value: 120, label: 'Mid-Screen', tag: '+120dp' },
+                ].map((item) => {
+                  const isSelected = (settings.keyboardOffset ?? 48) === item.value;
+                  return (
+                    <TouchableOpacity
+                      key={item.value}
+                      style={[
+                        styles.pillButton,
+                        isSelected && styles.pillButtonActive,
+                      ]}
+                      onPress={() => {
+                        handleUpdate({ keyboardOffset: item.value });
+                        Haptics.selectionAsync();
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Text
+                        style={[
+                          styles.pillButtonText,
+                          isSelected && styles.pillButtonTextActive,
+                        ]}
+                      >
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {/* Dock Side */}
+              <Text style={[styles.positionFieldLabel, { marginTop: 12 }]}>Dock side</Text>
+              <View style={styles.pillsRow}>
+                {[
+                  { value: 'right', label: 'Right Side (Default)', icon: 'chevron-forward' },
+                  { value: 'left', label: 'Left Side', icon: 'chevron-back' },
+                ].map((item) => {
+                  const isSelected = (settings.keyboardPosition ?? 'right') === item.value;
+                  return (
+                    <TouchableOpacity
+                      key={item.value}
+                      style={[
+                        styles.pillButton,
+                        styles.pillButtonHalf,
+                        isSelected && styles.pillButtonActive,
+                      ]}
+                      onPress={() => {
+                        handleUpdate({ keyboardPosition: item.value as 'right' | 'left' });
+                        Haptics.selectionAsync();
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons
+                        name={item.icon as any}
+                        size={13}
+                        color={isSelected ? '#141210' : Theme.colors.textMuted}
+                        style={{ marginRight: 4 }}
+                      />
+                      <Text
+                        style={[
+                          styles.pillButtonText,
+                          isSelected && styles.pillButtonTextActive,
+                        ]}
+                      >
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          )}
 
           <View style={styles.divider} />
 
@@ -711,12 +801,16 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
   },
   engineCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: Theme.colors.card,
     borderRadius: 18,
     padding: 16,
     borderWidth: 1,
     borderColor: Theme.colors.border,
     marginBottom: 10,
+    gap: 12,
   },
   engineCardActive: {
     backgroundColor: 'rgba(233, 160, 99, 0.07)',
@@ -758,28 +852,21 @@ const styles = StyleSheet.create({
     fontFamily: Theme.fonts.regular,
     marginTop: 2,
   },
-  activeIndicatorPill: {
-    flexDirection: 'row',
+  activeTickCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: Theme.colors.cyan,
     alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(233, 160, 99, 0.4)',
-    backgroundColor: Theme.colors.cyanMuted,
+    justifyContent: 'center',
   },
-  activeIndicatorText: {
-    color: Theme.colors.cyan,
-    fontSize: 11,
-    fontFamily: Theme.fonts.semiBold,
-  },
-  inactiveDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+  inactiveTickCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: '#4A4438',
+    borderColor: 'rgba(255, 244, 226, 0.16)',
+    backgroundColor: 'transparent',
   },
   cardContainer: {
     backgroundColor: Theme.colors.card,
@@ -933,5 +1020,67 @@ const styles = StyleSheet.create({
     color: Theme.colors.textMuted,
     fontSize: 11.5,
     fontFamily: Theme.fonts.regular,
+  },
+  positionSubContainer: {
+    backgroundColor: '#1E1A16',
+    borderRadius: 14,
+    padding: 12,
+    marginTop: 10,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(233, 160, 99, 0.15)',
+  },
+  positionSubHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    marginBottom: 10,
+  },
+  positionSubTitle: {
+    color: '#E9A063',
+    fontSize: 12.5,
+    fontFamily: Theme.fonts.semiBold,
+    letterSpacing: 0.2,
+  },
+  positionFieldLabel: {
+    color: Theme.colors.textMuted,
+    fontSize: 11,
+    fontFamily: Theme.fonts.semiBold,
+    marginBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  pillsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  pillButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.09)',
+    borderRadius: 9,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+  },
+  pillButtonHalf: {
+    flex: 1,
+    minWidth: 110,
+  },
+  pillButtonActive: {
+    backgroundColor: '#E9A063',
+    borderColor: '#E9A063',
+  },
+  pillButtonText: {
+    color: '#B0A89C',
+    fontSize: 11.5,
+    fontFamily: Theme.fonts.semiBold,
+  },
+  pillButtonTextActive: {
+    color: '#141210',
+    fontFamily: Theme.fonts.semiBold,
   },
 });

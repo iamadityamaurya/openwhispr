@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Animated,
   StatusBar,
+  Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -235,6 +236,8 @@ export default function DictationScreen() {
           settings.sttProvider,
           settings.sttProvider === 'deepgram'
             ? settings.deepgramModel
+            : settings.sttProvider === 'groq'
+            ? settings.groqWhisperModel
             : settings.sttProvider === 'surplus'
             ? settings.surplusSttModel
             : settings.sttProvider === 'custom'
@@ -242,7 +245,8 @@ export default function DictationScreen() {
             : undefined,
           settings.sttProvider === 'custom'
             ? { baseUrl: settings.customSttBaseUrl, model: settings.customSttModel }
-            : undefined
+            : undefined,
+          settings.language || 'en'
         );
         setLatestRawText(raw);
 
@@ -469,7 +473,11 @@ export default function DictationScreen() {
         <View style={styles.topBar}>
           <View style={styles.brandContainer}>
             <View style={styles.logoMark}>
-              <Ionicons name="mic" size={18} color={Theme.colors.textInverse} />
+              <Image
+                source={require('../../assets/images/icon.png')}
+                style={styles.logoImage}
+                resizeMode="cover"
+              />
             </View>
             <View style={styles.brandText}>
               <Text style={styles.brandTitle}>OpenWhispr</Text>
@@ -851,10 +859,15 @@ const styles = StyleSheet.create({
   logoMark: {
     width: 40,
     height: 40,
-    borderRadius: 14,
-    backgroundColor: Theme.colors.cyan,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#1B1714',
+    borderWidth: 1,
+    borderColor: 'rgba(233, 160, 99, 0.25)',
+  },
+  logoImage: {
+    width: '100%',
+    height: '100%',
   },
   brandText: {
     gap: 1,

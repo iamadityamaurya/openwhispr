@@ -25,12 +25,16 @@ export const NativeFloatingBubble = {
     if (!this.isSupported) return false;
     try {
       return await FloatingBubbleModule.syncSettings({
+        language: settings.language || 'en',
         sttProvider: settings.sttProvider,
         llmProvider: settings.llmProvider,
         deepgramApiKey: settings.deepgramApiKey,
         groqApiKey: settings.groqApiKey,
         openaiApiKey: settings.openaiApiKey,
         geminiApiKey: settings.geminiApiKey,
+        surplusApiKey: settings.surplusApiKey,
+        surplusLlmModel: settings.surplusLlmModel,
+        surplusSttModel: settings.surplusSttModel,
         customSttApiKey: settings.customSttApiKey,
         customSttBaseUrl: settings.customSttBaseUrl,
         customSttModel: settings.customSttModel,
@@ -45,6 +49,8 @@ export const NativeFloatingBubble = {
         geminiModel: settings.geminiModel,
         overlayEnabled: settings.overlayEnabled,
         smartKeyboardMode: settings.smartKeyboardMode,
+        keyboardOffset: settings.keyboardOffset ?? 48,
+        keyboardPosition: settings.keyboardPosition || 'right',
       });
     } catch (e) {
       console.warn('Failed to sync settings to native overlay:', e);

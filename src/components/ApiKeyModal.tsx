@@ -23,6 +23,10 @@ import {
   SURPLUS_STT_MODELS,
   SURPLUS_BASE_URL,
 } from '../constants/surplusModels';
+import {
+  GROQ_STT_MODELS,
+  GROQ_LLM_MODELS,
+} from '../constants/groqModels';
 
 interface ApiKeyModalProps {
   visible: boolean;
@@ -46,6 +50,10 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
   const [deepgramKey, setDeepgramKey] = useState(settings.deepgramApiKey);
   const [groqKey, setGroqKey] = useState(settings.groqApiKey);
   const [openaiKey, setOpenaiKey] = useState(settings.openaiApiKey);
+  const [groqWhisperModel, setGroqWhisperModel] = useState(settings.groqWhisperModel || 'whisper-large-v3-turbo');
+  const [groqLlmModel, setGroqLlmModel] = useState(settings.groqLlmModel || 'llama-3.3-70b-versatile');
+  const [isCustomGroqStt, setIsCustomGroqStt] = useState(false);
+  const [isCustomGroqLlm, setIsCustomGroqLlm] = useState(false);
 
   // Gemini keys
   const [geminiKey, setGeminiKey] = useState(settings.geminiApiKey || '');
@@ -87,6 +95,12 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
     setLlmProvider(settings.llmProvider);
     setDeepgramKey(settings.deepgramApiKey || '');
     setGroqKey(settings.groqApiKey || '');
+    const initialGroqStt = settings.groqWhisperModel || 'whisper-large-v3-turbo';
+    setGroqWhisperModel(initialGroqStt);
+    setIsCustomGroqStt(!GROQ_STT_MODELS.some((m) => m.id === initialGroqStt));
+    const initialGroqLlm = settings.groqLlmModel || 'llama-3.3-70b-versatile';
+    setGroqLlmModel(initialGroqLlm);
+    setIsCustomGroqLlm(!GROQ_LLM_MODELS.some((m) => m.id === initialGroqLlm));
     setOpenaiKey(settings.openaiApiKey || '');
     setGeminiKey(settings.geminiApiKey || '');
     setGeminiModel(settings.geminiModel || 'gemini-2.5-flash');
@@ -181,6 +195,8 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
       llmProvider,
       deepgramApiKey: deepgramKey.trim(),
       groqApiKey: groqKey.trim(),
+      groqWhisperModel: groqWhisperModel.trim(),
+      groqLlmModel: groqLlmModel.trim(),
       openaiApiKey: openaiKey.trim(),
       geminiApiKey: geminiKey.trim(),
       geminiModel: geminiModel.trim(),
@@ -664,6 +680,98 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                       />
                     </TouchableOpacity>
                   </View>
+
+                  {/* Groq STT Model Selection */}
+                  {sttProvider === 'groq' && (
+                    <View style={styles.modelSection}>
+                      <View style={styles.modelSectionHeader}>
+                        <Text style={styles.sectionSublabel}>Groq Whisper Model</Text>
+                        <Text style={styles.modelCountBadge}>{GROQ_STT_MODELS.length + 1} Options</Text>
+                      </View>
+                      <View style={styles.modelGrid}>
+                        {GROQ_STT_MODELS.map((item) => {
+                          const isSelected = !isCustomGroqStt && groqWhisperModel === item.id;
+                          return (
+                            <TouchableOpacity
+                              key={item.id}
+                              style={[styles.modelCard, isSelected && styles.modelCardActiveGroq]}
+                              onPress={() => {
+                                setIsCustomGroqStt(false);
+                                setGroqWhisperModel(item.id);
+                                Haptics.selectionAsync();
+                              }}
+                              activeOpacity={0.75}
+                            >
+                              <View style={styles.modelCardTop}>
+                                <Text style={[styles.modelCardName, isSelected && styles.modelCardNameActiveGroq]}>
+                                  {item.name}
+                                </Text>
+                                {item.tag && (
+                                  <View style={[styles.modelTagPill, isSelected && styles.modelTagPillActiveGroq]}>
+                                    <Text style={styles.modelTagText}>{item.tag}</Text>
+                                  </View>
+                                )}
+                              </View>
+                              <Text style={styles.modelCardDesc} numberOfLines={2}>
+                                {item.description}
+                              </Text>
+                              <View style={styles.modelCardFooter}>
+                                <Text style={styles.modelCardProvider}>{item.provider}</Text>
+                                {isSelected && (
+                                  <Ionicons name="checkmark-circle" size={15} color={Theme.colors.cyan} />
+                                )}
+                              </View>
+                            </TouchableOpacity>
+                          );
+                        })}
+
+                        {/* Any Other / Custom Model Option */}
+                        <TouchableOpacity
+                          style={[styles.modelCard, isCustomGroqStt && styles.modelCardActiveGroq]}
+                          onPress={() => {
+                            setIsCustomGroqStt(true);
+                            Haptics.selectionAsync();
+                          }}
+                          activeOpacity={0.75}
+                        >
+                          <View style={styles.modelCardTop}>
+                            <Text style={[styles.modelCardName, isCustomGroqStt && styles.modelCardNameActiveGroq]}>
+                              Any other model
+                            </Text>
+                            <View style={[styles.modelTagPill, isCustomGroqStt && styles.modelTagPillActiveGroq]}>
+                              <Text style={styles.modelTagText}>Custom</Text>
+                            </View>
+                          </View>
+                          <Text style={styles.modelCardDesc} numberOfLines={2}>
+                            Type any custom or newly released Groq speech model ID from docs.
+                          </Text>
+                          <View style={styles.modelCardFooter}>
+                            <Text style={styles.modelCardProvider}>Custom ID</Text>
+                            {isCustomGroqStt && (
+                              <Ionicons name="checkmark-circle" size={15} color={Theme.colors.cyan} />
+                            )}
+                          </View>
+                        </TouchableOpacity>
+                      </View>
+
+                      {isCustomGroqStt && (
+                        <View style={[styles.inputFieldBlock, { marginTop: 8 }]}>
+                          <Text style={styles.inputLabel}>Custom Groq Model ID</Text>
+                          <View style={styles.inputWrapper}>
+                            <TextInput
+                              style={styles.input}
+                              placeholder="e.g. whisper-large-v3-turbo"
+                              placeholderTextColor="#6B6254"
+                              value={groqWhisperModel}
+                              onChangeText={setGroqWhisperModel}
+                              autoCapitalize="none"
+                              autoCorrect={false}
+                            />
+                          </View>
+                        </View>
+                      )}
+                    </View>
+                  )}
                 </>
               )}
 
@@ -1173,6 +1281,98 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                       />
                     </TouchableOpacity>
                   </View>
+
+                  {/* Groq LLM Model Selection */}
+                  {llmProvider === 'groq' && (
+                    <View style={styles.modelSection}>
+                      <View style={styles.modelSectionHeader}>
+                        <Text style={styles.sectionSublabel}>Groq LPU Model</Text>
+                        <Text style={styles.modelCountBadge}>{GROQ_LLM_MODELS.length + 1} Options</Text>
+                      </View>
+                      <View style={styles.modelGrid}>
+                        {GROQ_LLM_MODELS.map((item) => {
+                          const isSelected = !isCustomGroqLlm && groqLlmModel === item.id;
+                          return (
+                            <TouchableOpacity
+                              key={item.id}
+                              style={[styles.modelCard, isSelected && styles.modelCardActiveGroq]}
+                              onPress={() => {
+                                setIsCustomGroqLlm(false);
+                                setGroqLlmModel(item.id);
+                                Haptics.selectionAsync();
+                              }}
+                              activeOpacity={0.75}
+                            >
+                              <View style={styles.modelCardTop}>
+                                <Text style={[styles.modelCardName, isSelected && styles.modelCardNameActiveGroq]}>
+                                  {item.name}
+                                </Text>
+                                {item.tag && (
+                                  <View style={[styles.modelTagPill, isSelected && styles.modelTagPillActiveGroq]}>
+                                    <Text style={styles.modelTagText}>{item.tag}</Text>
+                                  </View>
+                                )}
+                              </View>
+                              <Text style={styles.modelCardDesc} numberOfLines={2}>
+                                {item.description}
+                              </Text>
+                              <View style={styles.modelCardFooter}>
+                                <Text style={styles.modelCardProvider}>{item.provider}</Text>
+                                {isSelected && (
+                                  <Ionicons name="checkmark-circle" size={15} color={Theme.colors.cyan} />
+                                )}
+                              </View>
+                            </TouchableOpacity>
+                          );
+                        })}
+
+                        {/* Any Other / Custom Model Option */}
+                        <TouchableOpacity
+                          style={[styles.modelCard, isCustomGroqLlm && styles.modelCardActiveGroq]}
+                          onPress={() => {
+                            setIsCustomGroqLlm(true);
+                            Haptics.selectionAsync();
+                          }}
+                          activeOpacity={0.75}
+                        >
+                          <View style={styles.modelCardTop}>
+                            <Text style={[styles.modelCardName, isCustomGroqLlm && styles.modelCardNameActiveGroq]}>
+                              Any other model
+                            </Text>
+                            <View style={[styles.modelTagPill, isCustomGroqLlm && styles.modelTagPillActiveGroq]}>
+                              <Text style={styles.modelTagText}>Custom</Text>
+                            </View>
+                          </View>
+                          <Text style={styles.modelCardDesc} numberOfLines={2}>
+                            Type any custom Groq model ID (e.g. deepseek-r1-distill-llama-70b).
+                          </Text>
+                          <View style={styles.modelCardFooter}>
+                            <Text style={styles.modelCardProvider}>Custom ID</Text>
+                            {isCustomGroqLlm && (
+                              <Ionicons name="checkmark-circle" size={15} color={Theme.colors.cyan} />
+                            )}
+                          </View>
+                        </TouchableOpacity>
+                      </View>
+
+                      {isCustomGroqLlm && (
+                        <View style={[styles.inputFieldBlock, { marginTop: 8 }]}>
+                          <Text style={styles.inputLabel}>Custom Groq Model ID</Text>
+                          <View style={styles.inputWrapper}>
+                            <TextInput
+                              style={styles.input}
+                              placeholder="e.g. llama-3.3-70b-versatile"
+                              placeholderTextColor="#6B6254"
+                              value={groqLlmModel}
+                              onChangeText={setGroqLlmModel}
+                              autoCapitalize="none"
+                              autoCorrect={false}
+                            />
+                          </View>
+                        </View>
+                      )}
+                    </View>
+                  )}
                 </>
               )}
 
@@ -1551,6 +1751,9 @@ const styles = StyleSheet.create({
     fontFamily: Theme.fonts.regular,
     marginTop: 2,
   },
+  modelSection: {
+    marginTop: 14,
+  },
   modelSectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -1576,6 +1779,16 @@ const styles = StyleSheet.create({
   modelCardActiveSurplus: {
     backgroundColor: 'rgba(214, 169, 124, 0.12)',
     borderColor: '#DFAF82',
+  },
+  modelCardActiveGroq: {
+    backgroundColor: 'rgba(233, 160, 99, 0.12)',
+    borderColor: '#E9A063',
+  },
+  modelCardNameActiveGroq: {
+    color: '#F2C08A',
+  },
+  modelTagPillActiveGroq: {
+    backgroundColor: 'rgba(233, 160, 99, 0.28)',
   },
   modelCardTop: {
     flexDirection: 'row',

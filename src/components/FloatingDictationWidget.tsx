@@ -113,11 +113,11 @@ export const FloatingDictationWidget: React.FC<FloatingDictationWidgetProps> = (
           activeOpacity={0.85}
         >
           {isProcessing ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
+            <ActivityIndicator size="small" color="#151210" />
           ) : isRecording ? (
             <Ionicons name="mic" size={26} color="#FFFFFF" />
           ) : (
-            <Ionicons name="mic-outline" size={26} color={Theme.colors.cyan} />
+            <Ionicons name="mic" size={26} color="#151210" />
           )}
 
           <View style={styles.bubbleBadge}>
@@ -139,10 +139,10 @@ export const FloatingDictationWidget: React.FC<FloatingDictationWidgetProps> = (
               />
               <Text style={styles.headerTitle}>
                 {isProcessing
-                  ? 'Refactoring...'
+                  ? 'Polishing…'
                   : isRecording
-                  ? `Recording (${formatTime(durationMs)})`
-                  : 'OpenWhispr Floating'}
+                  ? `Recording · ${formatTime(durationMs)}`
+                  : 'OpenWhispr'}
               </Text>
             </View>
 
@@ -274,25 +274,25 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#211C18',
+    backgroundColor: Theme.colors.cyan,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: Theme.colors.cyan,
-    shadowColor: Theme.colors.cyan,
+    borderWidth: 1.5,
+    borderColor: '#C97B45',
+    shadowColor: '#0A0806',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.45,
+    shadowOpacity: 0.4,
     shadowRadius: 10,
-    elevation: 12,
+    elevation: 10,
   },
   bubbleRecording: {
-    backgroundColor: '#C93A3E',
-    borderColor: '#E0857E',
+    backgroundColor: '#E5484D',
+    borderColor: '#E8A19C',
     shadowColor: '#C93A3E',
   },
   bubbleProcessing: {
-    backgroundColor: '#B58760',
-    borderColor: '#DFAF82',
+    backgroundColor: '#D9A441',
+    borderColor: '#F2C08A',
   },
   bubbleBadge: {
     position: 'absolute',
@@ -302,18 +302,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 3,
     paddingVertical: 1,
     borderWidth: 1,
-    borderColor: Theme.colors.border,
+    borderColor: 'rgba(255, 244, 226, 0.12)',
   },
   card: {
     width: 280,
     backgroundColor: '#241F1A',
-    borderRadius: 18,
-    padding: 13,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 246, 230, 0.1)',
-    shadowColor: '#000',
+    borderRadius: 20,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 244, 226, 0.09)',
+    shadowColor: '#0A0806',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.5,
+    shadowOpacity: 0.45,
     shadowRadius: 12,
     elevation: 14,
   },
@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.colors.red,
   },
   dotProcessing: {
-    backgroundColor: Theme.colors.purple,
+    backgroundColor: Theme.colors.amber,
   },
   headerTitle: {
     color: '#FFFFFF',
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
     borderRadius: 9,
   },
   recordBtn: {
-    backgroundColor: '#D08448',
+    backgroundColor: Theme.colors.cyan,
   },
   stopBtn: {
     backgroundColor: '#E5484D',
@@ -403,7 +403,8 @@ const styles = StyleSheet.create({
     borderColor: Theme.colors.border,
   },
   speakingBtn: {
-    backgroundColor: '#B58760',
+    backgroundColor: Theme.colors.cyanMuted,
+    borderColor: Theme.colors.borderHighlight,
   },
   actionBtnText: {
     color: '#FFFFFF',

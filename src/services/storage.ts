@@ -4,6 +4,7 @@ export type SttProvider = 'deepgram' | 'groq' | 'openai' | 'surplus' | 'custom';
 export type LlmProvider = 'groq' | 'openai' | 'gemini' | 'surplus' | 'custom';
 
 export interface AppSettings {
+  language: string; // Default: 'en'
   sttProvider: SttProvider;
   llmProvider: LlmProvider;
 
@@ -43,6 +44,8 @@ export interface AppSettings {
   ttsPitch: number; // 0.5 to 1.5
   overlayEnabled: boolean;
   smartKeyboardMode: boolean; // Show floating widget only when soft keyboard / input is active
+  keyboardOffset: number; // Vertical offset in dp above keyboard top (e.g. 24, 48, 80, 120). Default: 48
+  keyboardPosition: 'right' | 'left'; // Horizontal dock side above keyboard. Default: 'right'
 }
 
 export interface DictationItem {
@@ -59,6 +62,7 @@ const SETTINGS_KEY = '@openwhispr_settings_v2';
 const HISTORY_KEY = '@openwhispr_history_v2';
 
 export const DEFAULT_SETTINGS: AppSettings = {
+  language: 'en',
   sttProvider: 'deepgram',
   llmProvider: 'groq',
   deepgramApiKey: '',
@@ -86,6 +90,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   ttsPitch: 1.0,
   overlayEnabled: false,
   smartKeyboardMode: true,
+  keyboardOffset: 48,
+  keyboardPosition: 'right',
 };
 
 export async function loadSettings(): Promise<AppSettings> {
