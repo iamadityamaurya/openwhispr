@@ -113,6 +113,26 @@ export const HistoryList: React.FC<HistoryListProps> = ({
                     <Text style={styles.llmText}>{item.llmProvider}</Text>
                     <Text style={styles.dot}>•</Text>
                     <Text style={styles.timeTag}>{formatTimestamp(item.timestamp)}</Text>
+                    {item.cleanupMode && item.cleanupMode !== 'natural' && (
+                      <>
+                        <Text style={styles.dot}>•</Text>
+                        <View style={styles.personaBadge}>
+                          <Text style={styles.personaBadgeText}>
+                            {item.cleanupMode === 'casual'
+                              ? '💬 Casual'
+                              : item.cleanupMode === 'email'
+                              ? '💼 Email'
+                              : item.cleanupMode === 'notes'
+                              ? '📝 Notes'
+                              : item.cleanupMode === 'code'
+                              ? '💻 Code'
+                              : item.cleanupMode === 'translate_en'
+                              ? '🌐 English'
+                              : '✨ Natural'}
+                          </Text>
+                        </View>
+                      </>
+                    )}
                   </View>
 
                   {/* Actions */}
@@ -302,6 +322,19 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: Theme.fonts.monoBold,
     letterSpacing: 0.4,
+  },
+  personaBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    backgroundColor: 'rgba(233, 160, 99, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(233, 160, 99, 0.22)',
+  },
+  personaBadgeText: {
+    fontSize: 10,
+    fontFamily: Theme.fonts.semiBold,
+    color: Theme.colors.cyanBright,
   },
   pipelineArrow: {
     color: Theme.colors.textMuted,

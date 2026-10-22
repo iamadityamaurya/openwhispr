@@ -51,6 +51,7 @@ export const NativeFloatingBubble = {
         smartKeyboardMode: settings.smartKeyboardMode,
         keyboardOffset: settings.keyboardOffset ?? 48,
         keyboardPosition: settings.keyboardPosition || 'right',
+        cleanupMode: settings.cleanupMode || 'natural',
       });
     } catch (e) {
       console.warn('Failed to sync settings to native overlay:', e);

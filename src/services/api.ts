@@ -1,5 +1,5 @@
 import * as FileSystem from 'expo-file-system/legacy';
-import { OPENWHISPR_CLEANUP_SYSTEM_PROMPT, wrapCleanupTranscript } from '../config/prompts';
+import { getCleanupSystemPrompt, wrapCleanupTranscript, CleanupMode } from '../config/prompts';
 import { SttProvider, LlmProvider } from './storage';
 import { SURPLUS_BASE_URL } from '../constants/surplusModels';
 
@@ -198,7 +198,8 @@ export async function cleanupTranscript(
   apiKey: string,
   provider: LlmProvider,
   modelOverride?: string,
-  customOptions?: { baseUrl?: string; model?: string }
+  customOptions?: { baseUrl?: string; model?: string },
+  mode: CleanupMode = 'natural'
 ): Promise<string> {
   if (!rawTranscript || rawTranscript.trim().length === 0) {
     return '';
@@ -209,7 +210,8 @@ export async function cleanupTranscript(
     return rawTranscript;
   }
 
-  const wrappedInput = wrapCleanupTranscript(rawTranscript);
+  const systemPrompt = getCleanupSystemPrompt(mode);
+  const wrappedInput = wrapCleanupTranscript(rawTranscript, mode);
 
   // Google Gemini implementation
   if (provider === 'gemini') {
@@ -221,7 +223,7 @@ export async function cleanupTranscript(
       const payload = {
         model,
         messages: [
-          { role: 'system', content: OPENWHISPR_CLEANUP_SYSTEM_PROMPT },
+          { role: 'system', content: systemPrompt },
           { role: 'user', content: wrappedInput },
         ],
         temperature: 0.1,
@@ -250,7 +252,7 @@ export async function cleanupTranscript(
       const nativeEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey.trim())}`;
       const nativePayload = {
         contents: [{ role: 'user', parts: [{ text: wrappedInput }] }],
-        systemInstruction: { parts: [{ text: OPENWHISPR_CLEANUP_SYSTEM_PROMPT }] },
+        systemInstruction: { parts: [{ text: systemPrompt }] },
         generationConfig: { temperature: 0.1 },
       };
 
@@ -293,7 +295,7 @@ export async function cleanupTranscript(
     const payload = {
       model,
       messages: [
-        { role: 'system', content: OPENWHISPR_CLEANUP_SYSTEM_PROMPT },
+        { role: 'system', content: systemPrompt },
         { role: 'user', content: wrappedInput },
       ],
       temperature: 0.1,
@@ -329,7 +331,7 @@ export async function cleanupTranscript(
     const payload = {
       model,
       messages: [
-        { role: 'system', content: OPENWHISPR_CLEANUP_SYSTEM_PROMPT },
+        { role: 'system', content: systemPrompt },
         { role: 'user', content: wrappedInput },
       ],
       temperature: 0.1,
@@ -369,7 +371,7 @@ export async function cleanupTranscript(
   const payload = {
     model,
     messages: [
-      { role: 'system', content: OPENWHISPR_CLEANUP_SYSTEM_PROMPT },
+      { role: 'system', content: systemPrompt },
       { role: 'user', content: wrappedInput },
     ],
     temperature: 0.1,

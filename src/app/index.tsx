@@ -29,6 +29,7 @@ import {
   clearHistory,
 } from '../services/storage';
 import { transcribeAudio, cleanupTranscript } from '../services/api';
+import { CLEANUP_MODES, CleanupMode } from '../config/prompts';
 import { speakText, stopSpeaking } from '../services/tts';
 import { AudioVisualizer } from '../components/AudioVisualizer';
 import { ApiKeyModal } from '../components/ApiKeyModal';
@@ -98,6 +99,7 @@ export default function DictationScreen() {
           durationMs: Math.round(event.durationMs),
           sttProvider: event.sttProvider as any,
           llmProvider: event.llmProvider as any,
+          cleanupMode: s.cleanupMode || 'natural',
         };
         const updated = await saveHistoryItem(newItem);
         setHistory(updated);
@@ -110,6 +112,17 @@ export default function DictationScreen() {
       sub?.remove();
     };
   }, []);
+
+  const currentPersona =
+    CLEANUP_MODES.find((m) => m.id === (settings.cleanupMode || 'natural')) ||
+    CLEANUP_MODES[0];
+
+  const handleSelectCleanupMode = async (mode: CleanupMode) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const updated = await saveSettings({ cleanupMode: mode });
+    setSettings(updated);
+    await NativeFloatingBubble.syncSettings(updated);
+  };
 
   // Idle gentle breathing loop
   useEffect(() => {
@@ -270,7 +283,8 @@ export default function DictationScreen() {
           llmModelOverride,
           settings.llmProvider === 'custom'
             ? { baseUrl: settings.customLlmBaseUrl, model: settings.customLlmModel }
-            : undefined
+            : undefined,
+          settings.cleanupMode || 'natural'
         );
         setLatestCleanedText(cleaned);
         setStatus('done');
@@ -294,6 +308,7 @@ export default function DictationScreen() {
           durationMs: audioResult.durationMs,
           sttProvider: settings.sttProvider,
           llmProvider: settings.llmProvider,
+          cleanupMode: settings.cleanupMode || 'natural',
         };
         const updated = await saveHistoryItem(newItem);
         setHistory(updated);
@@ -443,6 +458,7 @@ export default function DictationScreen() {
         isProcessing={status === 'transcribing' || status === 'cleaning'}
         latestCleanedText={latestCleanedText}
         isSpeaking={isSpeaking}
+        cleanupMode={settings.cleanupMode || 'natural'}
         onToggleRecord={handleToggleRecord}
         onSpeakText={() => handleSpeak()}
         onClose={() => handleToggleFloatingBubble(false)}
@@ -543,6 +559,49 @@ export default function DictationScreen() {
             </Text>
           </View>
         )}
+
+        {/* Tone & Persona Switcher */}
+        <View style={styles.personaContainer}>
+          <View style={styles.personaHeaderRow}>
+            <View style={styles.personaTitleBadge}>
+              <Ionicons name="sparkles" size={12} color={Theme.colors.cyan} />
+              <Text style={styles.personaSectionTitle}>TONE & PERSONA</Text>
+            </View>
+            <Text style={styles.personaActiveTag}>{currentPersona.targetApp}</Text>
+          </View>
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.personaScroll}
+          >
+            {CLEANUP_MODES.map((mode) => {
+              const isSelected = (settings.cleanupMode || 'natural') === mode.id;
+              return (
+                <TouchableOpacity
+                  key={mode.id}
+                  style={[
+                    styles.personaChip,
+                    isSelected && styles.personaChipActive,
+                  ]}
+                  onPress={() => handleSelectCleanupMode(mode.id)}
+                  activeOpacity={0.75}
+                >
+                  <Text style={styles.personaChipIcon}>{mode.icon}</Text>
+                  <Text
+                    style={[
+                      styles.personaChipText,
+                      isSelected && styles.personaChipTextActive,
+                    ]}
+                  >
+                    {mode.shortLabel}
+                  </Text>
+                  {isSelected && <View style={styles.personaActiveDot} />}
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
 
         {/* Recording card */}
         <View style={styles.studioCard}>
@@ -662,8 +721,8 @@ export default function DictationScreen() {
           <View style={styles.resultCard}>
             <View style={styles.resultHeader}>
               <View style={styles.resultBadge}>
-                <Ionicons name="sparkles" size={13} color={Theme.colors.cyan} />
-                <Text style={styles.resultBadgeText}>Refined by AI</Text>
+                <Text style={styles.resultBadgeEmoji}>{currentPersona.icon}</Text>
+                <Text style={styles.resultBadgeText}>{currentPersona.label}</Text>
               </View>
 
               <View style={styles.resultStatsRow}>
@@ -1253,5 +1312,79 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     fontFamily: Theme.fonts.regular,
     lineHeight: 18,
+  },
+  personaContainer: {
+    marginBottom: 16,
+  },
+  personaHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+    paddingHorizontal: 2,
+  },
+  personaTitleBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  personaSectionTitle: {
+    fontSize: 11,
+    fontFamily: Theme.fonts.heading,
+    letterSpacing: 0.8,
+    color: Theme.colors.cyan,
+  },
+  personaActiveTag: {
+    fontSize: 11,
+    fontFamily: Theme.fonts.medium,
+    color: Theme.colors.textMuted,
+  },
+  personaScroll: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingVertical: 2,
+  },
+  personaChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Theme.colors.card,
+    borderWidth: 1,
+    borderColor: Theme.colors.border,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: Theme.radius.full,
+    gap: 6,
+  },
+  personaChipActive: {
+    backgroundColor: Theme.colors.cyanSubtle,
+    borderColor: Theme.colors.borderActive,
+    shadowColor: Theme.colors.cyan,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  personaChipIcon: {
+    fontSize: 14,
+  },
+  personaChipText: {
+    fontSize: 12.5,
+    fontFamily: Theme.fonts.medium,
+    color: Theme.colors.textSecondary,
+  },
+  personaChipTextActive: {
+    color: Theme.colors.textPrimary,
+    fontFamily: Theme.fonts.semiBold,
+  },
+  personaActiveDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: Theme.colors.cyan,
+    marginLeft: 2,
+  },
+  resultBadgeEmoji: {
+    fontSize: 13,
+    marginRight: 4,
   },
 });

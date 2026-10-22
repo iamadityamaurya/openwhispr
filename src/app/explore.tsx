@@ -22,7 +22,7 @@ import {
   LlmProvider,
 } from '../services/storage';
 import { ApiKeyModal } from '../components/ApiKeyModal';
-import { OPENWHISPR_CLEANUP_SYSTEM_PROMPT } from '../config/prompts';
+import { CLEANUP_MODES, CleanupMode, getCleanupSystemPrompt } from '../config/prompts';
 import { Theme } from '../constants/designSystem';
 import { NativeFloatingBubble } from '../services/nativeFloatingBubble';
 import { OverlayPermissionModal } from '../components/OverlayPermissionModal';
@@ -163,8 +163,14 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleSelectCleanupMode = async (mode: CleanupMode) => {
+    Haptics.selectionAsync();
+    await handleUpdate({ cleanupMode: mode });
+  };
+
   const handleCopyPrompt = async () => {
-    await Clipboard.setStringAsync(OPENWHISPR_CLEANUP_SYSTEM_PROMPT);
+    const prompt = getCleanupSystemPrompt(settings.cleanupMode || 'natural');
+    await Clipboard.setStringAsync(prompt);
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setCopiedPrompt(true);
     setTimeout(() => setCopiedPrompt(false), 2000);
@@ -396,7 +402,64 @@ export default function SettingsScreen() {
           )
         )}
 
-        {/* SECTION 3: Overlay & automation */}
+        {/* SECTION 3: Tone & Persona */}
+        <View style={[styles.sectionHeader, { marginTop: 24 }]}>
+          <Text style={styles.sectionTitle}>Tone & Persona</Text>
+        </View>
+        <Text style={styles.sectionSubtitle}>
+          Choose how OpenWhispr cleans and shapes your words before they land in your apps.
+        </Text>
+
+        <View style={styles.personaGrid}>
+          {CLEANUP_MODES.map((mode) => {
+            const isActive = (settings.cleanupMode || 'natural') === mode.id;
+            return (
+              <TouchableOpacity
+                key={mode.id}
+                style={[
+                  styles.personaCard,
+                  isActive && styles.personaCardActive,
+                ]}
+                onPress={() => handleSelectCleanupMode(mode.id)}
+                activeOpacity={0.8}
+              >
+                <View style={styles.personaCardHeader}>
+                  <View style={styles.personaCardTitleGroup}>
+                    <Text style={styles.personaCardEmoji}>{mode.icon}</Text>
+                    <View style={{ flex: 1 }}>
+                      <View style={styles.personaCardLabelRow}>
+                        <Text
+                          style={[
+                            styles.personaCardLabel,
+                            isActive && styles.personaCardLabelActive,
+                          ]}
+                        >
+                          {mode.label}
+                        </Text>
+                        <View style={styles.personaContextBadge}>
+                          <Text style={styles.personaContextText}>{mode.badge}</Text>
+                        </View>
+                      </View>
+                      <Text style={styles.personaCardTarget}>{mode.targetApp}</Text>
+                    </View>
+                  </View>
+
+                  {isActive ? (
+                    <View style={styles.activeTickCircle}>
+                      <Ionicons name="checkmark-sharp" size={14} color="#151210" />
+                    </View>
+                  ) : (
+                    <View style={styles.inactiveTickCircle} />
+                  )}
+                </View>
+
+                <Text style={styles.personaCardTagline}>{mode.tagline}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {/* SECTION 4: Overlay & automation */}
         <View style={[styles.sectionHeader, { marginTop: 24 }]}>
           <Text style={styles.sectionTitle}>Overlay & automation</Text>
         </View>
@@ -714,7 +777,9 @@ export default function SettingsScreen() {
                 nestedScrollEnabled={true}
                 showsVerticalScrollIndicator={true}
               >
-                <Text style={styles.promptCode}>{OPENWHISPR_CLEANUP_SYSTEM_PROMPT}</Text>
+                <Text style={styles.promptCode}>
+                  {getCleanupSystemPrompt(settings.cleanupMode || 'natural')}
+                </Text>
               </ScrollView>
             </View>
           )}
@@ -1082,5 +1147,81 @@ const styles = StyleSheet.create({
   pillButtonTextActive: {
     color: '#141210',
     fontFamily: Theme.fonts.semiBold,
+  },
+  sectionSubtitle: {
+    color: Theme.colors.textSecondary,
+    fontSize: 12.5,
+    fontFamily: Theme.fonts.regular,
+    lineHeight: 18,
+    marginBottom: 12,
+  },
+  personaGrid: {
+    gap: 10,
+  },
+  personaCard: {
+    backgroundColor: Theme.colors.cardGlass,
+    borderRadius: 18,
+    padding: 14,
+    borderWidth: 1.2,
+    borderColor: Theme.colors.border,
+  },
+  personaCardActive: {
+    borderColor: Theme.colors.borderActive,
+    backgroundColor: 'rgba(233, 160, 99, 0.05)',
+  },
+  personaCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  personaCardTitleGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+  },
+  personaCardEmoji: {
+    fontSize: 22,
+  },
+  personaCardLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  personaCardLabel: {
+    color: Theme.colors.textPrimary,
+    fontSize: 15,
+    fontFamily: Theme.fonts.semiBold,
+  },
+  personaCardLabelActive: {
+    color: Theme.colors.cyanBright,
+  },
+  personaContextBadge: {
+    backgroundColor: 'rgba(255, 246, 230, 0.05)',
+    borderWidth: 1,
+    borderColor: Theme.colors.border,
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: 6,
+  },
+  personaContextText: {
+    color: Theme.colors.textMuted,
+    fontSize: 10,
+    fontFamily: Theme.fonts.mono,
+  },
+  personaCardTarget: {
+    color: Theme.colors.textMuted,
+    fontSize: 11,
+    fontFamily: Theme.fonts.regular,
+    marginTop: 1,
+  },
+  personaCardTagline: {
+    color: Theme.colors.textSecondary,
+    fontSize: 12.5,
+    fontFamily: Theme.fonts.regular,
+    lineHeight: 17,
+    marginTop: 2,
+    paddingLeft: 32,
   },
 });

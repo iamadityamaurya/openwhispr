@@ -14,6 +14,7 @@ import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import { AudioVisualizer } from './AudioVisualizer';
 import { Theme } from '../constants/designSystem';
+import { CleanupMode, CLEANUP_MODES } from '../config/prompts';
 
 interface FloatingDictationWidgetProps {
   visible: boolean;
@@ -23,6 +24,7 @@ interface FloatingDictationWidgetProps {
   isProcessing: boolean;
   latestCleanedText: string;
   isSpeaking: boolean;
+  cleanupMode?: CleanupMode;
   onToggleRecord: () => void;
   onSpeakText: () => void;
   onClose: () => void;
@@ -38,6 +40,7 @@ export const FloatingDictationWidget: React.FC<FloatingDictationWidgetProps> = (
   isProcessing,
   latestCleanedText,
   isSpeaking,
+  cleanupMode = 'natural',
   onToggleRecord,
   onSpeakText,
   onClose,
@@ -144,6 +147,14 @@ export const FloatingDictationWidget: React.FC<FloatingDictationWidgetProps> = (
                   ? `Recording · ${formatTime(durationMs)}`
                   : 'OpenWhispr'}
               </Text>
+              {cleanupMode && cleanupMode !== 'natural' && (
+                <View style={styles.personaBadge}>
+                  <Text style={styles.personaBadgeText}>
+                    {CLEANUP_MODES.find((m) => m.id === cleanupMode)?.icon}{' '}
+                    {CLEANUP_MODES.find((m) => m.id === cleanupMode)?.shortLabel}
+                  </Text>
+                </View>
+              )}
             </View>
 
             <View style={styles.headerRight}>
@@ -414,6 +425,20 @@ const styles = StyleSheet.create({
   secondaryBtnText: {
     color: Theme.colors.cyan,
     fontSize: 11,
+    fontFamily: Theme.fonts.semiBold,
+  },
+  personaBadge: {
+    backgroundColor: 'rgba(233, 160, 99, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(233, 160, 99, 0.25)',
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: 6,
+    marginLeft: 6,
+  },
+  personaBadgeText: {
+    color: Theme.colors.cyanBright,
+    fontSize: 10,
     fontFamily: Theme.fonts.semiBold,
   },
 });

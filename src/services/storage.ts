@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { CleanupMode } from '../config/prompts';
 
 export type SttProvider = 'deepgram' | 'groq' | 'openai' | 'surplus' | 'custom';
 export type LlmProvider = 'groq' | 'openai' | 'gemini' | 'surplus' | 'custom';
@@ -7,6 +8,7 @@ export interface AppSettings {
   language: string; // Default: 'en'
   sttProvider: SttProvider;
   llmProvider: LlmProvider;
+  cleanupMode: CleanupMode; // Tone & Persona mode ('natural' | 'casual' | 'email' | 'notes' | 'code' | 'translate_en')
 
   // STT Keys & Models
   deepgramApiKey: string;
@@ -56,6 +58,7 @@ export interface DictationItem {
   durationMs: number;
   sttProvider: SttProvider;
   llmProvider: LlmProvider;
+  cleanupMode?: CleanupMode;
 }
 
 const SETTINGS_KEY = '@openwhispr_settings_v2';
@@ -65,6 +68,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   language: 'en',
   sttProvider: 'deepgram',
   llmProvider: 'groq',
+  cleanupMode: 'natural',
   deepgramApiKey: '',
   groqApiKey: '',
   openaiApiKey: '',
@@ -107,6 +111,7 @@ export async function loadSettings(): Promise<AppSettings> {
           ...old,
           sttProvider: old.provider || 'deepgram',
           llmProvider: old.provider === 'openai' ? 'openai' : 'groq',
+          cleanupMode: old.cleanupMode || 'natural',
         };
       }
       return DEFAULT_SETTINGS;
@@ -114,6 +119,9 @@ export async function loadSettings(): Promise<AppSettings> {
     const parsed = JSON.parse(json);
     if (parsed.groqLlmModel === 'llama-3.1-8b-instant') {
       parsed.groqLlmModel = 'llama-3.3-70b-versatile';
+    }
+    if (!parsed.cleanupMode) {
+      parsed.cleanupMode = 'natural';
     }
     return { ...DEFAULT_SETTINGS, ...parsed };
   } catch (error) {
