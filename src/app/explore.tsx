@@ -425,7 +425,13 @@ export default function SettingsScreen() {
               >
                 <View style={styles.personaCardHeader}>
                   <View style={styles.personaCardTitleGroup}>
-                    <Text style={styles.personaCardEmoji}>{mode.icon}</Text>
+                    <View style={[styles.personaIconBox, isActive && styles.personaIconBoxActive]}>
+                      <Ionicons
+                        name={mode.ionIcon as any}
+                        size={19}
+                        color={isActive ? Theme.colors.cyan : Theme.colors.textSecondary}
+                      />
+                    </View>
                     <View style={{ flex: 1 }}>
                       <View style={styles.personaCardLabelRow}>
                         <Text
@@ -1181,8 +1187,19 @@ const styles = StyleSheet.create({
     gap: 10,
     flex: 1,
   },
-  personaCardEmoji: {
-    fontSize: 22,
+  personaIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Theme.colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Theme.colors.border,
+  },
+  personaIconBoxActive: {
+    backgroundColor: Theme.colors.cyanSubtle,
+    borderColor: Theme.colors.borderActive,
   },
   personaCardLabelRow: {
     flexDirection: 'row',

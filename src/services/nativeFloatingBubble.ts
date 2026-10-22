@@ -135,4 +135,10 @@ export const NativeFloatingBubble = {
     const subscription = eventEmitter.addListener('onFloatingTranscription', callback);
     return subscription;
   },
+
+  onModeChanged(callback: (event: { cleanupMode: string }) => void) {
+    if (!eventEmitter) return { remove: () => {} };
+    const subscription = eventEmitter.addListener('onFloatingModeChanged', callback);
+    return subscription;
+  },
 };

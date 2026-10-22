@@ -25,6 +25,7 @@ interface FloatingDictationWidgetProps {
   latestCleanedText: string;
   isSpeaking: boolean;
   cleanupMode?: CleanupMode;
+  onSelectMode?: (mode: CleanupMode) => void;
   onToggleRecord: () => void;
   onSpeakText: () => void;
   onClose: () => void;
@@ -41,12 +42,17 @@ export const FloatingDictationWidget: React.FC<FloatingDictationWidgetProps> = (
   latestCleanedText,
   isSpeaking,
   cleanupMode = 'natural',
+  onSelectMode,
   onToggleRecord,
   onSpeakText,
   onClose,
 }) => {
   const [expanded, setExpanded] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const currentPersona =
+    CLEANUP_MODES.find((m) => m.id === cleanupMode) || CLEANUP_MODES[0];
 
   const pan = useRef(
     new Animated.ValueXY({ x: SCREEN_WIDTH - 85, y: SCREEN_HEIGHT - 220 })
@@ -102,31 +108,109 @@ export const FloatingDictationWidget: React.FC<FloatingDictationWidgetProps> = (
       {...panResponder.panHandlers}
     >
       {!expanded ? (
-        /* Collapsed Floating Bubble */
-        <TouchableOpacity
-          style={[
-            styles.bubble,
-            isRecording && styles.bubbleRecording,
-            isProcessing && styles.bubbleProcessing,
-          ]}
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            setExpanded(true);
-          }}
-          activeOpacity={0.85}
-        >
-          {isProcessing ? (
-            <ActivityIndicator size="small" color="#151210" />
-          ) : isRecording ? (
-            <Ionicons name="mic" size={26} color="#FFFFFF" />
+        /* Collapsed Dual-Button Capsule Pill */
+        <View style={[styles.capsule, pickerOpen && styles.capsuleExpandedPicker]}>
+          {pickerOpen ? (
+            <View style={styles.pickerStrip}>
+              {CLEANUP_MODES.map((mode) => {
+                const isSelected = mode.id === cleanupMode;
+                return (
+                  <TouchableOpacity
+                    key={mode.id}
+                    style={[styles.pickerSlot, isSelected && styles.pickerSlotActive]}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      onSelectMode?.(mode.id);
+                      setPickerOpen(false);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons
+                      name={mode.ionIcon as any}
+                      size={15}
+                      color={isSelected ? Theme.colors.cyan : '#B8AC9A'}
+                    />
+                  </TouchableOpacity>
+                );
+              })}
+              <TouchableOpacity
+                style={styles.pickerCloseBtn}
+                onPress={() => setPickerOpen(false)}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="close" size={14} color="#B8AC9A" />
+              </TouchableOpacity>
+            </View>
           ) : (
-            <Ionicons name="mic" size={26} color="#151210" />
+            <TouchableOpacity
+              style={styles.capsuleModeBtn}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                if (isRecording || isProcessing) {
+                  onToggleRecord();
+                } else {
+                  setPickerOpen(true);
+                }
+              }}
+              onLongPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                if (onSelectMode) {
+                  const currentIndex = CLEANUP_MODES.findIndex((m) => m.id === cleanupMode);
+                  const nextIndex = (currentIndex + 1) % CLEANUP_MODES.length;
+                  onSelectMode(CLEANUP_MODES[nextIndex].id);
+                }
+              }}
+              activeOpacity={0.75}
+            >
+              {isRecording ? (
+                <Text style={styles.capsuleModeEmoji}>🔴</Text>
+              ) : isProcessing ? (
+                <Text style={styles.capsuleModeEmoji}>⚡</Text>
+              ) : (
+                <Ionicons
+                  name={currentPersona.ionIcon as any}
+                  size={14}
+                  color={Theme.colors.cyan}
+                  style={{ marginRight: 2 }}
+                />
+              )}
+              <Text style={[styles.capsuleModeLabel, isRecording && styles.capsuleRecordingLabel]}>
+                {isRecording
+                  ? `REC ${formatTime(durationMs)}`
+                  : isProcessing
+                  ? 'Refactoring…'
+                  : currentPersona.shortLabel}
+              </Text>
+              {!isRecording && !isProcessing && (
+                <Ionicons name="chevron-down" size={11} color={Theme.colors.cyan} />
+              )}
+            </TouchableOpacity>
           )}
 
-          <View style={styles.bubbleBadge}>
-            <Ionicons name="move" size={10} color={Theme.colors.textSecondary} />
-          </View>
-        </TouchableOpacity>
+          <View style={styles.capsuleDivider} />
+
+          <TouchableOpacity
+            style={[
+              styles.capsuleMicBtn,
+              isRecording && styles.capsuleMicBtnRecording,
+              isProcessing && styles.capsuleMicBtnProcessing,
+            ]}
+            onPress={onToggleRecord}
+            onLongPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              setExpanded(true);
+            }}
+            activeOpacity={0.85}
+          >
+            {isProcessing ? (
+              <ActivityIndicator size="small" color="#151210" />
+            ) : isRecording ? (
+              <Ionicons name="stop" size={18} color="#FFFFFF" />
+            ) : (
+              <Ionicons name="mic" size={18} color="#151210" />
+            )}
+          </TouchableOpacity>
+        </View>
       ) : (
         /* Expanded Floating Card */
         <View style={styles.card}>
@@ -149,9 +233,14 @@ export const FloatingDictationWidget: React.FC<FloatingDictationWidgetProps> = (
               </Text>
               {cleanupMode && cleanupMode !== 'natural' && (
                 <View style={styles.personaBadge}>
+                  <Ionicons
+                    name={currentPersona.ionIcon as any}
+                    size={11}
+                    color={Theme.colors.cyanBright}
+                    style={{ marginRight: 4 }}
+                  />
                   <Text style={styles.personaBadgeText}>
-                    {CLEANUP_MODES.find((m) => m.id === cleanupMode)?.icon}{' '}
-                    {CLEANUP_MODES.find((m) => m.id === cleanupMode)?.shortLabel}
+                    {currentPersona.shortLabel}
                   </Text>
                 </View>
               )}
@@ -428,6 +517,8 @@ const styles = StyleSheet.create({
     fontFamily: Theme.fonts.semiBold,
   },
   personaBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: 'rgba(233, 160, 99, 0.1)',
     borderWidth: 1,
     borderColor: 'rgba(233, 160, 99, 0.25)',
@@ -440,5 +531,95 @@ const styles = StyleSheet.create({
     color: Theme.colors.cyanBright,
     fontSize: 10,
     fontFamily: Theme.fonts.semiBold,
+  },
+  capsule: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1E1915',
+    borderRadius: 24,
+    borderWidth: 1.5,
+    borderColor: '#382E25',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.45,
+    shadowRadius: 10,
+    elevation: 8,
+    paddingHorizontal: 4,
+    paddingVertical: 3,
+    height: 48,
+  },
+  capsuleExpandedPicker: {
+    paddingHorizontal: 6,
+  },
+  pickerStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 4,
+  },
+  pickerSlot: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 244, 226, 0.05)',
+  },
+  pickerSlotActive: {
+    backgroundColor: 'rgba(233, 160, 99, 0.22)',
+    borderWidth: 1.5,
+    borderColor: Theme.colors.cyan,
+  },
+  pickerSlotEmoji: {
+    fontSize: 16,
+  },
+  pickerCloseBtn: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 2,
+  },
+  capsuleModeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    gap: 6,
+  },
+  capsuleModeEmoji: {
+    fontSize: 15,
+  },
+  capsuleModeLabel: {
+    color: '#F7F1E6',
+    fontSize: 12.5,
+    fontFamily: Theme.fonts.semiBold,
+  },
+  capsuleRecordingLabel: {
+    color: '#FF6B6B',
+    fontFamily: Theme.fonts.mono,
+    fontSize: 12,
+  },
+  capsuleDivider: {
+    width: 1,
+    height: 22,
+    backgroundColor: '#2E251E',
+    marginHorizontal: 2,
+  },
+  capsuleMicBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: Theme.colors.cyan,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 2,
+  },
+  capsuleMicBtnRecording: {
+    backgroundColor: '#E5484D',
+  },
+  capsuleMicBtnProcessing: {
+    backgroundColor: '#E5C094',
   },
 });

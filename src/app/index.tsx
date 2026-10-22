@@ -81,6 +81,7 @@ export default function DictationScreen() {
 
   useEffect(() => {
     let sub: { remove: () => void } | undefined;
+    let modeSub: { remove: () => void } | undefined;
     (async () => {
       const s = await loadSettings();
       setSettings(s);
@@ -106,10 +107,17 @@ export default function DictationScreen() {
         setLatestRawText(event.rawText);
         setLatestCleanedText(event.cleanedText);
       });
+
+      modeSub = NativeFloatingBubble.onModeChanged((event) => {
+        if (event.cleanupMode) {
+          setSettings((prev) => ({ ...prev, cleanupMode: event.cleanupMode as any }));
+        }
+      });
     })();
 
     return () => {
       sub?.remove();
+      modeSub?.remove();
     };
   }, []);
 
@@ -459,6 +467,7 @@ export default function DictationScreen() {
         latestCleanedText={latestCleanedText}
         isSpeaking={isSpeaking}
         cleanupMode={settings.cleanupMode || 'natural'}
+        onSelectMode={handleSelectCleanupMode}
         onToggleRecord={handleToggleRecord}
         onSpeakText={() => handleSpeak()}
         onClose={() => handleToggleFloatingBubble(false)}
@@ -587,7 +596,11 @@ export default function DictationScreen() {
                   onPress={() => handleSelectCleanupMode(mode.id)}
                   activeOpacity={0.75}
                 >
-                  <Text style={styles.personaChipIcon}>{mode.icon}</Text>
+                  <Ionicons
+                    name={mode.ionIcon as any}
+                    size={14}
+                    color={isSelected ? Theme.colors.cyan : Theme.colors.textSecondary}
+                  />
                   <Text
                     style={[
                       styles.personaChipText,
@@ -721,7 +734,11 @@ export default function DictationScreen() {
           <View style={styles.resultCard}>
             <View style={styles.resultHeader}>
               <View style={styles.resultBadge}>
-                <Text style={styles.resultBadgeEmoji}>{currentPersona.icon}</Text>
+                <Ionicons
+                  name={currentPersona.ionIcon as any}
+                  size={13}
+                  color={Theme.colors.cyan}
+                />
                 <Text style={styles.resultBadgeText}>{currentPersona.label}</Text>
               </View>
 
