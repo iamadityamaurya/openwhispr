@@ -128,7 +128,7 @@ export const FloatingDictationWidget: React.FC<FloatingDictationWidgetProps> = (
                     <Ionicons
                       name={mode.ionIcon as any}
                       size={15}
-                      color={isSelected ? Theme.colors.cyan : '#B8AC9A'}
+                      color={isSelected ? '#FFFFFF' : '#8E8E93'}
                     />
                   </TouchableOpacity>
                 );
@@ -138,7 +138,7 @@ export const FloatingDictationWidget: React.FC<FloatingDictationWidgetProps> = (
                 onPress={() => setPickerOpen(false)}
                 activeOpacity={0.7}
               >
-                <Ionicons name="close" size={14} color="#B8AC9A" />
+                <Ionicons name="close" size={14} color="#8E8E93" />
               </TouchableOpacity>
             </View>
           ) : (
@@ -170,7 +170,7 @@ export const FloatingDictationWidget: React.FC<FloatingDictationWidgetProps> = (
                 <Ionicons
                   name={currentPersona.ionIcon as any}
                   size={14}
-                  color={Theme.colors.cyan}
+                  color="#FFFFFF"
                   style={{ marginRight: 2 }}
                 />
               )}
@@ -182,7 +182,7 @@ export const FloatingDictationWidget: React.FC<FloatingDictationWidgetProps> = (
                   : currentPersona.shortLabel}
               </Text>
               {!isRecording && !isProcessing && (
-                <Ionicons name="chevron-down" size={11} color={Theme.colors.cyan} />
+                <Ionicons name="chevron-down" size={11} color="#CCCCCC" />
               )}
             </TouchableOpacity>
           )}
@@ -535,21 +535,23 @@ const styles = StyleSheet.create({
   capsule: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1E1915',
+    backgroundColor: '#18181A',
     borderRadius: 24,
     borderWidth: 1.5,
-    borderColor: '#382E25',
+    borderColor: '#38383A',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.45,
+    shadowOpacity: 0.35,
     shadowRadius: 10,
     elevation: 8,
     paddingHorizontal: 4,
     paddingVertical: 3,
     height: 48,
+    opacity: 0.70,
   },
   capsuleExpandedPicker: {
     paddingHorizontal: 6,
+    opacity: 0.95,
   },
   pickerStrip: {
     flexDirection: 'row',
@@ -563,12 +565,12 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 244, 226, 0.05)',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
   },
   pickerSlotActive: {
-    backgroundColor: 'rgba(233, 160, 99, 0.22)',
+    backgroundColor: 'rgba(255, 255, 255, 0.20)',
     borderWidth: 1.5,
-    borderColor: Theme.colors.cyan,
+    borderColor: '#FFFFFF',
   },
   pickerSlotEmoji: {
     fontSize: 16,
@@ -592,7 +594,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   capsuleModeLabel: {
-    color: '#F7F1E6',
+    color: '#FFFFFF',
     fontSize: 12.5,
     fontFamily: Theme.fonts.semiBold,
   },
@@ -604,14 +606,14 @@ const styles = StyleSheet.create({
   capsuleDivider: {
     width: 1,
     height: 22,
-    backgroundColor: '#2E251E',
+    backgroundColor: '#2C2C2E',
     marginHorizontal: 2,
   },
   capsuleMicBtn: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: Theme.colors.cyan,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 2,
@@ -620,6 +622,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#E5484D',
   },
   capsuleMicBtnProcessing: {
-    backgroundColor: '#E5C094',
+    backgroundColor: '#2A2A2E',
   },
 });
