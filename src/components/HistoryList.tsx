@@ -121,13 +121,11 @@ export const HistoryList: React.FC<HistoryListProps> = ({
                             {item.cleanupMode === 'casual'
                               ? '💬 Casual'
                               : item.cleanupMode === 'email'
-                              ? '💼 Email'
+                              ? '✉️ Email'
                               : item.cleanupMode === 'notes'
-                              ? '📝 Notes'
-                              : item.cleanupMode === 'code'
-                              ? '💻 Code'
+                              ? '☑️ Notes'
                               : item.cleanupMode === 'translate_en'
-                              ? '🌐 English'
+                              ? '文A English'
                               : '✨ Natural'}
                           </Text>
                         </View>

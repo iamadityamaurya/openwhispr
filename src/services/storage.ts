@@ -8,7 +8,7 @@ export interface AppSettings {
   language: string; // Default: 'en'
   sttProvider: SttProvider;
   llmProvider: LlmProvider;
-  cleanupMode: CleanupMode; // Tone & Persona mode ('natural' | 'casual' | 'email' | 'notes' | 'code' | 'translate_en')
+  cleanupMode: CleanupMode; // Tone & Persona mode ('natural' | 'casual' | 'email' | 'notes' | 'translate_en')
 
   // STT Keys & Models
   deepgramApiKey: string;
@@ -48,6 +48,8 @@ export interface AppSettings {
   smartKeyboardMode: boolean; // Show floating widget only when soft keyboard / input is active
   keyboardOffset: number; // Vertical offset in dp above keyboard top (e.g. 24, 48, 80, 120). Default: 48
   keyboardPosition: 'right' | 'left'; // Horizontal dock side above keyboard. Default: 'right'
+  floatingBubbleOpacity: number; // Resting opacity (0.30 to 1.0, default 0.70)
+  autoPersonaSwitch: boolean; // Auto-detect foreground app and switch persona mode (default true)
 }
 
 export interface DictationItem {
@@ -96,6 +98,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   smartKeyboardMode: true,
   keyboardOffset: 48,
   keyboardPosition: 'right',
+  floatingBubbleOpacity: 0.70,
+  autoPersonaSwitch: true,
 };
 
 export async function loadSettings(): Promise<AppSettings> {

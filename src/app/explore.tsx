@@ -636,6 +636,220 @@ export default function SettingsScreen() {
 
           <View style={styles.divider} />
 
+          {/* Opacity Slider (30% to 100%) */}
+          <View style={styles.positionSubContainer}>
+            <View style={styles.positionSubHeader}>
+              <Ionicons name="eye-outline" size={16} color="#E9A063" />
+              <Text style={styles.positionSubTitle}>Capsule resting opacity</Text>
+              <View
+                style={[
+                  styles.tagBadge,
+                  {
+                    marginLeft: 'auto',
+                    borderColor: 'rgba(233, 160, 99, 0.4)',
+                    backgroundColor: Theme.colors.cyanSubtle,
+                  },
+                ]}
+              >
+                <Text style={[styles.tagBadgeText, { color: Theme.colors.cyan }]}>
+                  {Math.round((settings.floatingBubbleOpacity ?? 0.70) * 100)}%
+                </Text>
+              </View>
+            </View>
+
+            <Text style={styles.tileSubtitle}>
+              Fine-tune idle transparency so the pill never obstructs background text. Snaps to 100% solid while recording.
+            </Text>
+
+            {/* Stepped Opacity Pills */}
+            <View style={[styles.pillsRow, { marginTop: 10 }]}>
+              {[
+                { value: 0.30, label: '30%', sub: 'Ghost' },
+                { value: 0.50, label: '50%', sub: 'Soft' },
+                { value: 0.70, label: '70%', sub: 'Default' },
+                { value: 0.85, label: '85%', sub: 'Clear' },
+                { value: 1.00, label: '100%', sub: 'Solid' },
+              ].map((item) => {
+                const currentVal = settings.floatingBubbleOpacity ?? 0.70;
+                const isSelected = Math.abs(currentVal - item.value) < 0.05;
+                return (
+                  <TouchableOpacity
+                    key={item.value}
+                    style={[
+                      styles.pillButton,
+                      styles.pillButtonFive,
+                      isSelected && styles.pillButtonActive,
+                    ]}
+                    onPress={() => {
+                      handleUpdate({ floatingBubbleOpacity: item.value });
+                      Haptics.selectionAsync();
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.pillButtonText,
+                        isSelected && styles.pillButtonTextActive,
+                      ]}
+                    >
+                      {item.label}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.pillButtonSubText,
+                        isSelected && styles.pillButtonSubTextActive,
+                      ]}
+                    >
+                      {item.sub}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* Live Visual Preview Card */}
+            <View style={styles.opacityPreviewCard}>
+              <Text style={styles.opacityPreviewLabel}>LIVE PREVIEW OVER BACKGROUND TEXT</Text>
+              <View style={styles.opacityPreviewMockScreen}>
+                <View style={styles.opacityMockContent}>
+                  <Text style={styles.opacityMockText}>The quick brown fox jumps over the lazy dog. Voice dictation that feels magical and seamless.</Text>
+                </View>
+                {/* Miniature Capsule Pill at exact selected opacity */}
+                <View
+                  style={[
+                    styles.previewCapsulePill,
+                    { opacity: settings.floatingBubbleOpacity ?? 0.70 },
+                  ]}
+                >
+                  <View style={styles.previewCapsuleLeft}>
+                    <Text style={styles.previewCapsuleEmoji}>✨</Text>
+                    <Text style={styles.previewCapsuleLabel}>Natural</Text>
+                    <Ionicons name="chevron-down" size={9} color="#CCCCCC" />
+                  </View>
+                  <View style={styles.previewCapsuleDivider} />
+                  <View style={styles.previewCapsuleMic}>
+                    <Ionicons name="mic" size={11} color="#000000" />
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          {/* Auto-Persona Switching (Zero-Tap) */}
+          <View style={styles.tileRow}>
+            <View style={styles.tileInfo}>
+              <View style={styles.tileTitleRow}>
+                <Text style={styles.tileTitle}>Zero-Tap Auto-Persona</Text>
+                <View
+                  style={[
+                    styles.tagBadge,
+                    {
+                      borderColor: (settings.autoPersonaSwitch ?? true)
+                        ? 'rgba(147, 184, 132, 0.4)'
+                        : 'rgba(217, 164, 65, 0.4)',
+                      backgroundColor: (settings.autoPersonaSwitch ?? true)
+                        ? Theme.colors.greenMuted
+                        : Theme.colors.amberMuted,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.tagBadgeText,
+                      { color: (settings.autoPersonaSwitch ?? true) ? Theme.colors.green : Theme.colors.amber },
+                    ]}
+                  >
+                    {(settings.autoPersonaSwitch ?? true) ? '⚡ Auto-Adaptive' : 'Manual only'}
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.tileSubtitle}>
+                Automatically detects which app is in the foreground and adapts tone & vocabulary with zero taps.
+              </Text>
+            </View>
+            <Switch
+              value={settings.autoPersonaSwitch ?? true}
+              onValueChange={(val) => {
+                handleUpdate({ autoPersonaSwitch: val });
+                Haptics.selectionAsync();
+              }}
+              trackColor={{ false: '#2A241C', true: '#E9A063' }}
+              thumbColor="#F7F1E6"
+            />
+          </View>
+
+          {/* App Mapping Grid */}
+          {(settings.autoPersonaSwitch ?? true) && (
+            <View style={styles.appMappingContainer}>
+              <Text style={styles.appMappingHeader}>INTELLIGENT APP ROUTING</Text>
+              <View style={styles.appMappingGrid}>
+                {[
+                  {
+                    icon: 'chatbubbles',
+                    persona: 'Casual Chat',
+                    apps: 'WhatsApp, Telegram, Signal, Discord, Messages',
+                    tag: 'Emoji & Slang',
+                  },
+                  {
+                    icon: 'mail',
+                    persona: 'Work Email',
+                    apps: 'Gmail, Outlook, LinkedIn, Yahoo, Spark',
+                    tag: 'Formal Polish',
+                  },
+                  {
+                    icon: 'checkbox',
+                    persona: 'Action Notes',
+                    apps: 'Notion, Google Keep, Obsidian, Todoist, Notes',
+                    tag: 'Bullet & Checkbox',
+                  },
+                ].map((item, idx) => (
+                  <View key={idx} style={styles.appMappingCard}>
+                    <View style={styles.appMappingCardTop}>
+                      <Ionicons name={item.icon as any} size={14} color="#E9A063" />
+                      <Text style={styles.appMappingPersona}>{item.persona}</Text>
+                      <View style={styles.appMappingTagBadge}>
+                        <Text style={styles.appMappingTagText}>{item.tag}</Text>
+                      </View>
+                    </View>
+                    <Text style={styles.appMappingAppsList}>{item.apps}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
+          <View style={styles.divider} />
+
+          {/* Android Quick Settings Shade Tile */}
+          <View style={styles.tileRow}>
+            <View style={styles.tileInfo}>
+              <View style={styles.tileTitleRow}>
+                <Ionicons name="albums-outline" size={17} color="#E9A063" style={{ marginRight: 6 }} />
+                <Text style={styles.tileTitle}>Android Quick Settings Tile</Text>
+                <View
+                  style={[
+                    styles.tagBadge,
+                    {
+                      borderColor: 'rgba(147, 184, 132, 0.4)',
+                      backgroundColor: Theme.colors.greenMuted,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.tagBadgeText, { color: Theme.colors.green }]}>
+                    Ready in Shade
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.tileSubtitle}>
+                Swipe down your Android notification shade, tap Edit (pencil icon), and add the "OpenWhispr" tile for instant 1-tap floating mic control from any screen or game.
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
           {/* Battery optimization */}
           <TouchableOpacity
             style={styles.tileRow}
@@ -1240,5 +1454,160 @@ const styles = StyleSheet.create({
     lineHeight: 17,
     marginTop: 2,
     paddingLeft: 32,
+  },
+  pillButtonFive: {
+    flex: 1,
+    minWidth: 54,
+    paddingHorizontal: 4,
+    paddingVertical: 7,
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pillButtonSubText: {
+    color: '#8A8275',
+    fontSize: 9.5,
+    fontFamily: Theme.fonts.regular,
+    marginTop: 1,
+  },
+  pillButtonSubTextActive: {
+    color: '#141210',
+    fontFamily: Theme.fonts.semiBold,
+  },
+  opacityPreviewCard: {
+    marginTop: 14,
+    backgroundColor: '#161412',
+    borderRadius: 14,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  opacityPreviewLabel: {
+    color: Theme.colors.textMuted,
+    fontSize: 9.5,
+    fontFamily: Theme.fonts.mono,
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  opacityPreviewMockScreen: {
+    position: 'relative',
+    height: 64,
+    backgroundColor: '#0D0C0A',
+    borderRadius: 10,
+    padding: 8,
+    justifyContent: 'center',
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.04)',
+  },
+  opacityMockContent: {
+    opacity: 0.55,
+  },
+  opacityMockText: {
+    color: '#D4CDC3',
+    fontSize: 10,
+    lineHeight: 14,
+    fontFamily: Theme.fonts.mono,
+  },
+  previewCapsulePill: {
+    position: 'absolute',
+    right: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1E1E20',
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: '#38383A',
+    paddingHorizontal: 3,
+    paddingVertical: 3,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  previewCapsuleLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+    gap: 4,
+  },
+  previewCapsuleEmoji: {
+    fontSize: 11,
+  },
+  previewCapsuleLabel: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontFamily: Theme.fonts.semiBold,
+  },
+  previewCapsuleDivider: {
+    width: 1,
+    height: 14,
+    backgroundColor: '#38383A',
+    marginHorizontal: 1,
+  },
+  previewCapsuleMic: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 2,
+  },
+  appMappingContainer: {
+    marginTop: 10,
+    backgroundColor: '#181512',
+    borderRadius: 14,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(233, 160, 99, 0.15)',
+  },
+  appMappingHeader: {
+    color: '#E9A063',
+    fontSize: 10,
+    fontFamily: Theme.fonts.mono,
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  appMappingGrid: {
+    gap: 8,
+  },
+  appMappingCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: 10,
+    padding: 9,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  appMappingCardTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 3,
+  },
+  appMappingPersona: {
+    color: Theme.colors.textPrimary,
+    fontSize: 12,
+    fontFamily: Theme.fonts.semiBold,
+  },
+  appMappingTagBadge: {
+    marginLeft: 'auto',
+    backgroundColor: 'rgba(233, 160, 99, 0.12)',
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 4,
+  },
+  appMappingTagText: {
+    color: '#E9A063',
+    fontSize: 9.5,
+    fontFamily: Theme.fonts.mono,
+  },
+  appMappingAppsList: {
+    color: Theme.colors.textMuted,
+    fontSize: 10.5,
+    fontFamily: Theme.fonts.regular,
+    lineHeight: 14,
   },
 });

@@ -467,6 +467,7 @@ export default function DictationScreen() {
         latestCleanedText={latestCleanedText}
         isSpeaking={isSpeaking}
         cleanupMode={settings.cleanupMode || 'natural'}
+        opacity={settings.floatingBubbleOpacity ?? 0.70}
         onSelectMode={handleSelectCleanupMode}
         onToggleRecord={handleToggleRecord}
         onSpeakText={() => handleSpeak()}

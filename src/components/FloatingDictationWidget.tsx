@@ -25,6 +25,7 @@ interface FloatingDictationWidgetProps {
   latestCleanedText: string;
   isSpeaking: boolean;
   cleanupMode?: CleanupMode;
+  opacity?: number;
   onSelectMode?: (mode: CleanupMode) => void;
   onToggleRecord: () => void;
   onSpeakText: () => void;
@@ -42,6 +43,7 @@ export const FloatingDictationWidget: React.FC<FloatingDictationWidgetProps> = (
   latestCleanedText,
   isSpeaking,
   cleanupMode = 'natural',
+  opacity = 0.70,
   onSelectMode,
   onToggleRecord,
   onSpeakText,
@@ -109,7 +111,20 @@ export const FloatingDictationWidget: React.FC<FloatingDictationWidgetProps> = (
     >
       {!expanded ? (
         /* Collapsed Dual-Button Capsule Pill */
-        <View style={[styles.capsule, pickerOpen && styles.capsuleExpandedPicker]}>
+        <View
+          style={[
+            styles.capsule,
+            {
+              opacity:
+                isRecording || isProcessing
+                  ? 1.0
+                  : pickerOpen
+                  ? Math.max(opacity, 0.95)
+                  : opacity,
+            },
+            pickerOpen && styles.capsuleExpandedPicker,
+          ]}
+        >
           {pickerOpen ? (
             <View style={styles.pickerStrip}>
               {CLEANUP_MODES.map((mode) => {
