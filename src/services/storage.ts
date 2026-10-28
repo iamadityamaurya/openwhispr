@@ -50,6 +50,8 @@ export interface AppSettings {
   keyboardPosition: 'right' | 'left'; // Horizontal dock side above keyboard. Default: 'right'
   floatingBubbleOpacity: number; // Resting opacity (0.30 to 1.0, default 0.70)
   autoPersonaSwitch: boolean; // Auto-detect foreground app and switch persona mode (default true)
+  pauseOnPaymentApps: boolean; // Auto-pause overlay on payment & banking apps to prevent tapjacking/security blocks (default true)
+  excludedPackages: string[]; // Specific package names where floating bubble is completely hidden
 }
 
 export interface DictationItem {
@@ -62,6 +64,33 @@ export interface DictationItem {
   llmProvider: LlmProvider;
   cleanupMode?: CleanupMode;
 }
+
+export const DEFAULT_PAYMENT_PACKAGES = [
+  // UPI & Instant Payment Apps
+  { name: 'Google Pay', pkg: 'com.google.android.apps.nbu.paisa.user' },
+  { name: 'Google Wallet', pkg: 'com.google.android.apps.walletnfcrel' },
+  { name: 'PhonePe', pkg: 'com.phonepe.app' },
+  { name: 'Paytm', pkg: 'net.one97.paytm' },
+  { name: 'BHIM UPI', pkg: 'in.org.npci.upiapp' },
+  { name: 'CRED', pkg: 'com.dreamplug.androidapp' },
+  // International Payments & Wallets
+  { name: 'PayPal', pkg: 'com.paypal.android.p2pmobile' },
+  { name: 'Cash App', pkg: 'com.squareup.cash' },
+  { name: 'Venmo', pkg: 'com.venmo' },
+  { name: 'Revolut', pkg: 'com.revolut.revolut' },
+  { name: 'Wise', pkg: 'com.transferwise.android' },
+  // Banking Apps
+  { name: 'Chase Mobile', pkg: 'com.chase.sig.android' },
+  { name: 'Wells Fargo', pkg: 'com.wf.wellsfargomobile' },
+  { name: 'Bank of America', pkg: 'com.infonow.bofa' },
+  { name: 'Citi Mobile', pkg: 'com.citi.citimobile' },
+  { name: 'Capital One', pkg: 'com.capitalone.mobile' },
+  { name: 'HDFC Bank', pkg: 'com.hdfcbank.corebanking' },
+  { name: 'YONO SBI', pkg: 'com.sbi.lotusintouch' },
+  { name: 'ICICI iMobile', pkg: 'com.csam.icici.bank.imobile' },
+  { name: 'Axis Mobile', pkg: 'com.axis.mobile' },
+  { name: 'Kotak Bank', pkg: 'com.msf.kbank.mobile' },
+];
 
 const SETTINGS_KEY = '@openwhispr_settings_v2';
 const HISTORY_KEY = '@openwhispr_history_v2';
@@ -100,6 +129,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   keyboardPosition: 'right',
   floatingBubbleOpacity: 0.70,
   autoPersonaSwitch: true,
+  pauseOnPaymentApps: true,
+  excludedPackages: [],
 };
 
 export async function loadSettings(): Promise<AppSettings> {

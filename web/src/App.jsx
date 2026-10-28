@@ -6,838 +6,1143 @@ const DOWNLOAD_URL =
   'https://github.com/YOUR_USERNAME/openwisper-android/releases/latest/download/OpenWhispr.apk'
 const GITHUB_URL = 'https://github.com/YOUR_USERNAME/openwisper-android'
 
-// Preset speech examples for the interactive demo and persona showcase
-const DEMO_PRESETS = [
+// Rotating words in hero tagline (like MausBot hero-swap)
+const SWAP_WORDS = [
+  'conversations',
+  'work emails',
+  'action items',
+  'daily thoughts',
+  'foreign speech',
+]
+
+// 5 core personas extracted directly from my-app/src/config/prompts.ts & FloatingBubbleView.kt
+const PERSONAS = [
+  {
+    id: 'natural',
+    label: 'Natural Clean',
+    shortLabel: 'Natural',
+    icon: '✨',
+    targetApp: 'General Android Dictation',
+    badge: 'Core Engine',
+    color: '#009957',
+    colorLight: 'var(--color-green-light)',
+    raw: 'um so can you uh send me the project report by thursday wait no friday period',
+    cleaned: 'Can you send me the project report by Friday.',
+    removed: ['um', 'uh', 'thursday wait no', 'period'],
+    added: ['Punctuation conversion', 'Self-correction handling', 'Preserved speaker cadence'],
+    systemRule: 'Removes fillers and self-corrections while preserving your exact voice, formality, and technical terms.',
+  },
   {
     id: 'casual',
     label: 'Casual Chat',
+    shortLabel: 'Casual',
     icon: '💬',
-    context: 'WhatsApp / Telegram / Signal',
-    targetApp: 'Messaging',
-    raw: 'um so basically yeah I was thinking we should like reschedule our sync to 3pm if that is cool with everyone',
-    cleaned: 'Can we reschedule our sync to 3:00 PM today if that works for everyone?',
-    removed: ['um', 'so basically yeah', 'like', 'is cool with everyone'],
-    added: ['Proper punctuation', '3:00 PM format', 'Natural tone'],
+    targetApp: 'WhatsApp / Telegram / Signal / Discord',
+    badge: 'Messaging Auto-Sense',
+    color: '#009957',
+    colorLight: 'var(--color-green-light)',
+    raw: 'hey basically yeah are we still like meeting up at 3pm or are you gonna be late haha thumbs up',
+    cleaned: 'Hey! Are we still meeting up at 3:00 PM or are you gonna be late? 😂 👍',
+    removed: ['basically yeah', 'like', 'haha', 'thumbs up'],
+    added: ['Conversational warmth', '3:00 PM time format', 'Natural emoji conversion 😂 👍'],
+    systemRule: 'Keeps informal slang, personal warmth, and relaxed cadence with automatic emoji conversion for emotional cues.',
   },
   {
     id: 'email',
     label: 'Work Email',
+    shortLabel: 'Email',
     icon: '✉️',
-    context: 'Gmail / Outlook / LinkedIn',
-    targetApp: 'Email & Work',
-    raw: 'hey Sarah uh quick update on the q3 launch we need to kinda hold off until engineering merges the security fixes',
-    cleaned: 'Hi Sarah, quick update on the Q3 launch: we need to hold off until Engineering merges the security fixes.',
+    targetApp: 'Gmail / Outlook / LinkedIn / Superhuman',
+    badge: 'Executive Auto-Sense',
+    color: '#377FE6',
+    colorLight: 'var(--color-blue-light)',
+    raw: 'hi team uh quick update on the q3 deployment we need to kinda hold off until engineering merges the security fixes best regards',
+    cleaned: 'Hi Team,\n\nQuick update on the Q3 deployment: we need to hold off until Engineering merges the security fixes.\n\nBest regards,',
     removed: ['uh', 'kinda'],
-    added: ['Capitalized Q3 & Engineering', 'Colon structure', 'Executive greeting'],
+    added: ['Executive paragraph structure', 'Capitalized Q3 & Engineering', 'Professional salutation & sign-off'],
+    systemRule: 'Elevates rambling dictation into clear, authoritative executive correspondence with capitalized proper nouns and clean formatting.',
   },
   {
     id: 'notes',
-    label: 'Action Notes',
+    label: 'Action Items',
+    shortLabel: 'Notes',
     icon: '☑️',
-    context: 'Google Keep / Notion / Todoist',
-    targetApp: 'Task Management',
-    raw: 'okay action items first fix the api key error second update floating dock clearance to 48dp and third build the release apk',
-    cleaned: '• Fix API key error\n• Update floating dock clearance to 48dp\n• Build release APK',
-    removed: ['okay action items first', 'second', 'and third'],
-    added: ['Auto-bullet formatting', 'Imperative action verbs', 'Markdown list'],
+    targetApp: 'Notion / Google Keep / Obsidian / Todoist',
+    badge: 'Productivity Auto-Sense',
+    color: '#E78531',
+    colorLight: 'var(--color-orange-light)',
+    raw: 'okay so action items first implement biometric auth second adjust keyboard clearance to 48dp and submit release apk by friday 5pm',
+    cleaned: '• Implement biometric auth\n• Adjust keyboard clearance to 48dp\n• Submit release APK by **Friday 5:00 PM**',
+    removed: ['okay so action items first', 'second', 'and'],
+    added: ['Markdown bullet points', 'Strong imperative action verbs', 'Bold deadline emphasis'],
+    systemRule: 'Transforms stream-of-consciousness rambles into clean Markdown bullets and actionable tasks with bolded deliverables.',
   },
   {
-    id: 'translate',
+    id: 'translate_en',
     label: 'Instant English',
+    shortLabel: 'To English',
     icon: '文A',
-    context: 'Multilingual Voice Input',
-    targetApp: 'Translation',
-    raw: 'por favor envía el reporte financiero antes de las cinco de la tarde muchas gracias',
+    targetApp: 'Multilingual Voice Input',
+    badge: 'Zero-Latency Translation',
+    color: '#8057C8',
+    colorLight: 'var(--color-purple-light)',
+    raw: 'por favor envía el informe financiero antes de las cinco de la tarde muchas gracias',
     cleaned: 'Please send the financial report before 5:00 PM today. Thank you very much!',
-    removed: ['Spanish source audio', 'Conversational pauses'],
-    added: ['Instant English translation', 'Standard 5:00 PM time', 'Pristine punctuation'],
+    removed: ['Spanish source speech', 'Conversational pauses'],
+    added: ['Direct English translation', 'Standard 5:00 PM format', 'Clean punctuation'],
+    systemRule: 'Detects foreign languages (Spanish, Hindi, French, German, Japanese, Portuguese, Arabic, Hinglish) and translates into fluent English.',
   },
 ]
 
+// Real features matching my-app architecture
 const FEATURES = [
   {
-    icon: (
-      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="2" y="6" width="20" height="12" rx="6" />
-        <circle cx="17" cy="12" r="3" fill="currentColor" />
-        <path d="M7 10v4" />
-      </svg>
-    ),
+    num: '01',
     title: 'Dual-Button Capsule Pill',
-    badge: 'Option 1 Layout',
-    body: 'Rests elegantly above your active keyboard. Features an instant persona switcher on the left and a dedicated recording trigger on the right.',
+    subtitle: 'Option 1 Layout (FloatingBubbleView.kt)',
+    desc: 'Ergonomic native floating capsule docked directly above your active keyboard. Left button cycles or opens the persona selector; right button triggers voice recording.',
+    badge: 'Subtle & Non-Intrusive',
+    badgeColor: 'green',
   },
   {
-    icon: (
-      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
-      </svg>
-    ),
-    title: 'Zero-Tap Auto-Persona',
-    badge: 'Foreground Detection',
-    body: 'Automatically senses when you open WhatsApp, Gmail, or Notion via accessibility events and silently adapts tone with zero taps needed.',
-  },
-  {
-    icon: (
-      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="9" />
-        <path d="M12 3a9 9 0 0 1 0 18v-18z" fill="currentColor" opacity="0.25" />
-        <path d="M12 7v10" />
-      </svg>
-    ),
-    title: 'Opacity Slider (30% to 100%)',
+    num: '02',
+    title: 'Resting Opacity (30% to 100%)',
+    subtitle: 'Configurable Transparency (restingAlpha)',
+    desc: 'Rests at 70% opacity over chat feeds without blocking underlying content. Smoothly animates to 100% solid contrast the moment you touch it to dictate.',
     badge: 'Fine-Tuned Comfort',
-    body: 'Configurable resting transparency (default 70%) prevents background obstruction, automatically snapping to 100% solid while recording.',
+    badgeColor: 'blue',
   },
   {
-    icon: (
-      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="7" height="7" rx="1.5" />
-        <rect x="14" y="3" width="7" height="7" rx="1.5" fill="currentColor" opacity="0.3" />
-        <rect x="14" y="14" width="7" height="7" rx="1.5" />
-        <rect x="3" y="14" width="7" height="7" rx="1.5" />
-      </svg>
-    ),
-    title: 'Quick Settings Shade Tile',
-    badge: 'Pull-Down Shade',
-    body: 'Add the OpenWhispr tile to your Android pull-down notification shade for 1-tap toggling of the floating overlay from any game or screen.',
+    num: '03',
+    title: 'Zero-Tap Auto-Persona',
+    subtitle: 'Foreground Sensed (WhisperAccessibilityService.kt)',
+    desc: 'Accessibility service monitors foreground package events: switches to Casual in WhatsApp/Telegram, Work Email in Gmail/Outlook, and Action Notes in Notion/Keep.',
+    badge: 'Context Aware',
+    badgeColor: 'orange',
   },
   {
-    icon: (
-      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-      </svg>
-    ),
+    num: '04',
+    title: 'Smart Keyboard Auto-Docking',
+    subtitle: 'Input Focus Clearance (48dp Clearance)',
+    desc: 'Senses soft keyboard bounds via AccessibilityWindowInfo. Automatically floats above your keyboard (24dp, 48dp, 80dp, 120dp offsets) and hides when keyboard is closed.',
+    badge: 'Intelligent Dock',
+    badgeColor: 'purple',
+  },
+  {
+    num: '05',
+    title: 'Android Quick Settings Tile',
+    subtitle: 'System Shade Service (OpenWhisprTileService.kt)',
+    desc: 'Pull down your Android notification shade from anywhere to instantly summon or dismiss the floating capsule without opening the app launcher.',
+    badge: 'System Native',
+    badgeColor: 'teal',
+  },
+  {
+    num: '06',
     title: 'Hardware Keystore AES-256',
-    badge: 'Zero Middleman',
-    body: 'Your API keys are encrypted directly on-device using Android Keystore MasterKeys. Audio travels encrypted via TLS with zero proxy servers.',
+    subtitle: 'Zero-Trust BYOK Storage',
+    desc: 'Your Deepgram, Gemini, Groq, or OpenAI API keys are encrypted with hardware-backed Android Keystore AES-256-GCM. Stored strictly on device, never synced.',
+    badge: 'On-Device Security',
+    badgeColor: 'coral',
   },
   {
-    icon: (
-      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" />
-        <polyline points="12 6 12 12 16 14" />
-      </svg>
-    ),
-    title: 'Sub-Second Latency (~240ms)',
-    badge: 'Groq & Deepgram',
-    body: 'Powered by Deepgram Nova-3 and Groq Whisper Large v3 Turbo, delivering instant transcriptions before your finger even lifts.',
+    num: '07',
+    title: 'Payment App Auto-Pause Shield',
+    subtitle: 'Tapjacking Protection (FloatingBubbleService.kt)',
+    desc: 'Payment, UPI, and banking apps (Google Pay, PhonePe, Paytm, BHIM, Chase, etc.) block overlays for security. OpenWhispr auto-detects payment apps and instantly hides the overlay so transactions are never blocked.',
+    badge: 'Tapjacking Safe',
+    badgeColor: 'green',
   },
 ]
 
-const BENCHMARKS = [
-  { label: 'Groq Whisper Large v3 Turbo', latency: 240, note: 'Ultra-low latency STT' },
-  { label: 'Deepgram Nova-3', latency: 310, note: 'High conversational accuracy' },
-  { label: 'OpenAI Whisper Cloud', latency: 920, note: 'Standard cloud turnaround' },
-  { label: 'Manual Touchscreen Typing', latency: 4200, note: '~10x slower than natural speech' },
+// Real STT & LLM Engines supported in api.ts
+const ENGINES = [
+  {
+    type: 'Speech-to-Text (STT)',
+    items: [
+      { name: 'Deepgram Nova-3', desc: 'Ultra-fast streaming transcription with smart formatting & punctuation', tag: 'Recommended' },
+      { name: 'Groq Whisper V3 Turbo', desc: 'LPU high-throughput inference for sub-second speech processing', tag: 'Ultra-Fast' },
+      { name: 'OpenAI Whisper-1', desc: 'Industry benchmark for nuanced accents and multilingual audio', tag: 'Standard' },
+      { name: 'Surplus Intelligence', desc: 'Decentralized GPU marketplace running Venice Whisper Large V3', tag: 'Web3 AI' },
+      { name: 'Custom STT Endpoint', desc: 'Connect your local Ollama, vLLM, or self-hosted Whisper instance', tag: 'Self-Hosted' },
+    ],
+  },
+  {
+    type: 'Tone & Cleanup LLM',
+    items: [
+      { name: 'Groq Llama 3.3 70B', desc: 'Instantaneous transcript refinement and tone transformation', tag: 'Recommended' },
+      { name: 'Google Gemini 2.5 Flash', desc: 'Generous free tier with superior contextual understanding', tag: 'High Quota' },
+      { name: 'OpenAI GPT-4o-mini', desc: 'Lightweight, dependable corporate email and note extraction', tag: 'Balanced' },
+      { name: 'Surplus DeepSeek V4', desc: 'Decentralized reasoning and markdown structure extraction', tag: 'Decentralized' },
+      { name: 'Local Ollama / LM Studio', desc: '100% offline cleanup using DeepSeek-Chat, Llama 3, or Mistral', tag: 'Zero-Cloud' },
+    ],
+  },
 ]
 
-const HOW_IT_WORKS = [
-  {
-    step: '01',
-    title: 'Tap the Capsule Pill',
-    description:
-      'The monochrome capsule floats right above your soft keyboard at your chosen opacity. Tap the mic circle to begin 16kHz audio capture.',
-    badge: 'Instant Wakeup',
-  },
-  {
-    step: '02',
-    title: 'Zero-Proxy Whisper Stream',
-    description:
-      'Raw audio streams directly from your phone to Groq or Deepgram over encrypted TLS. No middleman cloud intercepts your voice.',
-    badge: 'Direct TLS API',
-  },
-  {
-    step: '03',
-    title: 'Auto-Persona Formatting & Paste',
-    description:
-      'The selected persona removes verbal clutter, adds punctuation, and automatically pastes clean text right into your active cursor.',
-    badge: 'Accessibility Input',
-  },
-]
 
 const FAQS = [
   {
-    q: 'How does the dual-button capsule pill work?',
-    a: 'The pill is divided into two interactive sections: the left side displays the active persona (Casual, Email, Notes, Instant English) which you can tap to expand or long-press to cycle; the right side holds the recording trigger that pulses during capture and snaps to 100% opacity.',
+    q: 'How does OpenWhispr differ from standard keyboard voice typing?',
+    a: 'Stock voice keyboards transcribe raw fillers ("um", "like", "you know") without formatting or context. OpenWhispr passes your speech through 5 specialized persona engines (Natural Clean, Casual Chat, Work Email, Action Notes, Instant English) to deliver executive-grade, perfectly punctuated text injected directly into your focused input field via Android Accessibility.',
+  },
+  {
+    q: 'What is the Dual-Button Capsule Pill design?',
+    a: 'Instead of an obstructive round orb, the compact capsule rests seamlessly right above your active keyboard (FloatingBubbleView.kt). The left button allows 1-tap persona switching (or auto-switches based on the foreground app), while the right button acts as a high-contrast recording trigger.',
   },
   {
     q: 'How does Zero-Tap Auto-Persona switching work?',
-    a: 'When enabled in settings, OpenWhispr uses Android Accessibility window events to identify the foreground application. If you switch into WhatsApp, it adapts to Casual Chat; if you open Gmail, it switches to Work Email; if you open Keep or Notion, it switches to Action Notes.',
+    a: 'The WhisperAccessibilityService monitors Android window events. When you open WhatsApp, Telegram, or Discord, it automatically switches to Casual Chat. When you switch to Gmail, Outlook, or LinkedIn, it transitions to Work Email. When you open Notion or Google Keep, it extracts structured Markdown bullet points.',
   },
   {
-    q: 'Can I adjust the floating pill opacity so it is not distracting?',
-    a: 'Yes! OpenWhispr has a dedicated resting opacity slider in Settings from 30% (ghost) to 100% (solid). By default, it rests at 70% opacity in sleek monochrome black-and-white. While actively recording, it automatically illuminates to 100% solid.',
+    q: 'Does the floating capsule distract from reading background content?',
+    a: 'Not at all. You can set the resting opacity anywhere between 30% and 100% (default 70%). At 70%, background text and UI are clearly visible beneath the capsule. The moment you touch it to dictate, it smoothly snaps to 100% solid contrast.',
   },
   {
-    q: 'How do I use the Quick Settings Shade Tile?',
-    a: 'Pull down your Android notification shade from the top of your screen, tap the Edit pencil icon, and drag the "OpenWhispr" tile into your active quick toggles. You can now enable or disable the floating overlay in 1 tap from anywhere.',
+    q: 'What is Smart Keyboard Mode (48dp Clearance)?',
+    a: 'OpenWhispr inspects active accessibility windows for TYPE_INPUT_METHOD. It automatically docks the capsule at your configured clearance (24dp, 48dp, 80dp, or 120dp) right above the keyboard top, and can be configured to only show when typing.',
   },
   {
-    q: 'Does OpenWhispr store or sell my audio?',
-    a: 'Never. OpenWhispr has zero central databases, zero user telemetry, and zero middleman servers. Audio is held in RAM only while recording and streams directly to your configured provider (Groq, Deepgram, OpenAI) using your own API key.',
+    q: 'What is the Android Quick Settings Tile?',
+    a: 'OpenWhispr includes an Android Quick Tile service (OpenWhisprTileService.kt). Pull down your notification shade from any screen and tap the OpenWhispr tile to immediately hide or summon the floating capsule across all apps, without needing to open the app launcher.',
   },
   {
-    q: 'How do I get free API keys?',
-    a: 'Groq offers a generous free tier at console.groq.com with high rate limits for Whisper Large v3 Turbo and Llama 3.3. Deepgram gives $200 in free credits with no credit card required at deepgram.com.',
+    q: 'Does OpenWhispr interfere with banking or payment apps like Google Pay or PhonePe?',
+    a: 'No. Payment, banking, and UPI apps enforce tapjacking security (filterTouchesWhenObscured) which blocks user interaction whenever any third-party screen overlay is active. OpenWhispr includes a smart Payment App Shield that automatically detects payment and banking apps (Google Pay, PhonePe, Paytm, BHIM, Cash App, PayPal, Chase, Wells Fargo, etc.) and completely hides/suppresses the floating bubble while you are inside the app. You can also exclude any custom app using the Excluded Apps Blacklist in Settings.',
+  },
+  {
+    q: 'Where do my API keys and voice recordings go?',
+    a: 'OpenWhispr connects directly from your phone to your configured AI provider (Deepgram, Gemini, Groq, OpenAI, Surplus, or local Ollama) over encrypted TLS. No middleman servers exist. Your API keys are encrypted using hardware-backed Android Keystore AES-256-GCM.',
   },
 ]
 
-const NAV_SECTIONS = [
-  { id: 'hero', label: 'Overview' },
-  { id: 'showcase', label: 'Showcase' },
-  { id: 'features', label: 'Features' },
-  { id: 'simulator', label: 'Capsule & Opacity' },
-  { id: 'speed', label: 'Speed' },
-  { id: 'privacy', label: 'Privacy' },
-  { id: 'faq', label: 'FAQ' },
-]
+export default function App() {
+  // Theme state (Light by default like MausBot, toggleable to Dark)
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('openwhispr-theme') || 'light'
+  })
 
-function App() {
-  const [copied, setCopied] = useState(false)
-  const [activePreset, setActivePreset] = useState(DEMO_PRESETS[0])
+  // Hero Tagline Word Swap animation
+  const [swapIndex, setSwapIndex] = useState(0)
+  const [swapIn, setSwapIn] = useState(true)
+
+  // Interactive Simulator States
+  const [selectedPersona, setSelectedPersona] = useState('casual')
+  const [isRecording, setIsRecording] = useState(false)
+  const [recordingTimer, setRecordingTimer] = useState(0)
+  const [restingOpacity, setRestingOpacity] = useState(70)
+
+  // FAQ open item
   const [openFaq, setOpenFaq] = useState(0)
 
-  // Interactive phone demo state
-  const [phoneState, setPhoneState] = useState('cleaned') // 'listening' | 'processing' | 'cleaned'
-  const [phonePresetIndex, setPhonePresetIndex] = useState(0)
-  const currentPhonePreset = DEMO_PRESETS[phonePresetIndex]
+  // QR Modal
+  const [showQrModal, setShowQrModal] = useState(false)
+  const [copiedKey, setCopiedKey] = useState(false)
 
-  // Interactive opacity simulator
-  const [simulatorOpacity, setSimulatorOpacity] = useState(0.7)
-  const [simulatorRecording, setSimulatorRecording] = useState(false)
-  const [simulatorPersona, setSimulatorPersona] = useState(DEMO_PRESETS[0])
-  const [simulatorPickerOpen, setSimulatorPickerOpen] = useState(false)
+  // Animated letter wobble triggers
+  const [letterHover, setLetterHover] = useState(null)
 
-  // Active section tracking
-  const [activeSection, setActiveSection] = useState('hero')
-
+  // Sync theme with HTML document
   useEffect(() => {
-    const handleScroll = () => {
-      for (let i = NAV_SECTIONS.length - 1; i >= 0; i--) {
-        const sec = document.getElementById(NAV_SECTIONS[i].id)
-        if (sec) {
-          const rect = sec.getBoundingClientRect()
-          if (rect.top <= window.innerHeight * 0.45) {
-            setActiveSection(NAV_SECTIONS[i].id)
-            break
-          }
-        }
-      }
+    document.documentElement.setAttribute('data-theme', theme)
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
     }
+    localStorage.setItem('openwhispr-theme', theme)
+  }, [theme])
 
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    handleScroll()
-    return () => window.removeEventListener('scroll', handleScroll)
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
+  }
+
+  // Rotate tagline words like MausBot hero-swap
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSwapIn(false)
+      setTimeout(() => {
+        setSwapIndex((prev) => (prev + 1) % SWAP_WORDS.length)
+        setSwapIn(true)
+      }, 420)
+    }, 3200)
+    return () => clearInterval(interval)
   }, [])
 
-  const copyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(DOWNLOAD_URL)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    } catch {
-      /* clipboard unavailable */
-    }
-  }
-
-  const handleMicTap = () => {
-    if (phoneState === 'listening') return
-    setPhoneState('listening')
-    setTimeout(() => {
-      setPhoneState('processing')
-      setTimeout(() => {
-        setPhoneState('cleaned')
-      }, 900)
-    }, 1100)
-  }
-
-  const handleNextPhonePreset = () => {
-    const nextIdx = (phonePresetIndex + 1) % DEMO_PRESETS.length
-    setPhonePresetIndex(nextIdx)
-    setPhoneState('cleaned')
-  }
-
-  const toggleSimulatorRecord = () => {
-    if (simulatorRecording) {
-      setSimulatorRecording(false)
+  // Simulated recording timer
+  useEffect(() => {
+    let timer
+    if (isRecording) {
+      timer = setInterval(() => {
+        setRecordingTimer((prev) => prev + 1)
+      }, 1000)
     } else {
-      setSimulatorRecording(true)
-      setSimulatorPickerOpen(false)
-      setTimeout(() => setSimulatorRecording(false), 2200)
+      setRecordingTimer(0)
     }
+    return () => clearInterval(timer)
+  }, [isRecording])
+
+  const currentPersona =
+    PERSONAS.find((p) => p.id === selectedPersona) || PERSONAS[0]
+
+  const activeOpacityDecimal = isRecording ? 1.0 : restingOpacity / 100
+
+  const handleCopyInstall = () => {
+    navigator.clipboard.writeText('git clone https://github.com/YOUR_USERNAME/openwisper-android.git')
+    setCopiedKey(true)
+    setTimeout(() => setCopiedKey(false), 2000)
+  }
+
+  const toggleRecording = () => {
+    setIsRecording((prev) => !prev)
   }
 
   return (
-    <div className="site-wrapper">
-      {/* Background Subtle Noir Grid Effect */}
-      <div className="bg-grid-ambient" aria-hidden="true" />
-      <div className="bg-radial-glow" aria-hidden="true" />
-
-      {/* Floating Side Rail for Quick Nav */}
-      <aside className="section-rail" aria-label="Section navigation">
-        {NAV_SECTIONS.map((sec) => (
-          <a
-            key={sec.id}
-            href={`#${sec.id}`}
-            className={`rail-dot ${activeSection === sec.id ? 'active' : ''}`}
-            aria-label={`Jump to ${sec.label}`}
-          >
-            <span className="rail-tooltip">{sec.label}</span>
-          </a>
-        ))}
-      </aside>
-
-      {/* ========================================================
-          STICKY MINIMALIST HEADER
-      ======================================================== */}
-      <header className="site-header">
-        <div className="header-inner">
-          <a href="#hero" className="nav-brand">
-            <span className="logo-box">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
-                <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+    <div className="maus-root">
+      {/* ── STICKY BACKDROP HEADER ── */}
+      <header className="maus-header">
+        <div className="maus-header-inner">
+          <a href="#" className="maus-brand">
+            <span className="maus-brand-icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="6" width="20" height="12" rx="6" />
+                <circle cx="17" cy="12" r="3" fill="currentColor" />
+                <path d="M7 10v4" />
               </svg>
             </span>
-            <span className="brand-name">OpenWhispr</span>
-            <span className="brand-subtag">Android</span>
+            <span className="maus-brand-text">OpenWhispr</span>
+            <span className="maus-brand-badge font-mono">Android 14+</span>
           </a>
 
-          <nav className="nav-links">
-            <a href="#showcase" className={activeSection === 'showcase' ? 'active' : ''}>Showcase</a>
-            <a href="#features" className={activeSection === 'features' ? 'active' : ''}>Features</a>
-            <a href="#simulator" className={activeSection === 'simulator' ? 'active' : ''}>Pill Simulator</a>
-            <a href="#speed" className={activeSection === 'speed' ? 'active' : ''}>Speed</a>
-            <a href="#privacy" className={activeSection === 'privacy' ? 'active' : ''}>Privacy</a>
-            <a href="#faq" className={activeSection === 'faq' ? 'active' : ''}>FAQ</a>
+          <nav className="maus-nav">
+            <a href="#preview">App Preview</a>
+            <a href="#personas">5 Personas</a>
+            <a href="#engines">AI Engines</a>
+            <a href="#architecture">Security</a>
+            <a href="#faq">FAQ</a>
           </nav>
 
-          <div className="header-actions">
-            <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="btn-github">
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
-                <path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.1-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2Z" />
+          <div className="maus-header-actions">
+            {/* Theme Toggle Button (Light/Dark like MausBot) */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="maus-theme-btn"
+              title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+              aria-label="Toggle theme"
+            >
+              {theme === 'light' ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+                </svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="4" />
+                  <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+                </svg>
+              )}
+            </button>
+
+            <a
+              href={GITHUB_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="maus-btn-ghost"
+              title="GitHub Star"
+            >
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.4 7.4 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" />
               </svg>
-              <span>GitHub</span>
+              <span className="font-mono">★ Star</span>
             </a>
-            <a href={DOWNLOAD_URL} className="btn-header-cta">
-              Get APK
-            </a>
+
+            <button
+              onClick={() => setShowQrModal(true)}
+              className="maus-btn-pill"
+            >
+              <span>Download APK</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 5v14M19 12l-7 7-7-7" />
+              </svg>
+            </button>
           </div>
         </div>
       </header>
 
-      <main className="page-content">
-        {/* ========================================================
-            1. HERO SECTION (Minimalist Monochrome)
-        ======================================================== */}
-        <section className="section hero-section" id="hero">
-          <div className="hero-container">
-            <div className="hero-content">
-              <div className="badge-pill">
-                <span className="dot-live" />
-                <span>Zero-Tap Auto-Persona · Dual Capsule Pill · 70% Opacity</span>
-              </div>
+      <main>
+        {/* ── MAUSBOT SIGNATURE HERO SECTION (Full Viewport) ── */}
+        <section className="maus-hero-section">
+          <div className="hero-inner">
+            {/* Top Product Hunt / Release Coral Banner */}
+          <div className="maus-badge-row">
+            <a
+              href="https://github.com/YOUR_USERNAME/openwisper-android"
+              target="_blank"
+              rel="noreferrer"
+              className="maus-coral-banner"
+            >
+              <span className="maus-coral-tag">Open Source Android</span>
+              <span className="maus-coral-text">Floating AI Voice Dictation • BYOK & Hardware Keystore</span>
+              <span className="maus-coral-arrow">↗</span>
+            </a>
+          </div>
 
-              <h1 className="hero-title">
-                Voice dictation,
-                <br />
-                <span className="text-white-pure">refined anywhere.</span>
-              </h1>
-
-              <p className="hero-description">
-                OpenWhispr turns imperfect, conversational speech into pristine text across every Android app.
-                A minimalist floating capsule pill, hardware keystore encryption, and zero subscription paywalls.
-              </p>
-
-              <div className="hero-cta-group">
-                <a className="btn btn-primary" href={DOWNLOAD_URL}>
-                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16" />
-                  </svg>
-                  <span>Download APK</span>
-                  <span className="tag-version">v1.0.2</span>
-                </a>
-
-                <a className="btn btn-secondary" href="#simulator">
-                  <span>Interactive Simulator</span>
-                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="m9 18 6-6-6-6" />
-                  </svg>
-                </a>
-              </div>
-
-              {/* Minimalist QR Code Download Card */}
-              <div className="qr-box">
-                <div className="qr-wrapper">
-                  <QRCode
-                    value={DOWNLOAD_URL}
-                    size={88}
-                    fgColor="#FFFFFF"
-                    bgColor="transparent"
-                    level="M"
-                  />
+          {/* Hero Stage with Green Outline Echoes and Letter-Drop Center Word */}
+          <div className="hero-stage" aria-hidden="true">
+            {/* Background Marquee Echoes (Vibrant Emerald Outline) */}
+            <div className="hero-echoes">
+              <div className="hero-echo" data-row="-2" style={{ '--row': -2 }}>
+                <div className="hero-echo-track">
+                  <span className="hero-echo-copy">
+                    <span>OPENWHISPR</span>
+                    <span>OPENWHISPR</span>
+                    <span>OPENWHISPR</span>
+                    <span>OPENWHISPR</span>
+                  </span>
+                  <span className="hero-echo-copy">
+                    <span>OPENWHISPR</span>
+                    <span>OPENWHISPR</span>
+                    <span>OPENWHISPR</span>
+                    <span>OPENWHISPR</span>
+                  </span>
                 </div>
-                <div className="qr-details">
-                  <div className="qr-headline">
-                    <strong>Scan to install directly</strong>
-                    <span className="qr-tag">Free APK</span>
-                  </div>
-                  <p>Point your phone camera to download directly to Android. No Play Store required.</p>
-                  <button className="btn-copy-link" onClick={copyLink}>
-                    {copied ? '✓ Direct URL copied' : 'Copy download link'}
-                  </button>
+              </div>
+
+              <div className="hero-echo" data-row="-1" style={{ '--row': -1 }}>
+                <div className="hero-echo-track">
+                  <span className="hero-echo-copy">
+                    <span>AUTONOMOUS DICTATION</span>
+                    <span>AUTONOMOUS DICTATION</span>
+                    <span>AUTONOMOUS DICTATION</span>
+                    <span>AUTONOMOUS DICTATION</span>
+                  </span>
+                  <span className="hero-echo-copy">
+                    <span>AUTONOMOUS DICTATION</span>
+                    <span>AUTONOMOUS DICTATION</span>
+                    <span>AUTONOMOUS DICTATION</span>
+                    <span>AUTONOMOUS DICTATION</span>
+                  </span>
+                </div>
+              </div>
+
+              <div className="hero-echo" data-row="1" style={{ '--row': 1 }}>
+                <div className="hero-echo-track">
+                  <span className="hero-echo-copy">
+                    <span>5 CONTEXT PERSONAS</span>
+                    <span>5 CONTEXT PERSONAS</span>
+                    <span>5 CONTEXT PERSONAS</span>
+                    <span>5 CONTEXT PERSONAS</span>
+                  </span>
+                  <span className="hero-echo-copy">
+                    <span>5 CONTEXT PERSONAS</span>
+                    <span>5 CONTEXT PERSONAS</span>
+                    <span>5 CONTEXT PERSONAS</span>
+                    <span>5 CONTEXT PERSONAS</span>
+                  </span>
+                </div>
+              </div>
+
+              <div className="hero-echo" data-row="2" style={{ '--row': 2 }}>
+                <div className="hero-echo-track">
+                  <span className="hero-echo-copy">
+                    <span>KEYSTORE ENCRYPTED</span>
+                    <span>KEYSTORE ENCRYPTED</span>
+                    <span>KEYSTORE ENCRYPTED</span>
+                    <span>KEYSTORE ENCRYPTED</span>
+                  </span>
+                  <span className="hero-echo-copy">
+                    <span>KEYSTORE ENCRYPTED</span>
+                    <span>KEYSTORE ENCRYPTED</span>
+                    <span>KEYSTORE ENCRYPTED</span>
+                    <span>KEYSTORE ENCRYPTED</span>
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* Interactive Monochrome Phone Preview */}
-            <div className="hero-phone-side" aria-hidden="true">
-              <div className="phone-chassis">
-                <div className="phone-screen">
-                  {/* Status Bar */}
-                  <div className="phone-top-bar">
-                    <span className="phone-time">9:41</span>
-                    <div className="phone-camera-punch" />
-                    <div className="phone-icons">
-                      <span className="phone-sig" />
-                      <span className="phone-bat" />
-                    </div>
-                  </div>
-
-                  {/* App Context Bar */}
-                  <div className="mock-chat-header">
-                    <div className="mock-app-info">
-                      <span className="mock-app-dot" />
-                      <span className="mock-app-name">{currentPhonePreset.context}</span>
-                    </div>
-                    <button className="mock-cycle-btn" onClick={handleNextPhonePreset}>
-                      Next app ↻
-                    </button>
-                  </div>
-
-                  {/* Chat / Content View */}
-                  <div className="mock-chat-body">
-                    {phoneState === 'listening' ? (
-                      <div className="mock-state-box listening">
-                        <div className="mock-sound-bars">
-                          <span /><span /><span /><span /><span />
-                        </div>
-                        <span className="mock-state-text">Listening at 16kHz PCM...</span>
-                      </div>
-                    ) : phoneState === 'processing' ? (
-                      <div className="mock-state-box processing">
-                        <div className="mock-spinner" />
-                        <span className="mock-state-text">Refining with LLM...</span>
-                      </div>
-                    ) : (
-                      <div className="mock-state-box ready">
-                        <div className="mock-pill-tag">
-                          <span>{currentPhonePreset.icon} {currentPhonePreset.label}</span>
-                          <span className="mock-speed">~240ms</span>
-                        </div>
-                        <p className="mock-text-cleaned">{currentPhonePreset.cleaned}</p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Keyboard Frame */}
-                  <div className="mock-keyboard">
-                    <div className="mock-key-row top">
-                      <span /><span /><span /><span /><span /><span /><span />
-                    </div>
-                    <div className="mock-key-row mid">
-                      <span /><span /><span /><span /><span /><span />
-                    </div>
-                    <div className="mock-key-row space">
-                      <span className="spacebar" />
-                    </div>
-                  </div>
-
-                  {/* The Real Dual-Button Capsule Pill Floating Above Keyboard */}
-                  <div className="mock-floating-capsule-holder">
-                    <div
-                      className={`mock-capsule-pill ${phoneState === 'listening' ? 'recording' : ''}`}
-                      onClick={handleMicTap}
-                      title="Tap capsule to dictate"
-                    >
-                      <div className="capsule-persona-section">
-                        <span className="capsule-persona-icon">{currentPhonePreset.icon}</span>
-                        <span className="capsule-persona-name">{currentPhonePreset.label}</span>
-                        <span className="capsule-chevron">▾</span>
-                      </div>
-                      <div className="capsule-center-divider" />
-                      <div className="capsule-mic-trigger">
-                        {phoneState === 'listening' ? (
-                          <span className="capsule-record-dot" />
-                        ) : (
-                          <svg viewBox="0 0 24 24" width="13" height="13" fill="#000000">
-                            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
-                            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
-                          </svg>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="phone-hint-caption">
-                  <span>↗ Tap the capsule pill to simulate instant voice cleanup</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ========================================================
-            2. SHOWCASE (Before & After Comparison)
-        ======================================================== */}
-        <section className="section showcase-section" id="showcase">
-          <div className="section-header">
-            <span className="section-kicker">Intelligent Persona Refinement</span>
-            <h2 className="section-heading">Raw speech in. Clean text out.</h2>
-            <p className="section-subheading">
-              Speak as informally as you want. OpenWhispr strips hesitations, corrects grammar, and formats text specifically for the destination app.
-            </p>
-          </div>
-
-          <div className="persona-selector-tabs">
-            {DEMO_PRESETS.map((p) => (
+            {/* Center Interactive Word Drop (Vibrant Emerald Green) */}
+            <div className="hero-word-wrap">
               <button
-                key={p.id}
-                className={`tab-persona ${activePreset.id === p.id ? 'active' : ''}`}
-                onClick={() => setActivePreset(p)}
+                type="button"
+                className="hero-word"
+                title="OpenWhispr Interactive Mascot"
               >
-                <span className="tab-icon">{p.icon}</span>
-                <span className="tab-label">{p.label}</span>
-                <span className="tab-app-tag">{p.targetApp}</span>
-              </button>
-            ))}
-          </div>
-
-          <div className="comparison-grid">
-            <div className="comp-card raw">
-              <div className="comp-head">
-                <div className="comp-badge-group">
-                  <span className="badge-dot-gray" />
-                  <span className="badge-text">Raw Speech Transcript</span>
-                </div>
-                <span className="meta-tag">Unfiltered Whisper</span>
-              </div>
-              <div className="comp-content">
-                <p className="quote-text">"{activePreset.raw}"</p>
-              </div>
-              <div className="comp-meta-footer">
-                <span className="footer-label">Detected Verbal Clutter:</span>
-                <div className="tag-chips">
-                  {activePreset.removed.map((item, idx) => (
-                    <span key={idx} className="chip-removed">— {item}</span>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="comp-arrow-divider">
-              <div className="divider-icon-box">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
-              <span className="divider-speed-label">~240ms</span>
-            </div>
-
-            <div className="comp-card refined">
-              <div className="comp-head">
-                <div className="comp-badge-group">
-                  <span className="badge-dot-white" />
-                  <span className="badge-text">Refined Text Output</span>
-                </div>
-                <span className="meta-tag active">{activePreset.context}</span>
-              </div>
-              <div className="comp-content">
-                <p className="quote-text refined">{activePreset.cleaned}</p>
-              </div>
-              <div className="comp-meta-footer">
-                <span className="footer-label">Formatting Enhancements:</span>
-                <div className="tag-chips">
-                  {activePreset.added.map((item, idx) => (
-                    <span key={idx} className="chip-added">✓ {item}</span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ========================================================
-            3. FEATURES GRID (Minimalist Monochrome Cards)
-        ======================================================== */}
-        <section className="section features-section" id="features">
-          <div className="section-header">
-            <span className="section-kicker">Core System Architecture</span>
-            <h2 className="section-heading">Engineered for pure efficiency.</h2>
-            <p className="section-subheading">
-              No bloated UI, no intrusive overlays. A lean native daemon built specifically for modern Android.
-            </p>
-          </div>
-
-          <div className="features-grid">
-            {FEATURES.map((feat, idx) => (
-              <div className="feature-card" key={idx}>
-                <div className="feature-icon-frame">{feat.icon}</div>
-                <div className="feature-body">
-                  <div className="feature-title-row">
-                    <h3>{feat.title}</h3>
-                    <span className="feat-chip">{feat.badge}</span>
-                  </div>
-                  <p>{feat.body}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ========================================================
-            4. INTERACTIVE SIMULATOR (Capsule Pill & Opacity Slider)
-        ======================================================== */}
-        <section className="section simulator-section" id="simulator">
-          <div className="section-header">
-            <span className="section-kicker">Interactive Hardware Sandbox</span>
-            <h2 className="section-heading">Fine-tune your resting opacity.</h2>
-            <p className="section-subheading">
-              Test how the capsule pill feels over simulated text. Adjust resting opacity from 30% to 100%, cycle personas, and tap to trigger dictation.
-            </p>
-          </div>
-
-          <div className="simulator-workbench">
-            <div className="simulator-controls-card">
-              <div className="control-row">
-                <div className="control-label-group">
-                  <span className="control-title">Resting Opacity Level</span>
-                  <span className="control-description">Transparency when idle above your keyboard</span>
-                </div>
-                <span className="control-value-badge">{Math.round(simulatorOpacity * 100)}%</span>
-              </div>
-
-              {/* Slider Component */}
-              <div className="slider-container">
-                <input
-                  type="range"
-                  min="0.30"
-                  max="1.00"
-                  step="0.05"
-                  value={simulatorOpacity}
-                  onChange={(e) => setSimulatorOpacity(parseFloat(e.target.value))}
-                  className="opacity-range-slider"
-                />
-                <div className="slider-ticks">
-                  <span onClick={() => setSimulatorOpacity(0.3)}>30% Ghost</span>
-                  <span onClick={() => setSimulatorOpacity(0.5)}>50% Soft</span>
-                  <span onClick={() => setSimulatorOpacity(0.7)}>70% Default</span>
-                  <span onClick={() => setSimulatorOpacity(0.85)}>85% Clear</span>
-                  <span onClick={() => setSimulatorOpacity(1.0)}>100% Solid</span>
-                </div>
-              </div>
-
-              {/* Quick Persona Switcher in Simulator */}
-              <div className="simulator-personas-row">
-                <span className="control-micro-label">Simulate active persona:</span>
-                <div className="mini-persona-chips">
-                  {DEMO_PRESETS.map((p) => (
-                    <button
-                      key={p.id}
-                      className={`mini-chip ${simulatorPersona.id === p.id ? 'active' : ''}`}
-                      onClick={() => setSimulatorPersona(p)}
-                    >
-                      {p.icon} {p.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Live Interactive Preview Board */}
-            <div className="simulator-canvas">
-              <div className="canvas-header">
-                <span className="canvas-header-dot" />
-                <span className="canvas-header-title">Background Text Surface (Simulated Readability)</span>
-                <span className="canvas-status">{simulatorRecording ? '● ACTIVE RECORDING (100% Solid)' : `IDLE (${Math.round(simulatorOpacity * 100)}% Opacity)`}</span>
-              </div>
-
-              <div className="canvas-text-content">
-                <p>
-                  "The quick brown fox jumps over the lazy dog. When dictating long articles, email threads, or messaging colleagues, a floating widget must remain readily accessible without ever blocking the words you are reading underneath."
-                </p>
-                <p>
-                  "OpenWhispr achieves this balance with a customizable resting alpha channel. Notice how text remains effortlessly readable right behind the capsule."
-                </p>
-
-                {/* Simulated Floating Capsule Pill Widget */}
-                <div
-                  className={`live-sandbox-capsule ${simulatorRecording ? 'recording' : ''}`}
-                  style={{
-                    opacity: simulatorRecording ? 1.0 : simulatorOpacity,
-                  }}
-                >
-                  {simulatorPickerOpen ? (
-                    <div className="sandbox-picker-strip">
-                      {DEMO_PRESETS.map((p) => (
-                        <button
-                          key={p.id}
-                          className={`sandbox-picker-slot ${simulatorPersona.id === p.id ? 'active' : ''}`}
-                          onClick={() => {
-                            setSimulatorPersona(p)
-                            setSimulatorPickerOpen(false)
-                          }}
-                        >
-                          {p.icon}
-                        </button>
-                      ))}
-                      <button
-                        className="sandbox-picker-close"
-                        onClick={() => setSimulatorPickerOpen(false)}
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      className="sandbox-persona-btn"
-                      onClick={() => setSimulatorPickerOpen(true)}
-                    >
-                      <span className="sandbox-persona-icon">{simulatorPersona.icon}</span>
-                      <span className="sandbox-persona-label">{simulatorPersona.label}</span>
-                      <span className="sandbox-arrow">▾</span>
-                    </button>
-                  )}
-
-                  <div className="sandbox-divider" />
-
-                  <button
-                    className={`sandbox-mic-btn ${simulatorRecording ? 'recording' : ''}`}
-                    onClick={toggleSimulatorRecord}
-                    title="Tap to test recording state"
+                {'OpenWhispr'.split('').map((char, i) => (
+                  <span
+                    key={i}
+                    className="hero-letter-drop"
+                    style={{ '--i': i }}
+                    onMouseEnter={() => setLetterHover(i)}
+                    onMouseLeave={() => setLetterHover(null)}
                   >
-                    {simulatorRecording ? (
-                      <span className="sandbox-rec-square" />
-                    ) : (
-                      <svg viewBox="0 0 24 24" width="13" height="13" fill="#000000">
-                        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
-                        <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
-                      </svg>
-                    )}
-                  </button>
+                    <span
+                      className={`hero-letter ${letterHover === i ? 'is-hovered' : ''}`}
+                    >
+                      {char}
+                    </span>
+                  </span>
+                ))}
+              </button>
+            </div>
+
+            {/* Colorful Orbital Popping Flyers */}
+            <div
+              className="hero-flyer flyer-capsule"
+              style={{ left: '14%', top: '22%', transform: 'translate(-50%, -50%) scale(0.94)' }}
+            >
+              <div className="hero-flyer-in" style={{ '--i': 0 }}>
+                <div className="flyer-pill-mockup">
+                  <span className="flyer-pill-icon">💬</span>
+                  <span className="flyer-pill-divider"></span>
+                  <span className="flyer-mic-circle">
+                    <span className="flyer-mic-dot"></span>
+                  </span>
+                  <span className="flyer-label font-mono">Dual Capsule Pill</span>
+                </div>
+              </div>
+            </div>
+
+            <div
+              className="hero-flyer flyer-opacity"
+              style={{ left: '86%', top: '26%', transform: 'translate(-50%, -50%) scale(0.96)' }}
+            >
+              <div className="hero-flyer-in" style={{ '--i': 1 }}>
+                <div className="flyer-badge-colored">
+                  <span className="flyer-dot-blue"></span>
+                  <span className="font-mono font-bold">70%</span>
+                  <span className="flyer-sub">Resting Opacity</span>
+                </div>
+              </div>
+            </div>
+
+            <div
+              className="hero-flyer flyer-mode"
+              style={{ left: '12%', top: '76%', transform: 'translate(-50%, -50%) scale(0.95)' }}
+            >
+              <div className="hero-flyer-in" style={{ '--i': 2 }}>
+                <div className="flyer-badge-colored">
+                  <span className="flyer-dot-orange"></span>
+                  <span>✉️</span>
+                  <span className="font-mono">Gmail Auto-Sense</span>
+                </div>
+              </div>
+            </div>
+
+            <div
+              className="hero-flyer flyer-security"
+              style={{ left: '84%', top: '76%', transform: 'translate(-50%, -50%) scale(0.94)' }}
+            >
+              <div className="hero-flyer-in" style={{ '--i': 3 }}>
+                <div className="flyer-badge-colored">
+                  <span className="flyer-dot-purple"></span>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                  <span className="font-mono">Keystore AES-256</span>
                 </div>
               </div>
             </div>
           </div>
-        </section>
 
-        {/* ========================================================
-            5. SPEED & BENCHMARKS
-        ======================================================== */}
-        <section className="section speed-section" id="speed">
-          <div className="section-header">
-            <span className="section-kicker">Latency Metrics</span>
-            <h2 className="section-heading">Sub-second turnaround.</h2>
-            <p className="section-subheading">
-              Speaking is over 4x faster than thumbs on glass. Combined with ultra-low latency Groq Whisper, your speech appears almost instantaneously.
+          {/* Headline with Cascade Letter Word Swapper in Emerald Accent */}
+          <div className="hero-content-wrap">
+            <h1 className="hero-tagline">
+              <span>Your&nbsp;</span>
+              <span className="hero-swap-container">
+                <span
+                  className={`hero-swap-word ${swapIn ? 'is-in' : 'is-out'}`}
+                >
+                  {SWAP_WORDS[swapIndex].split('').map((char, i) => (
+                    <span key={i} style={{ '--i': i }}>
+                      {char === ' ' ? '\u00A0' : char}
+                    </span>
+                  ))}
+                </span>
+              </span>
+              <br />
+              <span>on autopilot.</span>
+            </h1>
+
+            <p className="hero-subtext">
+              An open source Android floating voice companion that listens to your rambling speech and
+              instantly injects executive-grade, perfectly formatted text into WhatsApp, Gmail, Notion, and any other app.
+              No filler words. Zero tap persona switching.
+            </p>
+
+            {/* Action Buttons Row */}
+            <div className="hero-cta-row">
+              <div className="hero-split-btn">
+                <a
+                  href={DOWNLOAD_URL}
+                  className="hero-btn-primary"
+                  download
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  <span>Download APK (Free)</span>
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setShowQrModal(true)}
+                  className="hero-btn-dropdown"
+                  title="Scan QR Code to install"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="14" width="7" height="7" rx="1" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" />
+                  </svg>
+                </button>
+              </div>
+
+              <a
+                href="#preview"
+                className="hero-btn-secondary"
+              >
+                <span>Interactive Preview</span>
+                <span className="font-mono text-xs px-2 py-0.5 rounded-full bg-accent-subtle text-accent font-semibold">
+                  Live Demo
+                </span>
+              </a>
+            </div>
+
+            <p className="hero-foot-note">
+              Android 14+ • Deepgram Nova-3 & Groq Llama 3.3 70B • Hardware Keystore AES-256
             </p>
           </div>
+        </div>
 
-          <div className="speed-container">
-            <div className="benchmark-list">
-              {BENCHMARKS.map((b, idx) => (
-                <div className="bench-row" key={idx}>
-                  <div className="bench-meta">
-                    <span className="bench-label">{b.label}</span>
-                    <span className="bench-time">{b.latency} ms</span>
-                  </div>
-                  <div className="bench-bar-track">
-                    <div
-                      className="bench-bar-fill"
-                      style={{ width: `${Math.min(100, (b.latency / 4200) * 100)}%` }}
-                    />
-                  </div>
-                  <span className="bench-explainer">{b.note}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="speed-metric-card">
-              <span className="metric-super">150+</span>
-              <span className="metric-tag">Words Per Minute</span>
-              <p className="metric-sub">
-                Compared to an average of ~35 WPM on glass keyboards. Save hours every week on messages and notes.
-              </p>
-              <div className="metric-badge-white">4.2x Faster Communication</div>
-            </div>
-          </div>
-        </section>
-
-        {/* ========================================================
-            6. PRIVACY & ARCHITECTURE
-        ======================================================== */}
-        <section className="section privacy-section" id="privacy">
-          <div className="privacy-card">
-            <div className="privacy-header-badge">
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          {/* Scroll Down Indicator */}
+          <div className="hero-scroll-hint">
+            <a href="#preview" className="hero-scroll-link" aria-label="Scroll to preview">
+              <span>Explore Interactive Live Capsule</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 5v14M19 12l-7 7-7-7" />
               </svg>
-              <span>Encrypted Keystore · BYOK Architecture</span>
+            </a>
+          </div>
+        </section>
+
+        {/* ── MAUSBOT APP PREVIEW WINDOW (.app-preview) ── */}
+        <section id="preview" className="maus-preview-section">
+          <div className="app-preview-figure">
+            <div className="app-preview">
+              {/* Left Column: 5 Persona Modes (MausBot ap-sidebar style) */}
+              <aside className="ap-sidebar">
+                <div className="ap-window">
+                  <span className="ap-lights">
+                    <i></i><i></i><i></i>
+                  </span>
+                  <span className="ap-host">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="5" y="2" width="14" height="20" rx="3" />
+                      <line x1="12" y1="18" x2="12.01" y2="18" />
+                    </svg>
+                    FloatingBubbleView.kt
+                  </span>
+                </div>
+
+                <div className="ap-search">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                  <span>5 Persona Modes</span>
+                </div>
+
+                <div className="ap-section">
+                  <span>ACTIVE MODES</span>
+                  <span className="text-muted text-xs font-mono">5 ENGINES</span>
+                </div>
+
+                <div className="ap-bots">
+                  {PERSONAS.map((p) => {
+                    const isSelected = selectedPersona === p.id
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => setSelectedPersona(p.id)}
+                        className={`ap-bot ${isSelected ? 'ap-selected' : ''}`}
+                        style={{
+                          borderLeftColor: isSelected ? p.color : 'transparent',
+                        }}
+                      >
+                        <span className="ap-bot-icon">{p.icon}</span>
+                        <div className="ap-bot-info">
+                          <div className="flex items-center justify-between">
+                            <b style={{ color: isSelected ? '#ffffff' : '#e0e0e8' }}>{p.label}</b>
+                            {isSelected && (
+                              <span
+                                className="ap-active-dot"
+                                style={{ background: p.color }}
+                              ></span>
+                            )}
+                          </div>
+                          <p>{p.targetApp.split('/')[0].trim()}</p>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+
+                <div className="ap-footer-stats">
+                  <div className="ap-stat-item">
+                    <span className="text-muted">Dock Offset:</span>
+                    <span className="font-mono text-emerald font-semibold">48dp Clearance</span>
+                  </div>
+                  <div className="ap-stat-item">
+                    <span className="text-muted">Resting Alpha:</span>
+                    <span className="font-mono text-white font-semibold">{restingOpacity}%</span>
+                  </div>
+                </div>
+              </aside>
+
+              {/* Right Column: Chat & Live Dictation Canvas (MausBot ap-chat) */}
+              <div className="ap-chat">
+                <header className="ap-header">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{currentPersona.icon}</span>
+                    <b style={{ color: '#ffffff' }}>{currentPersona.label} Mode</b>
+                    <span
+                      className="ap-app-badge font-mono"
+                      style={{ color: currentPersona.color, borderColor: `${currentPersona.color}40`, background: `${currentPersona.color}15` }}
+                    >
+                      {currentPersona.targetApp}
+                    </span>
+                  </div>
+
+                  <div className="ap-header-actions">
+                    <div className="ap-model">
+                      <span className="ap-model-dot"></span>
+                      <span className="text-coral font-medium">Deepgram Nova-3</span>
+                      <span className="text-muted">+ Groq Llama 3.3 70B</span>
+                    </div>
+                  </div>
+                </header>
+
+                <div className="ap-messages" data-in="true">
+                  <div className="ap-day">
+                    <span>LIVE WHISPER ACCESSIBILITY INJECTION SIMULATOR</span>
+                  </div>
+
+                  {/* Persona System Prompt Rule Banner */}
+                  <div className="text-xs text-muted font-mono bg-[#14141a] border border-[#22222a] p-2.5 rounded-lg mb-2">
+                    <b className="text-emerald">Engine Rule: </b>
+                    {currentPersona.systemRule}
+                  </div>
+
+                  {/* User Spoken Raw Bubble */}
+                  <div className="ap-bubble ap-user">
+                    <div className="ap-bubble-label">You Spoke (Raw Microphone Audio):</div>
+                    <p className="ap-raw-speech">“{currentPersona.raw}”</p>
+                    <div className="ap-filler-tags">
+                      {currentPersona.removed.map((word, idx) => (
+                        <span key={idx} className="ap-filler-pill">
+                          <del>{word}</del>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* AI Polished Injection Bubble */}
+                  <div className="ap-bubble ap-answer">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="ap-bubble-label text-emerald flex items-center gap-1.5 font-semibold">
+                        <span>✓</span>
+                        <span>Injected into {currentPersona.targetApp.split('/')[0].trim()}:</span>
+                      </div>
+                      <span className="font-mono text-xs text-muted">0.38s latency</span>
+                    </div>
+
+                    <div className="ap-cleaned-text">
+                      {currentPersona.cleaned.split('\n').map((line, i) => (
+                        <div key={i}>{line}</div>
+                      ))}
+                    </div>
+
+                    <div className="ap-improvements">
+                      {currentPersona.added.map((feat, idx) => (
+                        <span key={idx} className="ap-feat-tag">
+                          <span className="text-emerald font-bold">+</span> {feat}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom Composer with Dual-Button Capsule Pill */}
+                <div className="ap-composer">
+                  <div className="ap-composer-status">
+                    <span className="text-muted text-xs">
+                      {isRecording ? (
+                        <span className="text-emerald font-medium">
+                          ● Recording 16kHz PCM audio ({recordingTimer}s)... Opacity snapped to 100%
+                        </span>
+                      ) : (
+                        <span>Capsule floating at <b className="text-white">{restingOpacity}%</b> resting opacity (48dp above keyboard)</span>
+                      )}
+                    </span>
+                  </div>
+
+                  {/* The Actual Dual-Button Capsule Pill Component */}
+                  <div
+                    className={`dual-capsule-pill ${isRecording ? 'is-recording' : ''}`}
+                    style={{ opacity: activeOpacityDecimal }}
+                  >
+                    {/* Left Button: Persona Switcher */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const ids = PERSONAS.map((p) => p.id)
+                        const next = ids[(ids.indexOf(selectedPersona) + 1) % ids.length]
+                        setSelectedPersona(next)
+                      }}
+                      className="capsule-persona-btn"
+                      title="Tap to switch persona (or auto-detect)"
+                    >
+                      <span className="capsule-icon">{currentPersona.icon}</span>
+                      <span className="capsule-label" style={{ color: currentPersona.color }}>
+                        {currentPersona.shortLabel}
+                      </span>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </button>
+
+                    <div className="capsule-divider"></div>
+
+                    {/* Right Button: Mic Trigger */}
+                    <button
+                      type="button"
+                      onClick={toggleRecording}
+                      className={`capsule-mic-btn ${isRecording ? 'is-active-mic' : ''}`}
+                      title={isRecording ? 'Click to stop dictation' : 'Click to start dictation'}
+                    >
+                      {isRecording ? (
+                        <div className="voice-equalizer">
+                          <span className="voice-bar is-speaking" style={{ '--h': '16px' }}></span>
+                          <span className="voice-bar is-speaking" style={{ '--h': '22px' }}></span>
+                          <span className="voice-bar is-speaking" style={{ '--h': '12px' }}></span>
+                          <span className="voice-bar is-speaking" style={{ '--h': '18px' }}></span>
+                        </div>
+                      ) : (
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                          <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                          <line x1="12" y1="19" x2="12" y2="22" />
+                        </svg>
+                      )}
+                      <span>{isRecording ? 'Listening...' : 'Dictate'}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
+            <figcaption className="text-center text-xs text-muted mt-3">
+              Interactive dual-capsule simulation running live. Tap the capsule buttons above to test persona switching and voice capture.
+            </figcaption>
+          </div>
+        </section>
 
-            <h2>Your keys. Your speech. Zero telemetry.</h2>
-            <p className="privacy-lead">
-              Unlike commercial dictation utilities that proxy your conversations through centralized cloud databases, OpenWhispr is 100% direct-to-provider.
-            </p>
-
-            <div className="privacy-columns">
-              <div className="privacy-col">
-                <span className="privacy-col-num">01</span>
-                <h4>Direct TLS Stream</h4>
-                <p>Speech audio travels strictly from your phone to Groq or Deepgram. No intermediary proxy server ever touches your audio.</p>
+        {/* ── TECHNOLOGY & PARTNERS MARQUEE STRIP (like MausBot) ── */}
+        <section className="maus-marquee-section">
+          <div className="marquee">
+            <div className="marquee-track">
+              <div className="marquee-copy">
+                <span className="marquee-item"><span className="text-emerald">★</span> DEEPGRAM NOVA-3</span>
+                <span className="marquee-sep">/</span>
+                <span className="marquee-item"><span className="text-blue">★</span> GROQ LLAMA 3.3 70B</span>
+                <span className="marquee-sep">/</span>
+                <span className="marquee-item"><span className="text-orange">★</span> GEMINI 2.5 FLASH</span>
+                <span className="marquee-sep">/</span>
+                <span className="marquee-item"><span className="text-purple">★</span> OPENAI GPT-4O-MINI</span>
+                <span className="marquee-sep">/</span>
+                <span className="marquee-item"><span className="text-teal">★</span> SURPLUS DEEPSEEK V4</span>
+                <span className="marquee-sep">/</span>
+                <span className="marquee-item"><span className="text-emerald">★</span> LOCAL OLLAMA SERVER</span>
+                <span className="marquee-sep">/</span>
+                <span className="marquee-item"><span className="text-blue">★</span> HARDWARE KEYSTORE AES-256</span>
+                <span className="marquee-sep">/</span>
+                <span className="marquee-item"><span className="text-orange">★</span> QUICK SETTINGS SHADE TILE</span>
+                <span className="marquee-sep">/</span>
               </div>
-              <div className="privacy-col">
-                <span className="privacy-col-num">02</span>
-                <h4>Android Hardware Keystore</h4>
-                <p>Your API keys are encrypted at rest with MasterKeys AES-256 GCM in the secure enclave. Keys never leave the device.</p>
-              </div>
-              <div className="privacy-col">
-                <span className="privacy-col-num">03</span>
-                <h4>100% Free & Open Source</h4>
-                <p>No user tracking, no analytics SDKs, and no subscriptions. Inspect and build the complete source code directly on GitHub.</p>
+              <div className="marquee-copy">
+                <span className="marquee-item"><span className="text-emerald">★</span> DEEPGRAM NOVA-3</span>
+                <span className="marquee-sep">/</span>
+                <span className="marquee-item"><span className="text-blue">★</span> GROQ LLAMA 3.3 70B</span>
+                <span className="marquee-sep">/</span>
+                <span className="marquee-item"><span className="text-orange">★</span> GEMINI 2.5 FLASH</span>
+                <span className="marquee-sep">/</span>
+                <span className="marquee-item"><span className="text-purple">★</span> OPENAI GPT-4O-MINI</span>
+                <span className="marquee-sep">/</span>
+                <span className="marquee-item"><span className="text-teal">★</span> SURPLUS DEEPSEEK V4</span>
+                <span className="marquee-sep">/</span>
+                <span className="marquee-item"><span className="text-emerald">★</span> LOCAL OLLAMA SERVER</span>
+                <span className="marquee-sep">/</span>
+                <span className="marquee-item"><span className="text-blue">★</span> HARDWARE KEYSTORE AES-256</span>
+                <span className="marquee-sep">/</span>
+                <span className="marquee-item"><span className="text-orange">★</span> QUICK SETTINGS SHADE TILE</span>
+                <span className="marquee-sep">/</span>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ========================================================
-            7. FAQ SECTION
-        ======================================================== */}
-        <section className="section faq-section" id="faq">
-          <div className="section-header">
-            <span className="section-kicker">Documentation & Help</span>
-            <h2 className="section-heading">Frequently Asked Questions</h2>
+        {/* ── SECTION: 5 PERSONA ENGINES BREAKDOWN ── */}
+        <section id="personas" className="maus-section maus-section-border">
+          <div className="maus-section-header">
+            <span className="maus-subhead-pill">5 CLEANUP PERSONAS</span>
+            <h2 className="maus-heading">
+              Context-Aware Speech Transformations
+            </h2>
+            <p className="maus-lead">
+              Extracted directly from OpenWhispr’s native prompts engine. Each mode enforces precise cleanup rules tuned for the application you are speaking into.
+            </p>
           </div>
 
-          <div className="faq-list">
-            {FAQS.map((faq, index) => {
-              const isOpen = openFaq === index
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {PERSONAS.map((p) => (
+              <div key={p.id} className="maus-feat-card">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">{p.icon}</span>
+                    <h3 className="text-lg font-bold text-fg">{p.label}</h3>
+                  </div>
+                  <span
+                    className="text-xs font-mono font-semibold px-2 py-0.5 rounded-full"
+                    style={{ color: p.color, background: `${p.color}15`, border: `1px solid ${p.color}35` }}
+                  >
+                    {p.badge}
+                  </span>
+                </div>
+                <p className="text-xs font-mono text-muted mb-3">{p.targetApp}</p>
+                <p className="text-sm text-muted leading-relaxed mb-4">{p.systemRule}</p>
+                <div className="p-3 rounded-lg bg-subtle border border-line text-xs font-mono">
+                  <div className="text-muted mb-1"><span className="text-coral">Raw:</span> "{p.raw.slice(0, 48)}..."</div>
+                  <div className="text-fg"><span className="text-emerald">Clean:</span> "{p.cleaned.split('\n')[0].slice(0, 48)}..."</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ── SECTION: REAL AI ENGINES & PROVIDERS (api.ts) ── */}
+        <section id="engines" className="maus-section">
+          <div className="maus-section-header">
+            <span className="maus-subhead-pill">BYOK ARCHITECTURE</span>
+            <h2 className="maus-heading">
+              Supported STT & LLM Engines
+            </h2>
+            <p className="maus-lead">
+              Plug in your existing API credentials or run fully offline. OpenWhispr routes requests directly over TLS without proprietary proxy servers.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {ENGINES.map((group, idx) => (
+              <div key={idx} className="maus-engine-card">
+                <h3 className="text-xl font-bold text-fg mb-4 flex items-center gap-2">
+                  <span className="text-emerald">●</span>
+                  {group.type}
+                </h3>
+                <div className="flex flex-col gap-3">
+                  {group.items.map((item, i) => (
+                    <div key={i} className="p-3.5 rounded-xl bg-subtle border border-line flex items-start justify-between gap-3">
+                      <div>
+                        <b className="text-sm text-fg block mb-1">{item.name}</b>
+                        <p className="text-xs text-muted leading-relaxed">{item.desc}</p>
+                      </div>
+                      <span className="text-[10px] font-mono font-semibold px-2 py-1 rounded-md bg-accent-subtle text-accent whitespace-nowrap">
+                        {item.tag}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ── SECTION: FEATURES GRID (MausBot Bento) ── */}
+        <section className="maus-section">
+          <div className="maus-section-header">
+            <span className="maus-subhead-pill">CORE CAPABILITIES</span>
+            <h2 className="maus-heading">
+              Engineered for Speed, Clarity, & Privacy.
+            </h2>
+            <p className="maus-lead">
+              Every detail is designed to make your daily typing effortless across all Android messaging and productivity apps.
+            </p>
+          </div>
+
+          <div className="maus-feature-grid">
+            {FEATURES.map((feat) => (
+              <div key={feat.num} className="maus-feat-card">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="maus-card-num font-mono text-emerald font-bold">{feat.num}</span>
+                  <span className={`maus-feat-badge badge-${feat.badgeColor}`}>{feat.badge}</span>
+                </div>
+                <h3 className="maus-card-title">{feat.title}</h3>
+                <span className="text-xs text-muted font-mono block mb-2 font-medium">{feat.subtitle}</span>
+                <p className="maus-card-desc">{feat.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ── SECTION: ANDROID QUICK SETTINGS SHADE TILE ── */}
+        <section className="maus-section maus-section-border">
+          <div className="tile-spotlight-card">
+            <div className="tile-spotlight-content">
+              <span className="maus-subhead-pill">SYSTEM NATIVE</span>
+              <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-fg mb-3">
+                Android Quick Settings Shade Tile.
+              </h2>
+              <p className="text-muted text-sm sm:text-base leading-relaxed mb-6">
+                OpenWhisprTileService.kt integrates into your Android quick settings pull-down shade. Toggle the floating capsule on or off with a single tap from any screen without switching apps.
+              </p>
+              <ul className="tile-points-list">
+                <li>
+                  <span className="tile-check bg-emerald text-white">✓</span>
+                  <span>Instant system-wide summon or dismiss from notification shade</span>
+                </li>
+                <li>
+                  <span className="tile-check bg-emerald text-white">✓</span>
+                  <span>Zero battery drain when inactive; wakes background service on tap</span>
+                </li>
+                <li>
+                  <span className="tile-check bg-emerald text-white">✓</span>
+                  <span>BootReceiver.kt automatically restores capsule after device restart</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="tile-spotlight-visual">
+              <div className="shade-mockup">
+                <div className="shade-notch"></div>
+                <div className="shade-tiles-row">
+                  <div className="shade-tile-box is-inactive">
+                    <span>📶</span>
+                    <b>Internet</b>
+                  </div>
+                  <div className="shade-tile-box is-inactive">
+                    <span>🔋</span>
+                    <b>Battery</b>
+                  </div>
+                </div>
+                <div className="shade-tiles-row">
+                  <div className="shade-tile-box is-active shade-active-green">
+                    <span>🎙️</span>
+                    <b>OpenWhispr</b>
+                  </div>
+                  <div className="shade-tile-box is-inactive">
+                    <span>🌙</span>
+                    <b>Do Not Disturb</b>
+                  </div>
+                </div>
+                <div className="shade-slider-mock">
+                  <div className="shade-slider-fill bg-emerald"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── SECTION: ARCHITECTURE & ZERO-TRUST SECURITY ── */}
+        <section id="architecture" className="maus-section">
+          <div className="maus-section-header">
+            <span className="maus-subhead-pill">SECURITY BY DESIGN</span>
+            <h2 className="maus-heading">
+              Hardware Keystore. Direct TLS BYOK.
+            </h2>
+            <p className="maus-lead">
+              Your voice and sensitive thoughts should never pass through a proprietary third-party proxy. OpenWhispr connects directly from your phone to your selected AI provider.
+            </p>
+          </div>
+
+          <div className="arch-flow-box">
+            <div className="arch-step">
+              <div className="arch-step-circle text-emerald">01</div>
+              <b className="text-fg text-sm block mb-1">Android AudioRecord</b>
+              <p className="text-xs text-muted">16kHz PCM audio recorded in local RAM buffer</p>
+            </div>
+            <div className="arch-arrow text-emerald">→</div>
+            <div className="arch-step">
+              <div className="arch-step-circle text-blue">02</div>
+              <b className="text-fg text-sm block mb-1">Direct Cloud TLS</b>
+              <p className="text-xs text-muted">Direct stream to Deepgram / Gemini / Groq endpoint</p>
+            </div>
+            <div className="arch-arrow text-blue">→</div>
+            <div className="arch-step">
+              <div className="arch-step-circle text-purple">03</div>
+              <b className="text-fg text-sm block mb-1">Hardware Keystore</b>
+              <p className="text-xs text-muted">API key decrypted in secure hardware enclave</p>
+            </div>
+            <div className="arch-arrow text-purple">→</div>
+            <div className="arch-step">
+              <div className="arch-step-circle text-emerald">04</div>
+              <b className="text-fg text-sm block mb-1">Accessibility Inject</b>
+              <p className="text-xs text-muted">ACTION_SET_TEXT pastes into focused field in 0.38s</p>
+            </div>
+          </div>
+        </section>
+
+        {/* ── SECTION: MULTILINGUAL MARQUEE (Hello from OpenWhispr) ── */}
+        <section className="maus-section maus-section-border">
+          <div className="text-center max-w-2xl mx-auto mb-10">
+            <span className="maus-subhead-pill">MULTILINGUAL VOICE</span>
+            <h2 className="maus-heading">
+              Speak in Any Language. Output in Pristine English.
+            </h2>
+            <p className="maus-lead">
+              Switch to Instant English mode (TRANSLATE_EN_SYSTEM_PROMPT) and dictate comfortably in your native tongue. OpenWhispr translates and formats simultaneously.
+            </p>
+          </div>
+
+          <div className="multilingual-strip">
+            <span className="lang-tag tag-green">Hola (Spanish)</span>
+            <span className="lang-tag tag-orange">नमस्ते (Hindi)</span>
+            <span className="lang-tag tag-blue">Bonjour (French)</span>
+            <span className="lang-tag tag-purple">こんにちは (Japanese)</span>
+            <span className="lang-tag tag-teal">Hallo (German)</span>
+            <span className="lang-tag tag-pink">你好 (Chinese)</span>
+            <span className="lang-tag tag-green">Olá (Portuguese)</span>
+            <span className="lang-tag tag-orange">مرحبا (Arabic)</span>
+          </div>
+        </section>
+
+        {/* ── SECTION: FAQ ACCORDION ── */}
+        <section id="faq" className="maus-section">
+          <div className="maus-section-header">
+            <span className="maus-subhead-pill">FAQ</span>
+            <h2 className="maus-heading">Frequently Asked Questions</h2>
+            <p className="maus-lead">
+              Everything you need to know about OpenWhispr, privacy, setup, and permissions.
+            </p>
+          </div>
+
+          <div className="faq-accordion">
+            {FAQS.map((faq, i) => {
+              const isOpen = openFaq === i
               return (
-                <div className={`faq-row ${isOpen ? 'open' : ''}`} key={index}>
+                <div
+                  key={i}
+                  className={`faq-item ${isOpen ? 'is-open' : ''}`}
+                >
                   <button
-                    className="faq-q-btn"
-                    onClick={() => setOpenFaq(isOpen ? -1 : index)}
-                    aria-expanded={isOpen}
+                    type="button"
+                    onClick={() => setOpenFaq(isOpen ? -1 : i)}
+                    className="faq-question-btn"
                   >
                     <span>{faq.q}</span>
-                    <span className="faq-icon-indicator">{isOpen ? '−' : '+'}</span>
+                    <span className="faq-icon text-emerald">{isOpen ? '−' : '+'}</span>
                   </button>
                   {isOpen && (
-                    <div className="faq-a-body">
+                    <div className="faq-answer-body">
                       <p>{faq.a}</p>
                     </div>
                   )}
@@ -847,48 +1152,124 @@ function App() {
           </div>
         </section>
 
-        {/* ========================================================
-            8. FINAL CTA & FOOTER
-        ======================================================== */}
-        <section className="section cta-section">
-          <div className="cta-banner">
-            <h2>Stop typing. Start whispering.</h2>
-            <p>Download the APK directly to your phone or inspect the open-source code.</p>
+        {/* ── BOTTOM CTA SECTION ── */}
+        <section className="maus-bottom-cta">
+          <div className="maus-cta-inner">
+            <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-fg mb-4">
+              Type at the speed of thought.
+            </h2>
+            <p className="text-muted text-base sm:text-lg max-w-xl mx-auto mb-8">
+              Join developers, founders, and professionals speaking freely on Android without filler words. Free, open source, and privacy first.
+            </p>
 
-            <div className="cta-button-row">
-              <a className="btn btn-primary btn-lg" href={DOWNLOAD_URL}>
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16" />
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <a
+                href={DOWNLOAD_URL}
+                className="hero-btn-primary"
+                download
+              >
+                <span>Download APK (Direct)</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
                 </svg>
-                <span>Download OpenWhispr APK</span>
               </a>
-              <a className="btn btn-secondary btn-lg" href={GITHUB_URL} target="_blank" rel="noreferrer">
-                <span>View on GitHub</span>
-              </a>
-            </div>
 
-            <span className="cta-disclaimer">Android 8.0+ · ~28 MB · MIT Open Source License</span>
+              <button
+                type="button"
+                onClick={() => setShowQrModal(true)}
+                className="hero-btn-secondary"
+              >
+                <span>Scan QR for Phone</span>
+              </button>
+            </div>
           </div>
-
-          <footer className="footer-bar">
-            <div className="footer-left">
-              <span className="logo-box mini">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
-                  <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
-                </svg>
-              </span>
-              <span>OpenWhispr — Minimalist voice dictation for Android.</span>
-            </div>
-
-            <div className="footer-right">
-              <a href={GITHUB_URL} target="_blank" rel="noreferrer">GitHub</a>
-              <a href="#hero">Back to top ↑</a>
-            </div>
-          </footer>
         </section>
       </main>
+
+      {/* ── MINIMALIST FOOTER ── */}
+      <footer className="maus-footer">
+        <div className="maus-footer-inner">
+          <div className="flex items-center gap-2">
+            <span className="text-fg font-semibold">OpenWhispr</span>
+            <span className="text-muted text-xs font-mono">• MIT License</span>
+          </div>
+
+          <div className="flex items-center gap-6 text-sm text-muted">
+            <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="hover:text-accent transition-colors">
+              GitHub
+            </a>
+            <a href="#preview" className="hover:text-accent transition-colors">
+              App Preview
+            </a>
+            <a href="#engines" className="hover:text-accent transition-colors">
+              AI Engines
+            </a>
+            <a href="#architecture" className="hover:text-accent transition-colors">
+              Security
+            </a>
+            <a href="#faq" className="hover:text-accent transition-colors">
+              Docs & FAQ
+            </a>
+          </div>
+
+          <div className="text-xs text-muted font-mono">
+            Direct TLS BYOK • Android 14+
+          </div>
+        </div>
+      </footer>
+
+      {/* ── QR CODE MODAL ── */}
+      {showQrModal && (
+        <div className="maus-modal-overlay" onClick={() => setShowQrModal(false)}>
+          <div className="maus-modal-card" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="maus-modal-close"
+              onClick={() => setShowQrModal(false)}
+            >
+              ✕
+            </button>
+            <div className="text-center mb-6">
+              <span className="maus-subhead-pill">ANDROID SIDELOAD</span>
+              <h3 className="text-xl font-bold text-fg mt-2">Scan with your phone</h3>
+              <p className="text-xs text-muted mt-1">
+                Point your Android camera at the QR code to download the latest release APK directly.
+              </p>
+            </div>
+
+            <div className="qr-container">
+              <div className="qr-box">
+                <QRCode
+                  value={DOWNLOAD_URL}
+                  size={190}
+                  bgColor="#FFFFFF"
+                  fgColor="#000000"
+                  level="M"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-col gap-2">
+              <a
+                href={DOWNLOAD_URL}
+                className="hero-btn-primary w-full justify-center"
+                download
+              >
+                Direct Download APK
+              </a>
+              <button
+                type="button"
+                onClick={handleCopyInstall}
+                className="hero-btn-secondary w-full justify-center text-xs"
+              >
+                {copiedKey ? '✓ Copied Git URL' : 'Copy Git Repository URL'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
-
-export default App

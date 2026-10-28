@@ -7,6 +7,10 @@ import {
   TouchableOpacity,
   Switch,
   StatusBar,
+  Modal,
+  TextInput,
+  FlatList,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,6 +24,7 @@ import {
   saveSettings,
   SttProvider,
   LlmProvider,
+  DEFAULT_PAYMENT_PACKAGES,
 } from '../services/storage';
 import { ApiKeyModal } from '../components/ApiKeyModal';
 import { CLEANUP_MODES, CleanupMode, getCleanupSystemPrompt } from '../config/prompts';
@@ -38,10 +43,21 @@ interface EngineOption {
   recommended?: boolean;
 }
 
+export type EngineCategory = 'all' | 'models' | 'personas' | 'capsule' | 'shield';
+
+interface CategoryTab {
+  id: EngineCategory;
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  badge?: string;
+}
+
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
 
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
+  const [activeCategory, setActiveCategory] = useState<EngineCategory>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [showKeyModal, setShowKeyModal] = useState<boolean>(false);
   const [showPromptDetails, setShowPromptDetails] = useState<boolean>(false);
   const [copiedPrompt, setCopiedPrompt] = useState<boolean>(false);
@@ -51,6 +67,11 @@ export default function SettingsScreen() {
   }>({ visible: false, type: 'overlay' });
   const [hasA11yPermission, setHasA11yPermission] = useState<boolean>(false);
   const [isBatteryIgnored, setIsBatteryIgnored] = useState<boolean>(true);
+  const [showAppPickerModal, setShowAppPickerModal] = useState<boolean>(false);
+  const [installedApps, setInstalledApps] = useState<Array<{ packageName: string; label: string }>>([]);
+  const [appSearchQuery, setAppSearchQuery] = useState<string>('');
+  const [loadingApps, setLoadingApps] = useState<boolean>(false);
+  const [customPackageInput, setCustomPackageInput] = useState<string>('');
 
   useEffect(() => {
     (async () => {
@@ -68,6 +89,40 @@ export default function SettingsScreen() {
     const saved = await saveSettings(updated);
     setSettings(saved);
     await NativeFloatingBubble.syncSettings(saved);
+  };
+
+  const handleOpenAppPicker = async () => {
+    setShowAppPickerModal(true);
+    setLoadingApps(true);
+    try {
+      const apps = await NativeFloatingBubble.getInstalledApps();
+      apps.sort((a, b) => a.label.localeCompare(b.label));
+      setInstalledApps(apps);
+    } catch (e) {
+      console.warn('Failed to fetch installed apps:', e);
+    } finally {
+      setLoadingApps(false);
+    }
+  };
+
+  const handleToggleExcludePackage = async (pkg: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const currentList = settings.excludedPackages || [];
+    const updated = currentList.includes(pkg)
+      ? currentList.filter((p) => p !== pkg)
+      : [...currentList, pkg];
+    await handleUpdate({ excludedPackages: updated });
+  };
+
+  const handleAddCustomPackage = async () => {
+    const trimmed = customPackageInput.trim().toLowerCase();
+    if (!trimmed) return;
+    const currentList = settings.excludedPackages || [];
+    if (!currentList.includes(trimmed)) {
+      await handleUpdate({ excludedPackages: [...currentList, trimmed] });
+    }
+    setCustomPackageInput('');
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   };
 
   const handleSelectSttProvider = async (provider: SttProvider) => {
@@ -312,8 +367,135 @@ export default function SettingsScreen() {
     </TouchableOpacity>
   );
 
+  const CATEGORY_TABS: CategoryTab[] = [
+    { id: 'all', label: 'All', icon: 'grid-outline' },
+    {
+      id: 'models',
+      label: 'AI Engines',
+      icon: 'hardware-chip-outline',
+      badge: `${settings.sttProvider.toUpperCase()}`,
+    },
+    {
+      id: 'personas',
+      label: 'Personas',
+      icon: 'color-wand-outline',
+      badge: (settings.cleanupMode || 'natural').toUpperCase(),
+    },
+    {
+      id: 'capsule',
+      label: 'Capsule & Dock',
+      icon: 'tablet-portrait-outline',
+      badge: `${Math.round((settings.floatingBubbleOpacity ?? 0.7) * 100)}%`,
+    },
+    {
+      id: 'shield',
+      label: 'Shield & Apps',
+      icon: 'shield-checkmark-outline',
+      badge: (settings.pauseOnPaymentApps ?? true) ? 'Shield On' : 'Off',
+    },
+  ];
+
+  const query = searchQuery.trim().toLowerCase();
+  const isSearching = query.length > 0;
+
+  // Filter STT options
+  const filteredStt = sttOptions.filter((o) => {
+    if (!isSearching) return true;
+    return (
+      o.name.toLowerCase().includes(query) ||
+      o.detail.toLowerCase().includes(query) ||
+      o.id.toLowerCase().includes(query) ||
+      'speech to text'.includes(query) ||
+      'stt'.includes(query) ||
+      'transcription'.includes(query)
+    );
+  });
+
+  // Filter LLM options
+  const filteredLlm = llmOptions.filter((o) => {
+    if (!isSearching) return true;
+    return (
+      o.name.toLowerCase().includes(query) ||
+      o.detail.toLowerCase().includes(query) ||
+      o.id.toLowerCase().includes(query) ||
+      'ai cleanup'.includes(query) ||
+      'llm'.includes(query) ||
+      'tone'.includes(query)
+    );
+  });
+
+  // Filter Persona options
+  const filteredPersonas = CLEANUP_MODES.filter((m) => {
+    if (!isSearching) return true;
+    return (
+      m.label.toLowerCase().includes(query) ||
+      m.tagline.toLowerCase().includes(query) ||
+      m.badge.toLowerCase().includes(query) ||
+      m.targetApp.toLowerCase().includes(query) ||
+      'persona'.includes(query) ||
+      'tone'.includes(query)
+    );
+  });
+
+  // Section visibility checks
+  const showModelsSection =
+    (activeCategory === 'all' || activeCategory === 'models' || isSearching) &&
+    (!isSearching || filteredStt.length > 0 || filteredLlm.length > 0 || query.includes('model') || query.includes('engine') || query.includes('key'));
+
+  const showPersonasSection =
+    (activeCategory === 'all' || activeCategory === 'personas' || isSearching) &&
+    (!isSearching || filteredPersonas.length > 0 || query.includes('persona') || query.includes('tone') || query.includes('clean'));
+
+  const showCapsuleSection =
+    (activeCategory === 'all' || activeCategory === 'capsule' || isSearching) &&
+    (!isSearching ||
+      query.includes('capsule') ||
+      query.includes('float') ||
+      query.includes('dock') ||
+      query.includes('keyboard') ||
+      query.includes('opacity') ||
+      query.includes('transparency') ||
+      query.includes('clearance') ||
+      query.includes('offset') ||
+      query.includes('mic'));
+
+  const showShieldSection =
+    (activeCategory === 'all' || activeCategory === 'shield' || isSearching) &&
+    (!isSearching ||
+      query.includes('shield') ||
+      query.includes('payment') ||
+      query.includes('bank') ||
+      query.includes('upi') ||
+      query.includes('gpay') ||
+      query.includes('phonepe') ||
+      query.includes('paytm') ||
+      query.includes('bhim') ||
+      query.includes('cred') ||
+      query.includes('paypal') ||
+      query.includes('exclude') ||
+      query.includes('blacklist') ||
+      query.includes('app') ||
+      query.includes('auto-persona') ||
+      query.includes('routing') ||
+      query.includes('tile') ||
+      query.includes('shade') ||
+      query.includes('battery') ||
+      query.includes('accessibility') ||
+      query.includes('permission'));
+
+  const showPromptSection =
+    (activeCategory === 'all' || activeCategory === 'personas' || activeCategory === 'models' || isSearching) &&
+    (!isSearching || query.includes('prompt') || query.includes('instruction') || query.includes('system') || query.includes('terminal'));
+
+  const hasAnyResults =
+    showModelsSection ||
+    showPersonasSection ||
+    showCapsuleSection ||
+    showShieldSection ||
+    showPromptSection;
+
   return (
-    <View style={[styles.root, { paddingTop: Math.max(insets.top, 8) }]}>
+    <View style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor={Theme.colors.bg} />
 
       {/* Modals */}
@@ -343,6 +525,258 @@ export default function SettingsScreen() {
         }}
       />
 
+      {/* Excluded Apps Manager Modal */}
+      <Modal
+        visible={showAppPickerModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowAppPickerModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            {/* Modal Header */}
+            <View style={styles.modalHeaderRow}>
+              <View style={{ flex: 1, marginRight: 12 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Ionicons name="ban-outline" size={18} color="#F87171" />
+                  <Text style={styles.modalTitle}>Exclude Apps from Overlay</Text>
+                </View>
+                <Text style={styles.modalSubtitle}>
+                  Floating bubble will stay completely hidden inside selected apps.
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setShowAppPickerModal(false)}
+                style={styles.modalCloseBtn}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons name="close" size={20} color={Theme.colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Manual package entry row */}
+            <View style={styles.manualEntryRow}>
+              <TextInput
+                style={styles.manualEntryInput}
+                placeholder="Or enter package (e.g. com.example.app)"
+                placeholderTextColor={Theme.colors.textMuted}
+                value={customPackageInput}
+                onChangeText={setCustomPackageInput}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              <TouchableOpacity
+                style={[
+                  styles.manualEntryAddBtn,
+                  !customPackageInput.trim() && { opacity: 0.5 },
+                ]}
+                onPress={handleAddCustomPackage}
+                disabled={!customPackageInput.trim()}
+              >
+                <Text style={styles.manualEntryAddBtnText}>Add</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Search filter for installed apps */}
+            <View style={styles.searchBarRow}>
+              <Ionicons name="search" size={15} color={Theme.colors.textMuted} style={{ marginRight: 6 }} />
+              <TextInput
+                style={styles.searchBarInput}
+                placeholder="Search installed apps..."
+                placeholderTextColor={Theme.colors.textMuted}
+                value={appSearchQuery}
+                onChangeText={setAppSearchQuery}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              {appSearchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setAppSearchQuery('')}>
+                  <Ionicons name="close-circle" size={16} color={Theme.colors.textMuted} />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Installed Apps List */}
+            {loadingApps ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" color="#E9A063" />
+                <Text style={styles.loadingText}>Scanning installed apps...</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={installedApps.filter(
+                  (a) =>
+                    a.label.toLowerCase().includes(appSearchQuery.toLowerCase()) ||
+                    a.packageName.toLowerCase().includes(appSearchQuery.toLowerCase())
+                )}
+                keyExtractor={(item) => item.packageName}
+                style={styles.appList}
+                contentContainerStyle={{ paddingBottom: 16 }}
+                renderItem={({ item }) => {
+                  const isExcluded = (settings.excludedPackages || []).includes(item.packageName);
+                  return (
+                    <TouchableOpacity
+                      style={[
+                        styles.appItemRow,
+                        isExcluded && styles.appItemRowExcluded,
+                      ]}
+                      onPress={() => handleToggleExcludePackage(item.packageName)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.appItemIconContainer}>
+                        <Ionicons
+                          name={isExcluded ? 'ban' : 'phone-portrait-outline'}
+                          size={18}
+                          color={isExcluded ? '#F87171' : Theme.colors.textMuted}
+                        />
+                      </View>
+                      <View style={styles.appItemTextCol}>
+                        <Text style={[styles.appItemLabel, isExcluded && { color: '#F87171' }]} numberOfLines={1}>
+                          {item.label}
+                        </Text>
+                        <Text style={styles.appItemPackage} numberOfLines={1}>
+                          {item.packageName}
+                        </Text>
+                      </View>
+                      <Switch
+                        value={isExcluded}
+                        onValueChange={() => handleToggleExcludePackage(item.packageName)}
+                        trackColor={{ false: '#2A241C', true: '#F87171' }}
+                        thumbColor="#F7F1E6"
+                      />
+                    </TouchableOpacity>
+                  );
+                }}
+                ListEmptyComponent={
+                  <View style={styles.emptyContainer}>
+                    <Text style={styles.emptyText}>
+                      {installedApps.length === 0
+                        ? 'No apps detected. You can type package names above.'
+                        : 'No apps found matching search'}
+                    </Text>
+                  </View>
+                }
+              />
+            )}
+
+            {/* Modal Bottom Done Button */}
+            <TouchableOpacity
+              style={styles.modalDoneBtn}
+              onPress={() => setShowAppPickerModal(false)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.modalDoneBtnText}>Done</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Fixed Sticky Header with Search & Navigation Bar */}
+      <View style={[styles.stickyHeader, { paddingTop: Math.max(insets.top, 12) }]}>
+        {/* Top Row: Title, Subtitle & Edit Keys Button */}
+        <View style={styles.headerTopRow}>
+          <View style={{ flex: 1, marginRight: 10 }}>
+            <Text style={styles.headerTitle}>Engines & Settings</Text>
+            <Text style={styles.headerSubtitle} numberOfLines={1}>
+              Models, personas, floating mic & shield
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={styles.keyManageBtn}
+            onPress={() => {
+              Haptics.selectionAsync();
+              setShowKeyModal(true);
+            }}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="key-outline" size={13} color={Theme.colors.cyan} />
+            <Text style={styles.keyManageText}>Edit keys</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Live Search Input Bar */}
+        <View style={styles.searchBarContainer}>
+          <Ionicons name="search" size={15} color={Theme.colors.textMuted} style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search engines, keys, opacity, apps..."
+            placeholderTextColor={Theme.colors.textMuted}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            returnKeyType="search"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity
+              onPress={() => setSearchQuery('')}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={styles.searchClearBtn}
+            >
+              <Ionicons name="close-circle" size={16} color={Theme.colors.textMuted} />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Horizontal Category Navigation Bar */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoryTabsScroll}
+        >
+          {CATEGORY_TABS.map((tab) => {
+            const isSelected = activeCategory === tab.id && !isSearching;
+            return (
+              <TouchableOpacity
+                key={tab.id}
+                style={[
+                  styles.categoryTabPill,
+                  isSelected && styles.categoryTabPillActive,
+                ]}
+                onPress={() => {
+                  Haptics.selectionAsync();
+                  setActiveCategory(tab.id);
+                  if (searchQuery.length > 0) setSearchQuery('');
+                }}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name={tab.icon}
+                  size={13}
+                  color={isSelected ? '#151210' : Theme.colors.textSecondary}
+                  style={{ marginRight: 5 }}
+                />
+                <Text
+                  style={[
+                    styles.categoryTabLabel,
+                    isSelected && styles.categoryTabLabelActive,
+                  ]}
+                >
+                  {tab.label}
+                </Text>
+                {tab.badge && (
+                  <View
+                    style={[
+                      styles.categoryTabBadge,
+                      isSelected && styles.categoryTabBadgeActive,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.categoryTabBadgeText,
+                        isSelected && styles.categoryTabBadgeTextActive,
+                      ]}
+                    >
+                      {tab.badge}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
+
       <ScrollView
         style={styles.container}
         contentContainerStyle={[
@@ -354,124 +788,168 @@ export default function SettingsScreen() {
           },
         ]}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.headerTopRow}>
-            <Text style={styles.headerTitle}>Engines & Keys</Text>
+        {/* Search Status Pill (when searching) */}
+        {isSearching && (
+          <View style={styles.searchStatusBanner}>
+            <View style={styles.searchStatusLeft}>
+              <Ionicons name="filter-outline" size={13} color={Theme.colors.cyan} />
+              <Text style={styles.searchStatusText}>
+                Results for <Text style={styles.searchHighlight}>"{searchQuery}"</Text>
+              </Text>
+            </View>
             <TouchableOpacity
-              style={styles.keyManageBtn}
-              onPress={() => {
-                Haptics.selectionAsync();
-                setShowKeyModal(true);
-              }}
-              activeOpacity={0.7}
+              onPress={() => setSearchQuery('')}
+              style={styles.searchResetPill}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Ionicons name="key-outline" size={13} color={Theme.colors.cyan} />
-              <Text style={styles.keyManageText}>Edit keys</Text>
+              <Text style={styles.searchResetText}>Reset</Text>
+              <Ionicons name="close" size={12} color={Theme.colors.cyan} />
             </TouchableOpacity>
           </View>
-          <Text style={styles.headerSubtitle}>
-            Pick the speech-to-text and AI cleanup models you prefer.
-          </Text>
-        </View>
-
-        {/* SECTION 1: Speech-to-text */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Speech to text</Text>
-        </View>
-
-        {sttOptions.map((option) =>
-          renderEngineCard(
-            option,
-            settings.sttProvider === option.id,
-            () => handleSelectSttProvider(option.id as SttProvider)
-          )
         )}
 
-        {/* SECTION 2: AI cleanup */}
-        <View style={[styles.sectionHeader, { marginTop: 24 }]}>
-          <Text style={styles.sectionTitle}>AI cleanup</Text>
-        </View>
+        {/* SECTION 1: AI Engines */}
+        {showModelsSection && (
+          <>
+            {/* Quick Status Overview Card */}
+            <View style={styles.quickStatusCard}>
+              <View style={styles.quickStatusItem}>
+                <Text style={styles.quickStatusLabel}>ACTIVE SPEECH-TO-TEXT</Text>
+                <View style={styles.quickStatusValueRow}>
+                  <View style={[styles.statusDot, { backgroundColor: '#93B884' }]} />
+                  <Text style={styles.quickStatusValue} numberOfLines={1}>
+                    {sttOptions.find((o) => o.id === settings.sttProvider)?.name || settings.sttProvider}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.quickStatusDivider} />
+              <View style={styles.quickStatusItem}>
+                <Text style={styles.quickStatusLabel}>ACTIVE CLEANUP LLM</Text>
+                <View style={styles.quickStatusValueRow}>
+                  <View style={[styles.statusDot, { backgroundColor: '#E9A063' }]} />
+                  <Text style={styles.quickStatusValue} numberOfLines={1}>
+                    {llmOptions.find((o) => o.id === settings.llmProvider)?.name || settings.llmProvider}
+                  </Text>
+                </View>
+              </View>
+            </View>
 
-        {llmOptions.map((option) =>
-          renderEngineCard(
-            option,
-            settings.llmProvider === option.id,
-            () => handleSelectLlmProvider(option.id as LlmProvider)
-          )
+            {filteredStt.length > 0 && (
+              <>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>Speech to text</Text>
+                  <Text style={styles.sectionCountText}>{filteredStt.length} engines</Text>
+                </View>
+                {filteredStt.map((option) =>
+                  renderEngineCard(
+                    option,
+                    settings.sttProvider === option.id,
+                    () => handleSelectSttProvider(option.id as SttProvider)
+                  )
+                )}
+              </>
+            )}
+
+            {filteredLlm.length > 0 && (
+              <>
+                <View style={[styles.sectionHeader, { marginTop: 22 }]}>
+                  <Text style={styles.sectionTitle}>AI cleanup</Text>
+                  <Text style={styles.sectionCountText}>{filteredLlm.length} engines</Text>
+                </View>
+                {filteredLlm.map((option) =>
+                  renderEngineCard(
+                    option,
+                    settings.llmProvider === option.id,
+                    () => handleSelectLlmProvider(option.id as LlmProvider)
+                  )
+                )}
+              </>
+            )}
+          </>
         )}
 
-        {/* SECTION 3: Tone & Persona */}
-        <View style={[styles.sectionHeader, { marginTop: 24 }]}>
-          <Text style={styles.sectionTitle}>Tone & Persona</Text>
-        </View>
-        <Text style={styles.sectionSubtitle}>
-          Choose how OpenWhispr cleans and shapes your words before they land in your apps.
-        </Text>
+        {/* SECTION 2: Tone & Persona */}
+        {showPersonasSection && (
+          <>
+            <View style={[styles.sectionHeader, { marginTop: showModelsSection ? 24 : 0 }]}>
+              <Text style={styles.sectionTitle}>Tone & Persona</Text>
+              <Text style={styles.sectionCountText}>{filteredPersonas.length} modes</Text>
+            </View>
+            <Text style={styles.sectionSubtitle}>
+              Choose how OpenWhispr cleans and shapes your words before they land in your apps.
+            </Text>
 
-        <View style={styles.personaGrid}>
-          {CLEANUP_MODES.map((mode) => {
-            const isActive = (settings.cleanupMode || 'natural') === mode.id;
-            return (
-              <TouchableOpacity
-                key={mode.id}
-                style={[
-                  styles.personaCard,
-                  isActive && styles.personaCardActive,
-                ]}
-                onPress={() => handleSelectCleanupMode(mode.id)}
-                activeOpacity={0.8}
-              >
-                <View style={styles.personaCardHeader}>
-                  <View style={styles.personaCardTitleGroup}>
-                    <View style={[styles.personaIconBox, isActive && styles.personaIconBoxActive]}>
-                      <Ionicons
-                        name={mode.ionIcon as any}
-                        size={19}
-                        color={isActive ? Theme.colors.cyan : Theme.colors.textSecondary}
-                      />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <View style={styles.personaCardLabelRow}>
-                        <Text
-                          style={[
-                            styles.personaCardLabel,
-                            isActive && styles.personaCardLabelActive,
-                          ]}
-                        >
-                          {mode.label}
-                        </Text>
-                        <View style={styles.personaContextBadge}>
-                          <Text style={styles.personaContextText}>{mode.badge}</Text>
+            <View style={styles.personaGrid}>
+              {filteredPersonas.map((mode) => {
+                const isActive = (settings.cleanupMode || 'natural') === mode.id;
+                return (
+                  <TouchableOpacity
+                    key={mode.id}
+                    style={[
+                      styles.personaCard,
+                      isActive && styles.personaCardActive,
+                    ]}
+                    onPress={() => handleSelectCleanupMode(mode.id)}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.personaCardHeader}>
+                      <View style={styles.personaCardTitleGroup}>
+                        <View style={[styles.personaIconBox, isActive && styles.personaIconBoxActive]}>
+                          <Ionicons
+                            name={mode.ionIcon as any}
+                            size={19}
+                            color={isActive ? Theme.colors.cyan : Theme.colors.textSecondary}
+                          />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <View style={styles.personaCardLabelRow}>
+                            <Text
+                              style={[
+                                styles.personaCardLabel,
+                                isActive && styles.personaCardLabelActive,
+                              ]}
+                            >
+                              {mode.label}
+                            </Text>
+                            <View style={styles.personaContextBadge}>
+                              <Text style={styles.personaContextText}>{mode.badge}</Text>
+                            </View>
+                          </View>
+                          <Text style={styles.personaCardTarget}>{mode.targetApp}</Text>
                         </View>
                       </View>
-                      <Text style={styles.personaCardTarget}>{mode.targetApp}</Text>
+
+                      {isActive ? (
+                        <View style={styles.activeTickCircle}>
+                          <Ionicons name="checkmark-sharp" size={14} color="#151210" />
+                        </View>
+                      ) : (
+                        <View style={styles.inactiveTickCircle} />
+                      )}
                     </View>
-                  </View>
 
-                  {isActive ? (
-                    <View style={styles.activeTickCircle}>
-                      <Ionicons name="checkmark-sharp" size={14} color="#151210" />
-                    </View>
-                  ) : (
-                    <View style={styles.inactiveTickCircle} />
-                  )}
-                </View>
+                    <Text style={styles.personaCardTagline}>{mode.tagline}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </>
+        )}
 
-                <Text style={styles.personaCardTagline}>{mode.tagline}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+        {/* SECTION 3: Capsule & Keyboard Docking */}
+        {showCapsuleSection && (
+          <>
+            <View style={[styles.sectionHeader, { marginTop: (showModelsSection || showPersonasSection) ? 24 : 0 }]}>
+              <Text style={styles.sectionTitle}>Capsule & Keyboard Docking</Text>
+            </View>
+            <Text style={styles.sectionSubtitle}>
+              Control the floating microphone bubble, resting opacity, and smart keyboard clearance.
+            </Text>
 
-        {/* SECTION 4: Overlay & automation */}
-        <View style={[styles.sectionHeader, { marginTop: 24 }]}>
-          <Text style={styles.sectionTitle}>Overlay & automation</Text>
-        </View>
-
-        <View style={styles.cardContainer}>
-          {/* Floating bubble master switch */}
+            <View style={styles.cardContainer}>
+              {/* Floating bubble master switch */}
           <View style={styles.tileRow}>
             <View style={styles.tileInfo}>
               <View style={styles.tileTitleRow}>
@@ -734,10 +1212,22 @@ export default function SettingsScreen() {
               </View>
             </View>
           </View>
+        </View>
+      </>
+    )}
 
-          <View style={styles.divider} />
+        {/* SECTION 4: Security, Shield & Apps */}
+        {showShieldSection && (
+          <>
+            <View style={[styles.sectionHeader, { marginTop: (showModelsSection || showPersonasSection || showCapsuleSection) ? 24 : 0 }]}>
+              <Text style={styles.sectionTitle}>Security, Shield & Apps</Text>
+            </View>
+            <Text style={styles.sectionSubtitle}>
+              Payment app tapjacking defense, custom app exclusions, and Android permissions.
+            </Text>
 
-          {/* Auto-Persona Switching (Zero-Tap) */}
+            <View style={styles.cardContainer}>
+              {/* Auto-Persona Switching (Zero-Tap) */}
           <View style={styles.tileRow}>
             <View style={styles.tileInfo}>
               <View style={styles.tileTitleRow}>
@@ -850,6 +1340,122 @@ export default function SettingsScreen() {
 
           <View style={styles.divider} />
 
+          {/* Payment & Banking App Shield (Auto-Pause Overlay) */}
+          <View style={styles.tileRow}>
+            <View style={styles.tileInfo}>
+              <View style={styles.tileTitleRow}>
+                <Ionicons name="shield-checkmark" size={17} color="#4ADE80" style={{ marginRight: 6 }} />
+                <Text style={styles.tileTitle}>Auto-pause on payment apps</Text>
+                <View
+                  style={[
+                    styles.tagBadge,
+                    {
+                      borderColor: (settings.pauseOnPaymentApps ?? true)
+                        ? 'rgba(74, 222, 128, 0.4)'
+                        : 'rgba(217, 164, 65, 0.4)',
+                      backgroundColor: (settings.pauseOnPaymentApps ?? true)
+                        ? 'rgba(74, 222, 128, 0.12)'
+                        : Theme.colors.amberMuted,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.tagBadgeText,
+                      { color: (settings.pauseOnPaymentApps ?? true) ? '#4ADE80' : Theme.colors.amber },
+                    ]}
+                  >
+                    {(settings.pauseOnPaymentApps ?? true) ? 'Shield Active' : 'Off'}
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.tileSubtitle}>
+                Automatically hides the floating bubble inside payment, banking, and UPI apps (Google Pay, PhonePe, Paytm, BHIM, Cash App, Chase, etc.) so they never block transactions or show screen overlay warnings.
+              </Text>
+            </View>
+            <Switch
+              value={settings.pauseOnPaymentApps ?? true}
+              onValueChange={(val) => {
+                handleUpdate({ pauseOnPaymentApps: val });
+                Haptics.selectionAsync();
+              }}
+              trackColor={{ false: '#2A241C', true: '#4ADE80' }}
+              thumbColor="#F7F1E6"
+            />
+          </View>
+
+          {/* Protected Payment Apps Showcase */}
+          {(settings.pauseOnPaymentApps ?? true) && (
+            <View style={styles.paymentAppsContainer}>
+              <View style={styles.paymentAppsHeaderRow}>
+                <Text style={styles.paymentAppsHeader}>PROTECTED PAYMENT & BANKING APPS</Text>
+                <Text style={styles.paymentAppsCount}>20+ Pre-Configured</Text>
+              </View>
+              <View style={styles.paymentChipsRow}>
+                {['Google Pay', 'PhonePe', 'Paytm', 'BHIM UPI', 'CRED', 'PayPal', 'Cash App', 'Banking Apps'].map((app, i) => (
+                  <View key={i} style={styles.paymentChip}>
+                    <Ionicons name="lock-closed" size={10} color="#4ADE80" style={{ marginRight: 4 }} />
+                    <Text style={styles.paymentChipText}>{app}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
+          <View style={styles.divider} />
+
+          {/* Custom Excluded Apps (Blacklist) */}
+          <View style={styles.tileRow}>
+            <View style={styles.tileInfo}>
+              <View style={styles.tileTitleRow}>
+                <Ionicons name="ban-outline" size={17} color="#F87171" style={{ marginRight: 6 }} />
+                <Text style={styles.tileTitle}>Excluded apps blacklist</Text>
+                {(settings.excludedPackages?.length || 0) > 0 && (
+                  <View style={[styles.tagBadge, { borderColor: 'rgba(248, 113, 113, 0.4)', backgroundColor: 'rgba(248, 113, 113, 0.12)' }]}>
+                    <Text style={[styles.tagBadgeText, { color: '#F87171' }]}>
+                      {settings.excludedPackages.length} Excluded
+                    </Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.tileSubtitle}>
+                Add specific games or sensitive apps where you never want the floating microphone to appear.
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.manageExcludedBtn}
+              onPress={handleOpenAppPicker}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.manageExcludedBtnText}>Manage</Text>
+              <Ionicons name="chevron-forward" size={12} color="#E9A063" />
+            </TouchableOpacity>
+          </View>
+
+          {/* List of currently excluded packages chips */}
+          {(settings.excludedPackages?.length || 0) > 0 && (
+            <View style={styles.excludedListContainer}>
+              <View style={styles.excludedChipsWrap}>
+                {settings.excludedPackages.map((pkg) => (
+                  <View key={pkg} style={styles.excludedChip}>
+                    <Text style={styles.excludedChipText} numberOfLines={1}>
+                      {pkg}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => handleToggleExcludePackage(pkg)}
+                      style={styles.excludedChipClose}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      <Ionicons name="close" size={12} color="#F87171" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
+          <View style={styles.divider} />
+
           {/* Battery optimization */}
           <TouchableOpacity
             style={styles.tileRow}
@@ -937,73 +1543,100 @@ export default function SettingsScreen() {
             <Ionicons name="chevron-forward" size={16} color={Theme.colors.textMuted} />
           </TouchableOpacity>
         </View>
+          </>
+        )}
 
-        {/* SECTION 4: System prompt */}
-        <View style={[styles.sectionHeader, { marginTop: 24 }]}>
-          <Text style={styles.sectionTitle}>System prompt</Text>
-        </View>
-
-        <View style={styles.cardContainer}>
-          <TouchableOpacity
-            style={styles.promptHeader}
-            onPress={() => {
-              setShowPromptDetails(!showPromptDetails);
-              Haptics.selectionAsync();
-            }}
-            activeOpacity={0.7}
-          >
-            <View style={styles.promptHeaderLeft}>
-              <View style={styles.promptIconBadge}>
-                <Ionicons name="terminal-outline" size={15} color={Theme.colors.cyan} />
-              </View>
-              <View>
-                <Text style={styles.tileTitle}>AI cleanup instructions</Text>
-                <Text style={styles.tileSubtitle}>The prompt sent with every dictation</Text>
-              </View>
+        {/* SECTION 5: System prompt */}
+        {showPromptSection && (
+          <>
+            <View style={[styles.sectionHeader, { marginTop: 24 }]}>
+              <Text style={styles.sectionTitle}>System prompt</Text>
             </View>
-            <Ionicons
-              name={showPromptDetails ? 'chevron-up' : 'chevron-down'}
-              size={17}
-              color={Theme.colors.textMuted}
-            />
-          </TouchableOpacity>
 
-          {showPromptDetails && (
-            <View style={styles.promptBody}>
-              <View style={styles.promptToolbar}>
-                <Text style={styles.promptToolbarLabel}>system prompt</Text>
-                <TouchableOpacity
-                  style={styles.copyPromptBtn}
-                  onPress={handleCopyPrompt}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons
-                    name={copiedPrompt ? 'checkmark-circle' : 'copy-outline'}
-                    size={12}
-                    color={copiedPrompt ? Theme.colors.green : Theme.colors.cyan}
-                  />
-                  <Text
-                    style={[
-                      styles.copyPromptText,
-                      copiedPrompt && { color: Theme.colors.green },
-                    ]}
-                  >
-                    {copiedPrompt ? 'Copied' : 'Copy'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              <ScrollView
-                style={styles.promptScroll}
-                nestedScrollEnabled={true}
-                showsVerticalScrollIndicator={true}
+            <View style={styles.cardContainer}>
+              <TouchableOpacity
+                style={styles.promptHeader}
+                onPress={() => {
+                  setShowPromptDetails(!showPromptDetails);
+                  Haptics.selectionAsync();
+                }}
+                activeOpacity={0.7}
               >
-                <Text style={styles.promptCode}>
-                  {getCleanupSystemPrompt(settings.cleanupMode || 'natural')}
-                </Text>
-              </ScrollView>
+                <View style={styles.promptHeaderLeft}>
+                  <View style={styles.promptIconBadge}>
+                    <Ionicons name="terminal-outline" size={15} color={Theme.colors.cyan} />
+                  </View>
+                  <View>
+                    <Text style={styles.tileTitle}>AI cleanup instructions</Text>
+                    <Text style={styles.tileSubtitle}>The prompt sent with every dictation</Text>
+                  </View>
+                </View>
+                <Ionicons
+                  name={showPromptDetails ? 'chevron-up' : 'chevron-down'}
+                  size={17}
+                  color={Theme.colors.textMuted}
+                />
+              </TouchableOpacity>
+
+              {showPromptDetails && (
+                <View style={styles.promptBody}>
+                  <View style={styles.promptToolbar}>
+                    <Text style={styles.promptToolbarLabel}>system prompt</Text>
+                    <TouchableOpacity
+                      style={styles.copyPromptBtn}
+                      onPress={handleCopyPrompt}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons
+                        name={copiedPrompt ? 'checkmark-circle' : 'copy-outline'}
+                        size={12}
+                        color={copiedPrompt ? Theme.colors.green : Theme.colors.cyan}
+                      />
+                      <Text
+                        style={[
+                          styles.copyPromptText,
+                          copiedPrompt && { color: Theme.colors.green },
+                        ]}
+                      >
+                        {copiedPrompt ? 'Copied' : 'Copy'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  <ScrollView
+                    style={styles.promptScroll}
+                    nestedScrollEnabled={true}
+                    showsVerticalScrollIndicator={true}
+                  >
+                    <Text style={styles.promptCode}>
+                      {getCleanupSystemPrompt(settings.cleanupMode || 'natural')}
+                    </Text>
+                  </ScrollView>
+                </View>
+              )}
             </View>
-          )}
-        </View>
+          </>
+        )}
+
+        {/* Empty Search Results State */}
+        {!hasAnyResults && (
+          <View style={styles.emptySearchContainer}>
+            <View style={styles.emptySearchIconBox}>
+              <Ionicons name="search-outline" size={26} color={Theme.colors.cyan} />
+            </View>
+            <Text style={styles.emptySearchTitle}>No results found</Text>
+            <Text style={styles.emptySearchSubtitle}>
+              No settings, engines, or personas match "{searchQuery}".
+            </Text>
+            <TouchableOpacity
+              style={styles.emptySearchClearBtn}
+              onPress={() => setSearchQuery('')}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="refresh-outline" size={14} color="#151210" style={{ marginRight: 6 }} />
+              <Text style={styles.emptySearchClearBtnText}>Clear search</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Footer */}
         <View style={styles.footer}>
@@ -1028,6 +1661,226 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingTop: 12,
+  },
+  stickyHeader: {
+    backgroundColor: Theme.colors.bg,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 244, 226, 0.06)',
+    paddingHorizontal: 20,
+    paddingBottom: 12,
+    zIndex: 10,
+  },
+  searchBarContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Theme.colors.surface,
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    height: 42,
+    borderWidth: 1,
+    borderColor: Theme.colors.border,
+    marginTop: 12,
+    marginBottom: 10,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    color: Theme.colors.textPrimary,
+    fontSize: 13,
+    fontFamily: Theme.fonts.regular,
+    paddingVertical: 0,
+    height: '100%',
+  },
+  searchClearBtn: {
+    padding: 4,
+    marginLeft: 4,
+  },
+  categoryTabsScroll: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 2,
+    paddingRight: 10,
+  },
+  categoryTabPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 10,
+    backgroundColor: Theme.colors.card,
+    borderWidth: 1,
+    borderColor: Theme.colors.border,
+  },
+  categoryTabPillActive: {
+    backgroundColor: Theme.colors.cyan,
+    borderColor: Theme.colors.cyan,
+  },
+  categoryTabLabel: {
+    color: Theme.colors.textSecondary,
+    fontSize: 12,
+    fontFamily: Theme.fonts.medium,
+  },
+  categoryTabLabelActive: {
+    color: '#151210',
+    fontFamily: Theme.fonts.semiBold,
+  },
+  categoryTabBadge: {
+    marginLeft: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  categoryTabBadgeActive: {
+    backgroundColor: 'rgba(21, 18, 16, 0.2)',
+  },
+  categoryTabBadgeText: {
+    color: Theme.colors.textMuted,
+    fontSize: 10,
+    fontFamily: Theme.fonts.mono,
+  },
+  categoryTabBadgeTextActive: {
+    color: '#151210',
+    fontFamily: Theme.fonts.monoBold,
+  },
+  searchStatusBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(233, 160, 99, 0.08)',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(233, 160, 99, 0.2)',
+    marginBottom: 16,
+  },
+  searchStatusLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flex: 1,
+  },
+  searchStatusText: {
+    color: Theme.colors.textSecondary,
+    fontSize: 12,
+    fontFamily: Theme.fonts.regular,
+  },
+  searchHighlight: {
+    color: Theme.colors.cyan,
+    fontFamily: Theme.fonts.semiBold,
+  },
+  searchResetPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(233, 160, 99, 0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  searchResetText: {
+    color: Theme.colors.cyan,
+    fontSize: 11,
+    fontFamily: Theme.fonts.semiBold,
+  },
+  quickStatusCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Theme.colors.card,
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: Theme.colors.border,
+    marginBottom: 18,
+  },
+  quickStatusItem: {
+    flex: 1,
+  },
+  quickStatusLabel: {
+    color: Theme.colors.textMuted,
+    fontSize: 9.5,
+    fontFamily: Theme.fonts.mono,
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  quickStatusValueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  quickStatusValue: {
+    color: Theme.colors.textPrimary,
+    fontSize: 13,
+    fontFamily: Theme.fonts.semiBold,
+    flex: 1,
+  },
+  quickStatusDivider: {
+    width: 1,
+    height: 28,
+    backgroundColor: Theme.colors.border,
+    marginHorizontal: 12,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  sectionCountText: {
+    color: Theme.colors.textMuted,
+    fontSize: 11,
+    fontFamily: Theme.fonts.mono,
+  },
+  emptySearchContainer: {
+    paddingVertical: 48,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Theme.colors.card,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: Theme.colors.border,
+    marginTop: 8,
+  },
+  emptySearchIconBox: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: 'rgba(233, 160, 99, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+  },
+  emptySearchTitle: {
+    color: Theme.colors.textPrimary,
+    fontSize: 16,
+    fontFamily: Theme.fonts.title,
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  emptySearchSubtitle: {
+    color: Theme.colors.textSecondary,
+    fontSize: 13,
+    fontFamily: Theme.fonts.regular,
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: 18,
+  },
+  emptySearchClearBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Theme.colors.cyan,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: 12,
+  },
+  emptySearchClearBtnText: {
+    color: '#151210',
+    fontSize: 12.5,
+    fontFamily: Theme.fonts.semiBold,
   },
   header: {
     marginBottom: 20,
@@ -1609,5 +2462,265 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     fontFamily: Theme.fonts.regular,
     lineHeight: 14,
+  },
+  paymentAppsContainer: {
+    marginTop: 10,
+    backgroundColor: '#131A14',
+    borderRadius: 14,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(74, 222, 128, 0.2)',
+  },
+  paymentAppsHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  paymentAppsHeader: {
+    color: '#4ADE80',
+    fontSize: 10,
+    fontFamily: Theme.fonts.mono,
+    letterSpacing: 0.5,
+  },
+  paymentAppsCount: {
+    color: '#86EFAC',
+    fontSize: 9.5,
+    fontFamily: Theme.fonts.mono,
+  },
+  paymentChipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  paymentChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(74, 222, 128, 0.1)',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(74, 222, 128, 0.25)',
+  },
+  paymentChipText: {
+    color: '#D1FAE5',
+    fontSize: 10.5,
+    fontFamily: Theme.fonts.medium,
+  },
+  manageExcludedBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(233, 160, 99, 0.15)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    gap: 4,
+  },
+  manageExcludedBtnText: {
+    color: '#E9A063',
+    fontSize: 12,
+    fontFamily: Theme.fonts.medium,
+  },
+  excludedListContainer: {
+    marginTop: 10,
+    backgroundColor: '#191313',
+    borderRadius: 14,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(248, 113, 113, 0.2)',
+  },
+  excludedChipsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  excludedChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(248, 113, 113, 0.12)',
+    borderRadius: 6,
+    paddingLeft: 8,
+    paddingRight: 6,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(248, 113, 113, 0.3)',
+    maxWidth: '100%',
+  },
+  excludedChipText: {
+    color: '#FECACA',
+    fontSize: 10.5,
+    fontFamily: Theme.fonts.mono,
+    marginRight: 4,
+  },
+  excludedChipClose: {
+    padding: 2,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    backgroundColor: '#1A1714',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 32,
+    maxHeight: '85%',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  modalHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 14,
+  },
+  modalTitle: {
+    color: Theme.colors.textPrimary,
+    fontSize: 17,
+    fontFamily: Theme.fonts.title,
+  },
+  modalSubtitle: {
+    color: Theme.colors.textMuted,
+    fontSize: 12,
+    fontFamily: Theme.fonts.regular,
+    marginTop: 3,
+    lineHeight: 16,
+  },
+  modalCloseBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  manualEntryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 10,
+  },
+  manualEntryInput: {
+    flex: 1,
+    height: 40,
+    backgroundColor: '#12100E',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    color: Theme.colors.textPrimary,
+    fontSize: 12,
+    fontFamily: Theme.fonts.mono,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  manualEntryAddBtn: {
+    height: 40,
+    paddingHorizontal: 16,
+    backgroundColor: '#E9A063',
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  manualEntryAddBtnText: {
+    color: '#151210',
+    fontSize: 12.5,
+    fontFamily: Theme.fonts.title,
+  },
+  searchBarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 40,
+    backgroundColor: '#12100E',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  searchBarInput: {
+    flex: 1,
+    color: Theme.colors.textPrimary,
+    fontSize: 13,
+    fontFamily: Theme.fonts.regular,
+  },
+  loadingContainer: {
+    paddingVertical: 40,
+    alignItems: 'center',
+    gap: 10,
+  },
+  loadingText: {
+    color: Theme.colors.textMuted,
+    fontSize: 12,
+    fontFamily: Theme.fonts.mono,
+  },
+  appList: {
+    maxHeight: 320,
+  },
+  appItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.04)',
+  },
+  appItemRowExcluded: {
+    backgroundColor: 'rgba(248, 113, 113, 0.08)',
+    borderColor: 'rgba(248, 113, 113, 0.25)',
+  },
+  appItemIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  appItemTextCol: {
+    flex: 1,
+    marginRight: 10,
+  },
+  appItemLabel: {
+    color: Theme.colors.textPrimary,
+    fontSize: 13,
+    fontFamily: Theme.fonts.semiBold,
+    marginBottom: 2,
+  },
+  appItemPackage: {
+    color: Theme.colors.textMuted,
+    fontSize: 10.5,
+    fontFamily: Theme.fonts.mono,
+  },
+  emptyContainer: {
+    paddingVertical: 30,
+    alignItems: 'center',
+  },
+  emptyText: {
+    color: Theme.colors.textMuted,
+    fontSize: 12,
+    fontFamily: Theme.fonts.regular,
+    textAlign: 'center',
+  },
+  modalDoneBtn: {
+    height: 44,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+  },
+  modalDoneBtnText: {
+    color: Theme.colors.textPrimary,
+    fontSize: 14,
+    fontFamily: Theme.fonts.semiBold,
   },
 });

@@ -54,10 +54,22 @@ export const NativeFloatingBubble = {
         cleanupMode: settings.cleanupMode || 'natural',
         floatingBubbleOpacity: settings.floatingBubbleOpacity ?? 0.70,
         autoPersonaSwitch: settings.autoPersonaSwitch ?? true,
+        pauseOnPaymentApps: settings.pauseOnPaymentApps ?? true,
+        excludedPackages: settings.excludedPackages || [],
       });
     } catch (e) {
       console.warn('Failed to sync settings to native overlay:', e);
       return false;
+    }
+  },
+
+  async getInstalledApps(): Promise<Array<{ packageName: string; label: string }>> {
+    if (!this.isSupported) return [];
+    try {
+      return (await FloatingBubbleModule.getInstalledApps()) || [];
+    } catch (e) {
+      console.warn('Failed to get installed apps:', e);
+      return [];
     }
   },
 
