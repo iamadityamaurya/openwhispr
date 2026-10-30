@@ -244,7 +244,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
         <View style={styles.sheetContainer}>
           {/* Top Sheet Glow & Ambient Gradient */}
           <LinearGradient
-            colors={['rgba(233, 160, 99, 0.12)', 'rgba(208, 132, 72, 0.02)']}
+            colors={['rgba(63, 174, 110, 0.12)', 'rgba(0, 153, 87, 0.02)']}
             start={{ x: 0.5, y: 0 }}
             end={{ x: 0.5, y: 1 }}
             style={styles.sheetTopGlow}
@@ -895,7 +895,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                 <Ionicons
                   name="logo-google"
                   size={12}
-                  color={llmProvider === 'gemini' ? '#F2C08A' : '#6B6254'}
+                  color={llmProvider === 'gemini' ? '#52c784' : '#6B6254'}
                 />
                 <Text style={[styles.tabText, llmProvider === 'gemini' && styles.tabTextActiveGemini]}>
                   Gemini
@@ -1418,7 +1418,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
 
             {/* Quick Preferences */}
             <View style={[styles.stageHeader, { marginTop: 22 }]}>
-              <View style={[styles.stageNumberPill, { backgroundColor: '#D08448' }]}>
+              <View style={[styles.stageNumberPill, { backgroundColor: '#009957' }]}>
                 <Text style={styles.stageNumberText}>03</Text>
               </View>
               <Text style={styles.stageTitle}>Automation <Text style={styles.stageTitle}>AUTOMATION & VOICE PREFERENCES</Text> voice</Text>
@@ -1438,7 +1438,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                     setAutoCopy(val);
                     Haptics.selectionAsync();
                   }}
-                  trackColor={{ false: '#2A241C', true: '#E9A063' }}
+                  trackColor={{ false: '#1A1A22', true: '#3fae6e' }}
                   thumbColor="#FFFFFF"
                 />
               </View>
@@ -1458,7 +1458,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                     setAutoSpeak(val);
                     Haptics.selectionAsync();
                   }}
-                  trackColor={{ false: '#2A241C', true: '#E9A063' }}
+                  trackColor={{ false: '#1A1A22', true: '#3fae6e' }}
                   thumbColor="#FFFFFF"
                 />
               </View>
@@ -1502,7 +1502,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
               activeOpacity={0.85}
             >
               <LinearGradient
-                colors={['#E9A063', '#D08448']}
+                colors={['#3fae6e', '#009957']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.saveBtnGradient}
@@ -1530,7 +1530,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 28,
     maxHeight: '94%',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(233, 160, 99, 0.2)',
+    borderTopColor: 'rgba(63, 174, 110, 0.2)',
     overflow: 'hidden',
   },
   sheetTopGlow: {
@@ -1571,9 +1571,9 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(233, 160, 99, 0.1)',
+    backgroundColor: 'rgba(63, 174, 110, 0.1)',
     borderWidth: 1,
-    borderColor: 'rgba(233, 160, 99, 0.25)',
+    borderColor: 'rgba(63, 174, 110, 0.25)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1611,7 +1611,7 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: '#D08448',
+    backgroundColor: '#009957',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1628,7 +1628,7 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#151210',
+    backgroundColor: '#08080A',
     borderRadius: 14,
     padding: 3,
     marginBottom: 12,
@@ -1661,9 +1661,9 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(147, 184, 132, 0.35)',
   },
   tabActiveGroq: {
-    backgroundColor: 'rgba(233, 160, 99, 0.12)',
+    backgroundColor: 'rgba(63, 174, 110, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(233, 160, 99, 0.35)',
+    borderColor: 'rgba(63, 174, 110, 0.35)',
   },
   tabActiveOpenAI: {
     backgroundColor: 'rgba(201, 151, 112, 0.15)',
@@ -1698,7 +1698,7 @@ const styles = StyleSheet.create({
     color: '#DFAF82',
   },
   tabTextActiveGemini: {
-    color: '#F2C08A',
+    color: '#52c784',
   },
   tabTextActiveCustom: {
     color: '#D9A441',
@@ -1781,14 +1781,14 @@ const styles = StyleSheet.create({
     borderColor: '#DFAF82',
   },
   modelCardActiveGroq: {
-    backgroundColor: 'rgba(233, 160, 99, 0.12)',
-    borderColor: '#E9A063',
+    backgroundColor: 'rgba(63, 174, 110, 0.12)',
+    borderColor: '#3fae6e',
   },
   modelCardNameActiveGroq: {
-    color: '#F2C08A',
+    color: '#52c784',
   },
   modelTagPillActiveGroq: {
-    backgroundColor: 'rgba(233, 160, 99, 0.28)',
+    backgroundColor: 'rgba(63, 174, 110, 0.28)',
   },
   modelCardTop: {
     flexDirection: 'row',
@@ -1836,7 +1836,7 @@ const styles = StyleSheet.create({
     fontFamily: Theme.fonts.medium,
   },
   inputCard: {
-    backgroundColor: '#211C18',
+    backgroundColor: '#121217',
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
@@ -1867,12 +1867,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(233, 160, 99, 0.08)',
+    backgroundColor: 'rgba(63, 174, 110, 0.08)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(233, 160, 99, 0.2)',
+    borderColor: 'rgba(63, 174, 110, 0.2)',
   },
   pasteText: {
     color: Theme.colors.cyan,
@@ -1882,7 +1882,7 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#151210',
+    backgroundColor: '#08080A',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(255, 246, 230, 0.09)',
@@ -1915,7 +1915,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 246, 230, 0.1)',
   },
   presetChipActive: {
-    backgroundColor: 'rgba(233, 160, 99, 0.15)',
+    backgroundColor: 'rgba(63, 174, 110, 0.15)',
     borderColor: Theme.colors.cyan,
   },
   presetChipText: {
@@ -1932,11 +1932,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: 'rgba(233, 160, 99, 0.06)',
+    backgroundColor: 'rgba(63, 174, 110, 0.06)',
     paddingVertical: 10,
     borderRadius: 11,
     borderWidth: 1,
-    borderColor: 'rgba(233, 160, 99, 0.22)',
+    borderColor: 'rgba(63, 174, 110, 0.22)',
     marginTop: 4,
   },
   testBtnText: {
@@ -1968,7 +1968,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   preferencesCard: {
-    backgroundColor: '#211C18',
+    backgroundColor: '#121217',
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
@@ -2014,13 +2014,13 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 9,
     borderRadius: 10,
-    backgroundColor: '#151210',
+    backgroundColor: '#08080A',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255, 246, 230, 0.08)',
   },
   rateBtnActive: {
-    backgroundColor: 'rgba(233, 160, 99, 0.15)',
+    backgroundColor: 'rgba(63, 174, 110, 0.15)',
     borderColor: Theme.colors.cyan,
   },
   rateBtnText: {
@@ -2041,7 +2041,7 @@ const styles = StyleSheet.create({
   saveBtn: {
     borderRadius: 14,
     overflow: 'hidden',
-    shadowColor: '#E9A063',
+    shadowColor: '#3fae6e',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 12,

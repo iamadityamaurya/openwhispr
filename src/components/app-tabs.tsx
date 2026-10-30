@@ -33,56 +33,70 @@ const TAB_CONFIGS: Record<string, TabItemConfig> = {
   },
   explore: {
     name: 'explore',
-    label: 'Engines',
-    iconActive: 'hardware-chip',
-    iconInactive: 'hardware-chip-outline',
+    label: 'Settings',
+    iconActive: 'options',
+    iconInactive: 'options-outline',
+  },
+  ai: {
+    name: 'ai',
+    label: 'AI Models',
+    iconActive: 'sparkles',
+    iconInactive: 'sparkles-outline',
   },
 };
 
+const CAPSULE_WIDTH = 326;
+const INNER_PADDING = 5;
+
 function CustomNavBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  const [capsuleWidth, setCapsuleWidth] = useState(0);
+  const [capsuleWidth, setCapsuleWidth] = useState(CAPSULE_WIDTH);
   const slideAnim = useRef(new Animated.Value(state.index)).current;
 
   // Touch micro-press scale animations
   const scale0 = useRef(new Animated.Value(1)).current;
   const scale1 = useRef(new Animated.Value(1)).current;
+  const scale2 = useRef(new Animated.Value(1)).current;
+  const scales = [scale0, scale1, scale2];
 
   useEffect(() => {
     Animated.spring(slideAnim, {
       toValue: state.index,
-      damping: 18,
-      stiffness: 220,
-      mass: 0.8,
+      damping: 22,
+      stiffness: 280,
+      mass: 0.6,
+      overshootClamping: false,
       useNativeDriver: true,
     }).start();
   }, [state.index]);
 
   const onCapsuleLayout = (e: LayoutChangeEvent) => {
-    setCapsuleWidth(e.nativeEvent.layout.width);
+    const w = e.nativeEvent.layout.width;
+    if (w && Math.abs(w - capsuleWidth) > 1) {
+      setCapsuleWidth(w);
+    }
   };
 
-  // 2 items inside capsule with 5px padding on each side
-  const innerPadding = 5;
-  const availableWidth = capsuleWidth > 0 ? capsuleWidth - innerPadding * 2 : 0;
-  const tabWidth = availableWidth > 0 ? availableWidth / 2 : 0;
+  const availableWidth = capsuleWidth - INNER_PADDING * 2;
+  const numTabs = state.routes.length || 3;
+  const tabWidth = availableWidth / numTabs;
 
   const handlePressIn = (idx: number) => {
-    const scale = idx === 0 ? scale0 : scale1;
-    Animated.spring(scale, {
-      toValue: 0.94,
+    const scale = scales[idx] || scale0;
+    Animated.timing(scale, {
+      toValue: 0.95,
+      duration: 100,
       useNativeDriver: true,
-      speed: 30,
     }).start();
   };
 
   const handlePressOut = (idx: number) => {
-    const scale = idx === 0 ? scale0 : scale1;
+    const scale = scales[idx] || scale0;
     Animated.spring(scale, {
       toValue: 1.0,
       useNativeDriver: true,
-      damping: 14,
-      stiffness: 260,
+      damping: 15,
+      stiffness: 300,
     }).start();
   };
 
@@ -105,8 +119,8 @@ function CustomNavBar({ state, descriptors, navigation }: BottomTabBarProps) {
                 transform: [
                   {
                     translateX: slideAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [0, tabWidth],
+                      inputRange: state.routes.map((_: any, i: number) => i),
+                      outputRange: state.routes.map((_: any, i: number) => i * tabWidth),
                     }),
                   },
                 ],
@@ -114,7 +128,7 @@ function CustomNavBar({ state, descriptors, navigation }: BottomTabBarProps) {
             ]}
           >
             <LinearGradient
-              colors={['rgba(233, 160, 99, 0.22)', 'rgba(208, 132, 72, 0.12)']}
+              colors={['rgba(63, 174, 110, 0.22)', 'rgba(0, 153, 87, 0.12)']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.pillGradient}
@@ -132,7 +146,7 @@ function CustomNavBar({ state, descriptors, navigation }: BottomTabBarProps) {
             iconActive: 'ellipse',
             iconInactive: 'ellipse-outline',
           };
-          const scale = index === 0 ? scale0 : scale1;
+          const scale = scales[index] || scale0;
 
           const onPress = () => {
             const event = navigation.emit({
@@ -165,7 +179,7 @@ function CustomNavBar({ state, descriptors, navigation }: BottomTabBarProps) {
                 <Ionicons
                   name={isFocused ? config.iconActive : config.iconInactive}
                   size={19}
-                  color={isFocused ? '#E9A063' : '#8A8072'}
+                  color={isFocused ? '#2FA866' : '#71717A'}
                   style={styles.tabIcon}
                 />
                 <Text
@@ -173,6 +187,7 @@ function CustomNavBar({ state, descriptors, navigation }: BottomTabBarProps) {
                     styles.tabLabel,
                     isFocused ? styles.tabLabelActive : styles.tabLabelInactive,
                   ]}
+                  numberOfLines={1}
                 >
                   {config.label}
                 </Text>
@@ -192,6 +207,7 @@ export default function AppTabs() {
       tabBar={(props) => <CustomNavBar {...props} />}
       screenOptions={{
         headerShown: false,
+        animation: 'fade',
       }}
     >
       <Tabs.Screen
@@ -203,7 +219,13 @@ export default function AppTabs() {
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Engines',
+          title: 'Settings',
+        }}
+      />
+      <Tabs.Screen
+        name="ai"
+        options={{
+          title: 'AI Models',
         }}
       />
     </Tabs>
@@ -221,21 +243,21 @@ const styles = StyleSheet.create({
   },
   ambientAura: {
     position: 'absolute',
-    width: 200,
+    width: 280,
     height: 38,
     borderRadius: 19,
-    backgroundColor: 'rgba(233, 160, 99, 0.12)',
+    backgroundColor: 'rgba(63, 174, 110, 0.15)',
     opacity: 0.7,
     top: 10,
   },
   capsule: {
-    width: 272,
+    width: 326,
     height: 56,
     borderRadius: 28,
-    backgroundColor: 'rgba(23, 19, 16, 0.94)',
+    backgroundColor: 'rgba(18, 18, 23, 0.95)',
     borderWidth: 1.2,
-    borderColor: 'rgba(255, 244, 226, 0.09)',
-    borderTopColor: 'rgba(255, 255, 255, 0.16)',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderTopColor: 'rgba(255, 255, 255, 0.15)',
     flexDirection: 'row',
     padding: 5,
     alignItems: 'center',
@@ -269,7 +291,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     borderRadius: 23,
     borderWidth: 1,
-    borderColor: 'rgba(233, 160, 99, 0.38)',
+    borderColor: 'rgba(63, 174, 110, 0.4)',
   },
   tabWrapper: {
     flex: 1,
@@ -293,21 +315,21 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
   },
   tabLabelActive: {
-    color: '#F7F1E6',
+    color: '#F4F4F6',
   },
   tabLabelInactive: {
-    color: '#8A8072',
+    color: '#71717A',
   },
   activeDot: {
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#E9A063',
+    backgroundColor: '#2FA866',
     marginLeft: -2,
-    shadowColor: '#E9A063',
+    shadowColor: '#2FA866',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 4,
+    shadowOpacity: 0.6,
+    shadowRadius: 3,
     elevation: 2,
   },
 });

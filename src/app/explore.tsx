@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import * as Clipboard from 'expo-clipboard';
@@ -22,11 +23,8 @@ import {
   DEFAULT_SETTINGS,
   loadSettings,
   saveSettings,
-  SttProvider,
-  LlmProvider,
   DEFAULT_PAYMENT_PACKAGES,
 } from '../services/storage';
-import { ApiKeyModal } from '../components/ApiKeyModal';
 import { CLEANUP_MODES, CleanupMode, getCleanupSystemPrompt } from '../config/prompts';
 import { Theme } from '../constants/designSystem';
 import { NativeFloatingBubble } from '../services/nativeFloatingBubble';
@@ -34,16 +32,7 @@ import { OverlayPermissionModal } from '../components/OverlayPermissionModal';
 
 import { getRecordingPermissionsAsync, requestRecordingPermissionsAsync } from 'expo-audio';
 
-interface EngineOption {
-  id: SttProvider | LlmProvider;
-  name: string;
-  detail: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  tint: string;
-  recommended?: boolean;
-}
-
-export type EngineCategory = 'all' | 'models' | 'personas' | 'capsule' | 'shield';
+export type EngineCategory = 'all' | 'personas' | 'capsule' | 'shield' | 'prompt';
 
 interface CategoryTab {
   id: EngineCategory;
@@ -54,11 +43,11 @@ interface CategoryTab {
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [activeCategory, setActiveCategory] = useState<EngineCategory>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [showKeyModal, setShowKeyModal] = useState<boolean>(false);
   const [showPromptDetails, setShowPromptDetails] = useState<boolean>(false);
   const [copiedPrompt, setCopiedPrompt] = useState<boolean>(false);
   const [permissionModal, setPermissionModal] = useState<{
@@ -73,7 +62,7 @@ export default function SettingsScreen() {
   const [loadingApps, setLoadingApps] = useState<boolean>(false);
   const [customPackageInput, setCustomPackageInput] = useState<string>('');
 
-  useEffect(() => {
+  const reloadSettings = React.useCallback(() => {
     (async () => {
       const s = await loadSettings();
       setSettings(s);
@@ -84,6 +73,8 @@ export default function SettingsScreen() {
       setIsBatteryIgnored(battery);
     })();
   }, []);
+
+  useFocusEffect(reloadSettings);
 
   const handleUpdate = async (updated: Partial<AppSettings>) => {
     const saved = await saveSettings(updated);
@@ -125,47 +116,6 @@ export default function SettingsScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   };
 
-  const handleSelectSttProvider = async (provider: SttProvider) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const key =
-      provider === 'deepgram'
-        ? settings.deepgramApiKey
-        : provider === 'groq'
-        ? settings.groqApiKey
-        : provider === 'openai'
-        ? settings.openaiApiKey
-        : provider === 'surplus'
-        ? settings.surplusApiKey
-        : settings.customSttBaseUrl;
-
-    await handleUpdate({ sttProvider: provider });
-
-    // If key/URL not configured, prompt user to enter key
-    if (!key || key.trim().length === 0) {
-      setShowKeyModal(true);
-    }
-  };
-
-  const handleSelectLlmProvider = async (provider: LlmProvider) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const key =
-      provider === 'groq'
-        ? settings.groqApiKey
-        : provider === 'openai'
-        ? settings.openaiApiKey
-        : provider === 'gemini'
-        ? settings.geminiApiKey
-        : provider === 'surplus'
-        ? settings.surplusApiKey
-        : settings.customLlmBaseUrl;
-
-    await handleUpdate({ llmProvider: provider });
-
-    if (!key || key.trim().length === 0) {
-      setShowKeyModal(true);
-    }
-  };
-
   const handleToggleOverlay = async (val: boolean) => {
     if (val) {
       try {
@@ -202,7 +152,9 @@ export default function SettingsScreen() {
           : settings.customSttBaseUrl;
 
       if (!activeKey || activeKey.trim().length === 0) {
-        setShowKeyModal(true);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+        router.push('/ai');
+        return;
       }
 
       await NativeFloatingBubble.syncSettings(settings);
@@ -231,150 +183,8 @@ export default function SettingsScreen() {
     setTimeout(() => setCopiedPrompt(false), 2000);
   };
 
-  const isDeepgramConfigured = Boolean(settings.deepgramApiKey && settings.deepgramApiKey.length > 0);
-  const isGroqConfigured = Boolean(settings.groqApiKey && settings.groqApiKey.length > 0);
-  const isOpenaiConfigured = Boolean(settings.openaiApiKey && settings.openaiApiKey.length > 0);
-  const isGeminiConfigured = Boolean(settings.geminiApiKey && settings.geminiApiKey.length > 0);
-  const isSurplusConfigured = Boolean(settings.surplusApiKey && settings.surplusApiKey.length > 0);
-  const isCustomSttConfigured = Boolean(settings.customSttBaseUrl && settings.customSttBaseUrl.length > 0);
-  const isCustomLlmConfigured = Boolean(settings.customLlmBaseUrl && settings.customLlmBaseUrl.length > 0);
-
-  const sttOptions: EngineOption[] = [
-    {
-      id: 'surplus',
-      name: 'Surplus Intelligence',
-      detail: isSurplusConfigured
-        ? `${settings.surplusSttModel || 'venice-whisper-large-v3'} · connected`
-        : 'Key required',
-      icon: 'sparkles',
-      tint: '#E08D76',
-      recommended: true,
-    },
-    {
-      id: 'deepgram',
-      name: 'Deepgram Nova-3',
-      detail: isDeepgramConfigured ? 'Connected' : 'Key required',
-      icon: 'radio',
-      tint: '#93B884',
-    },
-    {
-      id: 'groq',
-      name: 'Groq Whisper',
-      detail: isGroqConfigured
-        ? `${settings.groqWhisperModel || 'whisper-large-v3-turbo'} · Connected`
-        : 'Key required',
-      icon: 'flash',
-      tint: '#E9A063',
-    },
-    {
-      id: 'openai',
-      name: 'OpenAI Whisper',
-      detail: isOpenaiConfigured ? 'Connected' : 'Key required',
-      icon: 'sparkles-outline',
-      tint: '#DFAF82',
-    },
-    {
-      id: 'custom',
-      name: 'Custom STT',
-      detail: isCustomSttConfigured
-        ? `${settings.customSttModel || 'whisper-1'} · ${settings.customSttBaseUrl}`
-        : 'Set your own URL & model',
-      icon: 'globe-outline',
-      tint: '#D9A441',
-    },
-  ];
-
-  const llmOptions: EngineOption[] = [
-    {
-      id: 'surplus',
-      name: 'Surplus Intelligence',
-      detail: isSurplusConfigured
-        ? `${settings.surplusLlmModel || 'deepseek-v4-flash'} · 450+ models`
-        : 'Key required',
-      icon: 'planet',
-      tint: '#E08D76',
-      recommended: true,
-    },
-    {
-      id: 'groq',
-      name: 'Groq LPU',
-      detail: isGroqConfigured
-        ? `${settings.groqLlmModel || 'llama-3.3-70b-versatile'} · Connected`
-        : 'Key required',
-      icon: 'hardware-chip',
-      tint: '#E9A063',
-    },
-    {
-      id: 'openai',
-      name: 'OpenAI GPT-4o mini',
-      detail: isOpenaiConfigured ? 'Connected' : 'Key required',
-      icon: 'infinite',
-      tint: '#DFAF82',
-    },
-    {
-      id: 'gemini',
-      name: `Google Gemini ${settings.geminiModel || '2.5 Flash'}`,
-      detail: isGeminiConfigured ? 'Connected · 1M context' : 'Key required',
-      icon: 'logo-google',
-      tint: '#F2C08A',
-    },
-    {
-      id: 'custom',
-      name: 'Custom LLM',
-      detail: isCustomLlmConfigured
-        ? `${settings.customLlmModel || 'custom'} · ${settings.customLlmBaseUrl}`
-        : 'DeepSeek, OpenRouter, Ollama…',
-      icon: 'construct-outline',
-      tint: '#D9A441',
-    },
-  ];
-
-  const renderEngineCard = (
-    option: EngineOption,
-    isActive: boolean,
-    onSelect: () => void
-  ) => (
-    <TouchableOpacity
-      key={option.id}
-      style={[styles.engineCard, isActive && styles.engineCardActive]}
-      onPress={onSelect}
-      activeOpacity={0.8}
-    >
-      <View style={styles.engineIdentity}>
-        <View style={[styles.engineIcon, { backgroundColor: `${option.tint}1F` }]}>
-          <Ionicons name={option.icon} size={19} color={option.tint} />
-        </View>
-        <View style={{ flex: 1 }}>
-          {option.recommended && !isActive ? (
-            <View style={[styles.featuredBadge, { backgroundColor: `${option.tint}1F` }]}>
-              <Text style={[styles.featuredBadgeText, { color: option.tint }]}>Recommended</Text>
-            </View>
-          ) : null}
-          <Text style={styles.engineName}>{option.name}</Text>
-          <Text style={styles.engineDetail} numberOfLines={1}>
-            {option.detail}
-          </Text>
-        </View>
-      </View>
-
-      {isActive ? (
-        <View style={styles.activeTickCircle}>
-          <Ionicons name="checkmark-sharp" size={14} color="#151210" />
-        </View>
-      ) : (
-        <View style={styles.inactiveTickCircle} />
-      )}
-    </TouchableOpacity>
-  );
-
   const CATEGORY_TABS: CategoryTab[] = [
     { id: 'all', label: 'All', icon: 'grid-outline' },
-    {
-      id: 'models',
-      label: 'AI Engines',
-      icon: 'hardware-chip-outline',
-      badge: `${settings.sttProvider.toUpperCase()}`,
-    },
     {
       id: 'personas',
       label: 'Personas',
@@ -393,36 +203,15 @@ export default function SettingsScreen() {
       icon: 'shield-checkmark-outline',
       badge: (settings.pauseOnPaymentApps ?? true) ? 'Shield On' : 'Off',
     },
+    {
+      id: 'prompt',
+      label: 'System Prompt',
+      icon: 'code-slash-outline',
+    },
   ];
 
   const query = searchQuery.trim().toLowerCase();
   const isSearching = query.length > 0;
-
-  // Filter STT options
-  const filteredStt = sttOptions.filter((o) => {
-    if (!isSearching) return true;
-    return (
-      o.name.toLowerCase().includes(query) ||
-      o.detail.toLowerCase().includes(query) ||
-      o.id.toLowerCase().includes(query) ||
-      'speech to text'.includes(query) ||
-      'stt'.includes(query) ||
-      'transcription'.includes(query)
-    );
-  });
-
-  // Filter LLM options
-  const filteredLlm = llmOptions.filter((o) => {
-    if (!isSearching) return true;
-    return (
-      o.name.toLowerCase().includes(query) ||
-      o.detail.toLowerCase().includes(query) ||
-      o.id.toLowerCase().includes(query) ||
-      'ai cleanup'.includes(query) ||
-      'llm'.includes(query) ||
-      'tone'.includes(query)
-    );
-  });
 
   // Filter Persona options
   const filteredPersonas = CLEANUP_MODES.filter((m) => {
@@ -438,9 +227,21 @@ export default function SettingsScreen() {
   });
 
   // Section visibility checks
-  const showModelsSection =
-    (activeCategory === 'all' || activeCategory === 'models' || isSearching) &&
-    (!isSearching || filteredStt.length > 0 || filteredLlm.length > 0 || query.includes('model') || query.includes('engine') || query.includes('key'));
+  const showAiPromoSection =
+    (activeCategory === 'all' || isSearching) &&
+    (!isSearching ||
+      query.includes('model') ||
+      query.includes('engine') ||
+      query.includes('groq') ||
+      query.includes('deepgram') ||
+      query.includes('openai') ||
+      query.includes('gemini') ||
+      query.includes('surplus') ||
+      query.includes('stt') ||
+      query.includes('speech') ||
+      query.includes('llm') ||
+      query.includes('key') ||
+      query.includes('api'));
 
   const showPersonasSection =
     (activeCategory === 'all' || activeCategory === 'personas' || isSearching) &&
@@ -484,11 +285,11 @@ export default function SettingsScreen() {
       query.includes('permission'));
 
   const showPromptSection =
-    (activeCategory === 'all' || activeCategory === 'personas' || activeCategory === 'models' || isSearching) &&
+    (activeCategory === 'all' || activeCategory === 'personas' || activeCategory === 'prompt' || isSearching) &&
     (!isSearching || query.includes('prompt') || query.includes('instruction') || query.includes('system') || query.includes('terminal'));
 
   const hasAnyResults =
-    showModelsSection ||
+    showAiPromoSection ||
     showPersonasSection ||
     showCapsuleSection ||
     showShieldSection ||
@@ -498,13 +299,7 @@ export default function SettingsScreen() {
     <View style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor={Theme.colors.bg} />
 
-      {/* Modals */}
-      <ApiKeyModal
-        visible={showKeyModal}
-        settings={settings}
-        onSave={handleUpdate}
-        onClose={() => setShowKeyModal(false)}
-      />
+
 
       <OverlayPermissionModal
         visible={permissionModal.visible}
@@ -599,7 +394,7 @@ export default function SettingsScreen() {
             {/* Installed Apps List */}
             {loadingApps ? (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="small" color="#E9A063" />
+                <ActivityIndicator size="small" color="#3fae6e" />
                 <Text style={styles.loadingText}>Scanning installed apps...</Text>
               </View>
             ) : (
@@ -641,7 +436,7 @@ export default function SettingsScreen() {
                       <Switch
                         value={isExcluded}
                         onValueChange={() => handleToggleExcludePackage(item.packageName)}
-                        trackColor={{ false: '#2A241C', true: '#F87171' }}
+                        trackColor={{ false: '#1A1A22', true: '#F87171' }}
                         thumbColor="#F7F1E6"
                       />
                     </TouchableOpacity>
@@ -676,21 +471,21 @@ export default function SettingsScreen() {
         {/* Top Row: Title, Subtitle & Edit Keys Button */}
         <View style={styles.headerTopRow}>
           <View style={{ flex: 1, marginRight: 10 }}>
-            <Text style={styles.headerTitle}>Engines & Settings</Text>
+            <Text style={styles.headerTitle}>Preferences & Personas</Text>
             <Text style={styles.headerSubtitle} numberOfLines={1}>
-              Models, personas, floating mic & shield
+              Tone personas, floating mic & exclusion shield
             </Text>
           </View>
           <TouchableOpacity
             style={styles.keyManageBtn}
             onPress={() => {
               Haptics.selectionAsync();
-              setShowKeyModal(true);
+              router.push('/ai');
             }}
             activeOpacity={0.7}
           >
-            <Ionicons name="key-outline" size={13} color={Theme.colors.cyan} />
-            <Text style={styles.keyManageText}>Edit keys</Text>
+            <Ionicons name="sparkles" size={13} color={Theme.colors.cyan} />
+            <Text style={styles.keyManageText}>AI Models & Keys</Text>
           </TouchableOpacity>
         </View>
 
@@ -743,7 +538,7 @@ export default function SettingsScreen() {
                 <Ionicons
                   name={tab.icon}
                   size={13}
-                  color={isSelected ? '#151210' : Theme.colors.textSecondary}
+                  color={isSelected ? '#08080A' : Theme.colors.textSecondary}
                   style={{ marginRight: 5 }}
                 />
                 <Text
@@ -810,70 +605,43 @@ export default function SettingsScreen() {
           </View>
         )}
 
-        {/* SECTION 1: AI Engines */}
-        {showModelsSection && (
-          <>
-            {/* Quick Status Overview Card */}
-            <View style={styles.quickStatusCard}>
-              <View style={styles.quickStatusItem}>
-                <Text style={styles.quickStatusLabel}>ACTIVE SPEECH-TO-TEXT</Text>
-                <View style={styles.quickStatusValueRow}>
-                  <View style={[styles.statusDot, { backgroundColor: '#93B884' }]} />
-                  <Text style={styles.quickStatusValue} numberOfLines={1}>
-                    {sttOptions.find((o) => o.id === settings.sttProvider)?.name || settings.sttProvider}
-                  </Text>
-                </View>
+        {/* AI Models & Keys Navigation Card */}
+        {showAiPromoSection && (
+          <TouchableOpacity
+            style={styles.aiPromoCard}
+            onPress={() => {
+              Haptics.selectionAsync();
+              router.push('/ai');
+            }}
+            activeOpacity={0.8}
+          >
+            <View style={styles.aiPromoContent}>
+              <View style={styles.aiPromoIconBox}>
+                <Ionicons name="sparkles" size={20} color={Theme.colors.cyan} />
               </View>
-              <View style={styles.quickStatusDivider} />
-              <View style={styles.quickStatusItem}>
-                <Text style={styles.quickStatusLabel}>ACTIVE CLEANUP LLM</Text>
-                <View style={styles.quickStatusValueRow}>
-                  <View style={[styles.statusDot, { backgroundColor: '#E9A063' }]} />
-                  <Text style={styles.quickStatusValue} numberOfLines={1}>
-                    {llmOptions.find((o) => o.id === settings.llmProvider)?.name || settings.llmProvider}
-                  </Text>
+              <View style={{ flex: 1, marginRight: 8 }}>
+                <View style={styles.aiPromoTitleRow}>
+                  <Text style={styles.aiPromoTitle}>AI Engines & Models</Text>
+                  <View style={styles.aiPromoBadge}>
+                    <Text style={styles.aiPromoBadgeText}>Moved to AI Tab</Text>
+                  </View>
                 </View>
+                <Text style={styles.aiPromoActiveText}>
+                  Active STT: <Text style={{ color: Theme.colors.cyan, fontFamily: Theme.fonts.semiBold }}>{settings.sttProvider.toUpperCase()}</Text> · LLM: <Text style={{ color: '#93B884', fontFamily: Theme.fonts.semiBold }}>{settings.llmProvider.toUpperCase()}</Text>
+                </Text>
+                <Text style={styles.aiPromoSubtitle}>
+                  Choose models, configure API keys & test connections in AI Setup →
+                </Text>
               </View>
+              <Ionicons name="chevron-forward" size={18} color={Theme.colors.textMuted} />
             </View>
-
-            {filteredStt.length > 0 && (
-              <>
-                <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitle}>Speech to text</Text>
-                  <Text style={styles.sectionCountText}>{filteredStt.length} engines</Text>
-                </View>
-                {filteredStt.map((option) =>
-                  renderEngineCard(
-                    option,
-                    settings.sttProvider === option.id,
-                    () => handleSelectSttProvider(option.id as SttProvider)
-                  )
-                )}
-              </>
-            )}
-
-            {filteredLlm.length > 0 && (
-              <>
-                <View style={[styles.sectionHeader, { marginTop: 22 }]}>
-                  <Text style={styles.sectionTitle}>AI cleanup</Text>
-                  <Text style={styles.sectionCountText}>{filteredLlm.length} engines</Text>
-                </View>
-                {filteredLlm.map((option) =>
-                  renderEngineCard(
-                    option,
-                    settings.llmProvider === option.id,
-                    () => handleSelectLlmProvider(option.id as LlmProvider)
-                  )
-                )}
-              </>
-            )}
-          </>
+          </TouchableOpacity>
         )}
 
         {/* SECTION 2: Tone & Persona */}
         {showPersonasSection && (
           <>
-            <View style={[styles.sectionHeader, { marginTop: showModelsSection ? 24 : 0 }]}>
+            <View style={[styles.sectionHeader, { marginTop: showAiPromoSection ? 12 : 0 }]}>
               <Text style={styles.sectionTitle}>Tone & Persona</Text>
               <Text style={styles.sectionCountText}>{filteredPersonas.length} modes</Text>
             </View>
@@ -923,7 +691,7 @@ export default function SettingsScreen() {
 
                       {isActive ? (
                         <View style={styles.activeTickCircle}>
-                          <Ionicons name="checkmark-sharp" size={14} color="#151210" />
+                          <Ionicons name="checkmark-sharp" size={14} color="#08080A" />
                         </View>
                       ) : (
                         <View style={styles.inactiveTickCircle} />
@@ -941,7 +709,7 @@ export default function SettingsScreen() {
         {/* SECTION 3: Capsule & Keyboard Docking */}
         {showCapsuleSection && (
           <>
-            <View style={[styles.sectionHeader, { marginTop: (showModelsSection || showPersonasSection) ? 24 : 0 }]}>
+            <View style={[styles.sectionHeader, { marginTop: (showAiPromoSection || showPersonasSection) ? 24 : 0 }]}>
               <Text style={styles.sectionTitle}>Capsule & Keyboard Docking</Text>
             </View>
             <Text style={styles.sectionSubtitle}>
@@ -971,7 +739,7 @@ export default function SettingsScreen() {
                 handleToggleOverlay(val);
                 Haptics.selectionAsync();
               }}
-              trackColor={{ false: '#2A241C', true: '#E9A063' }}
+              trackColor={{ false: '#1A1A22', true: '#3fae6e' }}
               thumbColor="#F7F1E6"
             />
           </View>
@@ -988,7 +756,7 @@ export default function SettingsScreen() {
                     styles.tagBadge,
                     {
                       borderColor: settings.smartKeyboardMode
-                        ? 'rgba(233, 160, 99, 0.4)'
+                        ? 'rgba(63, 174, 110, 0.4)'
                         : 'rgba(217, 164, 65, 0.4)',
                       backgroundColor: settings.smartKeyboardMode
                         ? Theme.colors.cyanSubtle
@@ -1020,7 +788,7 @@ export default function SettingsScreen() {
                 handleUpdate({ smartKeyboardMode: val });
                 Haptics.selectionAsync();
               }}
-              trackColor={{ false: '#2A241C', true: '#E9A063' }}
+              trackColor={{ false: '#1A1A22', true: '#3fae6e' }}
               thumbColor="#F7F1E6"
             />
           </View>
@@ -1029,7 +797,7 @@ export default function SettingsScreen() {
           {settings.smartKeyboardMode && (
             <View style={styles.positionSubContainer}>
               <View style={styles.positionSubHeader}>
-                <Ionicons name="arrow-up-circle-outline" size={16} color="#E9A063" />
+                <Ionicons name="arrow-up-circle-outline" size={16} color="#3fae6e" />
                 <Text style={styles.positionSubTitle}>Position above keyboard</Text>
               </View>
 
@@ -1117,14 +885,14 @@ export default function SettingsScreen() {
           {/* Opacity Slider (30% to 100%) */}
           <View style={styles.positionSubContainer}>
             <View style={styles.positionSubHeader}>
-              <Ionicons name="eye-outline" size={16} color="#E9A063" />
+              <Ionicons name="eye-outline" size={16} color="#3fae6e" />
               <Text style={styles.positionSubTitle}>Capsule resting opacity</Text>
               <View
                 style={[
                   styles.tagBadge,
                   {
                     marginLeft: 'auto',
-                    borderColor: 'rgba(233, 160, 99, 0.4)',
+                    borderColor: 'rgba(63, 174, 110, 0.4)',
                     backgroundColor: Theme.colors.cyanSubtle,
                   },
                 ]}
@@ -1219,7 +987,7 @@ export default function SettingsScreen() {
         {/* SECTION 4: Security, Shield & Apps */}
         {showShieldSection && (
           <>
-            <View style={[styles.sectionHeader, { marginTop: (showModelsSection || showPersonasSection || showCapsuleSection) ? 24 : 0 }]}>
+            <View style={[styles.sectionHeader, { marginTop: (showAiPromoSection || showPersonasSection || showCapsuleSection) ? 24 : 0 }]}>
               <Text style={styles.sectionTitle}>Security, Shield & Apps</Text>
             </View>
             <Text style={styles.sectionSubtitle}>
@@ -1265,7 +1033,7 @@ export default function SettingsScreen() {
                 handleUpdate({ autoPersonaSwitch: val });
                 Haptics.selectionAsync();
               }}
-              trackColor={{ false: '#2A241C', true: '#E9A063' }}
+              trackColor={{ false: '#1A1A22', true: '#3fae6e' }}
               thumbColor="#F7F1E6"
             />
           </View>
@@ -1297,7 +1065,7 @@ export default function SettingsScreen() {
                 ].map((item, idx) => (
                   <View key={idx} style={styles.appMappingCard}>
                     <View style={styles.appMappingCardTop}>
-                      <Ionicons name={item.icon as any} size={14} color="#E9A063" />
+                      <Ionicons name={item.icon as any} size={14} color="#3fae6e" />
                       <Text style={styles.appMappingPersona}>{item.persona}</Text>
                       <View style={styles.appMappingTagBadge}>
                         <Text style={styles.appMappingTagText}>{item.tag}</Text>
@@ -1316,7 +1084,7 @@ export default function SettingsScreen() {
           <View style={styles.tileRow}>
             <View style={styles.tileInfo}>
               <View style={styles.tileTitleRow}>
-                <Ionicons name="albums-outline" size={17} color="#E9A063" style={{ marginRight: 6 }} />
+                <Ionicons name="albums-outline" size={17} color="#3fae6e" style={{ marginRight: 6 }} />
                 <Text style={styles.tileTitle}>Android Quick Settings Tile</Text>
                 <View
                   style={[
@@ -1379,7 +1147,7 @@ export default function SettingsScreen() {
                 handleUpdate({ pauseOnPaymentApps: val });
                 Haptics.selectionAsync();
               }}
-              trackColor={{ false: '#2A241C', true: '#4ADE80' }}
+              trackColor={{ false: '#1A1A22', true: '#4ADE80' }}
               thumbColor="#F7F1E6"
             />
           </View>
@@ -1428,7 +1196,7 @@ export default function SettingsScreen() {
               activeOpacity={0.7}
             >
               <Text style={styles.manageExcludedBtnText}>Manage</Text>
-              <Ionicons name="chevron-forward" size={12} color="#E9A063" />
+              <Ionicons name="chevron-forward" size={12} color="#3fae6e" />
             </TouchableOpacity>
           </View>
 
@@ -1632,7 +1400,7 @@ export default function SettingsScreen() {
               onPress={() => setSearchQuery('')}
               activeOpacity={0.8}
             >
-              <Ionicons name="refresh-outline" size={14} color="#151210" style={{ marginRight: 6 }} />
+              <Ionicons name="refresh-outline" size={14} color="#08080A" style={{ marginRight: 6 }} />
               <Text style={styles.emptySearchClearBtnText}>Clear search</Text>
             </TouchableOpacity>
           </View>
@@ -1724,7 +1492,7 @@ const styles = StyleSheet.create({
     fontFamily: Theme.fonts.medium,
   },
   categoryTabLabelActive: {
-    color: '#151210',
+    color: '#08080A',
     fontFamily: Theme.fonts.semiBold,
   },
   categoryTabBadge: {
@@ -1743,19 +1511,19 @@ const styles = StyleSheet.create({
     fontFamily: Theme.fonts.mono,
   },
   categoryTabBadgeTextActive: {
-    color: '#151210',
+    color: '#08080A',
     fontFamily: Theme.fonts.monoBold,
   },
   searchStatusBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(233, 160, 99, 0.08)',
+    backgroundColor: 'rgba(63, 174, 110, 0.08)',
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderWidth: 1,
-    borderColor: 'rgba(233, 160, 99, 0.2)',
+    borderColor: 'rgba(63, 174, 110, 0.2)',
     marginBottom: 16,
   },
   searchStatusLeft: {
@@ -1777,7 +1545,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(233, 160, 99, 0.15)',
+    backgroundColor: 'rgba(63, 174, 110, 0.15)',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 8,
@@ -1849,7 +1617,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: 'rgba(233, 160, 99, 0.1)',
+    backgroundColor: 'rgba(63, 174, 110, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 14,
@@ -1878,7 +1646,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   emptySearchClearBtnText: {
-    color: '#151210',
+    color: '#08080A',
     fontSize: 12.5,
     fontFamily: Theme.fonts.semiBold,
   },
@@ -1951,8 +1719,8 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   engineCardActive: {
-    backgroundColor: 'rgba(233, 160, 99, 0.07)',
-    borderColor: 'rgba(233, 160, 99, 0.45)',
+    backgroundColor: 'rgba(63, 174, 110, 0.07)',
+    borderColor: 'rgba(63, 174, 110, 0.45)',
   },
   featuredBadge: {
     paddingHorizontal: 8,
@@ -2005,6 +1773,68 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: 'rgba(255, 244, 226, 0.16)',
     backgroundColor: 'transparent',
+  },
+  aiPromoCard: {
+    backgroundColor: Theme.colors.card,
+    borderRadius: 18,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(63, 174, 110, 0.3)',
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  aiPromoContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  aiPromoIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: 'rgba(63, 174, 110, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  aiPromoTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 3,
+  },
+  aiPromoTitle: {
+    color: Theme.colors.textPrimary,
+    fontSize: 15,
+    fontFamily: Theme.fonts.title,
+  },
+  aiPromoBadge: {
+    backgroundColor: 'rgba(63, 174, 110, 0.15)',
+    paddingHorizontal: 7,
+    paddingVertical: 1.5,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(63, 174, 110, 0.3)',
+  },
+  aiPromoBadgeText: {
+    color: Theme.colors.cyan,
+    fontSize: 10,
+    fontFamily: Theme.fonts.semiBold,
+  },
+  aiPromoActiveText: {
+    color: Theme.colors.textSecondary,
+    fontSize: 12,
+    fontFamily: Theme.fonts.regular,
+    marginBottom: 3,
+  },
+  aiPromoSubtitle: {
+    color: Theme.colors.textMuted,
+    fontSize: 11,
+    fontFamily: Theme.fonts.regular,
+    lineHeight: 15,
   },
   cardContainer: {
     backgroundColor: Theme.colors.card,
@@ -2166,7 +1996,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 6,
     borderWidth: 1,
-    borderColor: 'rgba(233, 160, 99, 0.15)',
+    borderColor: 'rgba(63, 174, 110, 0.15)',
   },
   positionSubHeader: {
     flexDirection: 'row',
@@ -2175,7 +2005,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   positionSubTitle: {
-    color: '#E9A063',
+    color: '#3fae6e',
     fontSize: 12.5,
     fontFamily: Theme.fonts.semiBold,
     letterSpacing: 0.2,
@@ -2209,8 +2039,8 @@ const styles = StyleSheet.create({
     minWidth: 110,
   },
   pillButtonActive: {
-    backgroundColor: '#E9A063',
-    borderColor: '#E9A063',
+    backgroundColor: '#3fae6e',
+    borderColor: '#3fae6e',
   },
   pillButtonText: {
     color: '#B0A89C',
@@ -2240,7 +2070,7 @@ const styles = StyleSheet.create({
   },
   personaCardActive: {
     borderColor: Theme.colors.borderActive,
-    backgroundColor: 'rgba(233, 160, 99, 0.05)',
+    backgroundColor: 'rgba(63, 174, 110, 0.05)',
   },
   personaCardHeader: {
     flexDirection: 'row',
@@ -2415,10 +2245,10 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 12,
     borderWidth: 1,
-    borderColor: 'rgba(233, 160, 99, 0.15)',
+    borderColor: 'rgba(63, 174, 110, 0.15)',
   },
   appMappingHeader: {
-    color: '#E9A063',
+    color: '#3fae6e',
     fontSize: 10,
     fontFamily: Theme.fonts.mono,
     letterSpacing: 0.5,
@@ -2447,13 +2277,13 @@ const styles = StyleSheet.create({
   },
   appMappingTagBadge: {
     marginLeft: 'auto',
-    backgroundColor: 'rgba(233, 160, 99, 0.12)',
+    backgroundColor: 'rgba(63, 174, 110, 0.12)',
     paddingHorizontal: 6,
     paddingVertical: 1,
     borderRadius: 4,
   },
   appMappingTagText: {
-    color: '#E9A063',
+    color: '#3fae6e',
     fontSize: 9.5,
     fontFamily: Theme.fonts.mono,
   },
@@ -2511,14 +2341,14 @@ const styles = StyleSheet.create({
   manageExcludedBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(233, 160, 99, 0.15)',
+    backgroundColor: 'rgba(63, 174, 110, 0.15)',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
     gap: 4,
   },
   manageExcludedBtnText: {
-    color: '#E9A063',
+    color: '#3fae6e',
     fontSize: 12,
     fontFamily: Theme.fonts.medium,
   },
@@ -2619,13 +2449,13 @@ const styles = StyleSheet.create({
   manualEntryAddBtn: {
     height: 40,
     paddingHorizontal: 16,
-    backgroundColor: '#E9A063',
+    backgroundColor: '#3fae6e',
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
   manualEntryAddBtnText: {
-    color: '#151210',
+    color: '#08080A',
     fontSize: 12.5,
     fontFamily: Theme.fonts.title,
   },

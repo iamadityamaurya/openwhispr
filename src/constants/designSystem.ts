@@ -1,66 +1,65 @@
 /**
- * OpenWhispr design system — "Ink & Ember"
+ * OpenWhispr design system — "MausBot Clean Tech & Emerald"
  *
- * A calm, warm dark theme: soft charcoal surfaces, cream text,
- * and one ember-apricot accent. No neon glows, no blue-dark surfaces.
- *
- * 60% warm charcoal base · 30% cream text & dark elements · 10% ember accent
+ * Matching the exact landing page design: deep obsidian background,
+ * crisp white/zinc typography, subtle borders, and the signature MausBot
+ * emerald green accent (#009957 / #3fae6e) with tech color accents.
  */
 export const Theme = {
   colors: {
-    // 60% Neutral base (warm charcoal, never blue-dark)
-    bg: '#151210',
-    bgSecondary: '#1B1714',
-    card: '#211C18',
-    cardGlass: 'rgba(33, 28, 24, 0.94)',
-    cardElevated: '#282219',
-    surface: '#262019',
-    surfaceActive: '#302920',
-    surfaceGlass: 'rgba(255, 246, 230, 0.03)',
+    // MausBot Deep Obsidian Base (from website dark mode)
+    bg: '#08080A',
+    bgSecondary: '#0E0E12',
+    card: '#121217',
+    cardGlass: 'rgba(18, 18, 23, 0.94)',
+    cardElevated: '#17171E',
+    surface: '#1A1A22',
+    surfaceActive: '#22222D',
+    surfaceGlass: 'rgba(255, 255, 255, 0.03)',
 
-    // 30% Neutral accents & borders (warm cream-tinted)
-    border: 'rgba(255, 244, 226, 0.08)',
-    borderSubtle: 'rgba(255, 244, 226, 0.04)',
-    borderHighlight: 'rgba(233, 160, 99, 0.35)',
-    borderActive: '#E9A063',
+    // Crisp high-end borders
+    border: 'rgba(255, 255, 255, 0.08)',
+    borderSubtle: 'rgba(255, 255, 255, 0.04)',
+    borderHighlight: 'rgba(255, 255, 255, 0.16)',
+    borderActive: '#2FA866',
 
-    // 10% Brand & accents (ember family + muted support colors)
-    cyan: '#E9A063', // primary ember accent (legacy key name)
-    cyanBright: '#F2C08A',
-    cyanMuted: 'rgba(233, 160, 99, 0.12)',
-    cyanSubtle: 'rgba(233, 160, 99, 0.05)',
-    blue: '#D08448',
-    indigo: '#C89268',
-    indigoMuted: 'rgba(200, 146, 104, 0.12)',
-    purple: '#D6A97C',
-    purpleBright: '#E5C094',
-    purpleMuted: 'rgba(214, 169, 124, 0.12)',
-    pink: '#E08D76',
-    red: '#E5484D',
-    redGlow: '#C93A3E',
-    redMuted: 'rgba(229, 72, 77, 0.12)',
-    green: '#93B884',
-    greenBright: '#A9CBA0',
-    greenMuted: 'rgba(147, 184, 132, 0.12)',
-    amber: '#D9A441',
-    amberMuted: 'rgba(217, 164, 65, 0.12)',
+    // Balanced Accent & Support Colors
+    cyan: '#2FA866', // Calibrated natural emerald
+    cyanBright: '#3EBD77',
+    cyanMuted: 'rgba(47, 168, 102, 0.08)',
+    cyanSubtle: 'rgba(255, 255, 255, 0.04)',
+    blue: '#4f94f8',
+    indigo: '#6366f1',
+    indigoMuted: 'rgba(99, 102, 241, 0.10)',
+    purple: '#966fe0',
+    purpleBright: '#ad8cf0',
+    purpleMuted: 'rgba(150, 111, 224, 0.10)',
+    pink: '#e4669f',
+    red: '#ef4444',
+    redGlow: '#dc2626',
+    redMuted: 'rgba(239, 68, 68, 0.10)',
+    green: '#2FA866',
+    greenBright: '#3EBD77',
+    greenMuted: 'rgba(47, 168, 102, 0.08)',
+    amber: '#F59E0B', // Restored true golden-amber for warnings/keys
+    amberMuted: 'rgba(245, 158, 11, 0.10)',
 
-    // Text hierarchy (cream on warm charcoal)
-    textPrimary: '#F7F1E6',
-    textSecondary: '#B3A897',
-    textMuted: '#857B6C',
-    textInverse: '#151210',
+    // Text hierarchy (Crisp White/Zinc)
+    textPrimary: '#F4F4F6',
+    textSecondary: '#A1A1AA',
+    textMuted: '#71717A',
+    textInverse: '#08080A',
   },
 
   gradients: {
-    hero: ['#E9A063', '#C97B45'],
-    cyanBlue: ['#E9A063', '#D08448'],
-    purplePink: ['#E5C094', '#E08D76'],
-    recording: ['#E5484D', '#B33A3E'],
-    processing: ['#E5C094', '#D9A441'],
-    cardDark: ['#241F1A', '#1B1714'],
-    cardHighlight: ['rgba(255, 246, 230, 0.05)', 'rgba(255, 246, 230, 0.01)'],
-    glassOverlay: ['rgba(255, 246, 230, 0.05)', 'rgba(255, 246, 230, 0.01)'],
+    hero: ['#2FA866', '#22824E'],
+    cyanBlue: ['#2FA866', '#4f94f8'],
+    purplePink: ['#966fe0', '#e4669f'],
+    recording: ['#ef4444', '#b91c1c'],
+    processing: ['#2FA866', '#4f94f8'],
+    cardDark: ['#141419', '#0E0E12'],
+    cardHighlight: ['rgba(255, 255, 255, 0.05)', 'rgba(255, 255, 255, 0.01)'],
+    glassOverlay: ['rgba(255, 255, 255, 0.05)', 'rgba(255, 255, 255, 0.01)'],
   },
 
   spacing: {
@@ -98,11 +97,11 @@ export const Theme = {
       elevation: 8,
     },
     idleGlow: {
-      shadowColor: '#E9A063',
+      shadowColor: '#2FA866',
       shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.18,
-      shadowRadius: 14,
-      elevation: 5,
+      shadowOpacity: 0.16,
+      shadowRadius: 12,
+      elevation: 4,
     },
     subtle: {
       shadowColor: '#0A0806',

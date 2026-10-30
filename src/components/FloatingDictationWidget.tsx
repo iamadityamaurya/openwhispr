@@ -218,11 +218,11 @@ export const FloatingDictationWidget: React.FC<FloatingDictationWidgetProps> = (
             activeOpacity={0.85}
           >
             {isProcessing ? (
-              <ActivityIndicator size="small" color="#151210" />
+              <ActivityIndicator size="small" color="#08080A" />
             ) : isRecording ? (
               <Ionicons name="stop" size={18} color="#FFFFFF" />
             ) : (
-              <Ionicons name="mic" size={18} color="#151210" />
+              <Ionicons name="mic" size={18} color="#08080A" />
             )}
           </TouchableOpacity>
         </View>
@@ -407,12 +407,12 @@ const styles = StyleSheet.create({
   },
   bubbleProcessing: {
     backgroundColor: '#D9A441',
-    borderColor: '#F2C08A',
+    borderColor: '#52c784',
   },
   bubbleBadge: {
     position: 'absolute',
     bottom: -2,
-    backgroundColor: '#151210',
+    backgroundColor: '#08080A',
     borderRadius: 6,
     paddingHorizontal: 3,
     paddingVertical: 1,
@@ -469,7 +469,7 @@ const styles = StyleSheet.create({
   },
   visualizerRow: {
     marginVertical: 4,
-    backgroundColor: '#151210',
+    backgroundColor: '#08080A',
     borderRadius: 8,
     paddingVertical: 4,
   },
@@ -478,7 +478,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
     fontFamily: Theme.fonts.regular,
-    backgroundColor: '#151210',
+    backgroundColor: '#08080A',
     borderRadius: 8,
     padding: 8,
     marginBottom: 8,
@@ -534,9 +534,9 @@ const styles = StyleSheet.create({
   personaBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(233, 160, 99, 0.1)',
+    backgroundColor: 'rgba(63, 174, 110, 0.1)',
     borderWidth: 1,
-    borderColor: 'rgba(233, 160, 99, 0.25)',
+    borderColor: 'rgba(63, 174, 110, 0.25)',
     paddingHorizontal: 6,
     paddingVertical: 1.5,
     borderRadius: 6,

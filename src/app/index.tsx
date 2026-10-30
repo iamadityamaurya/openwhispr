@@ -12,6 +12,7 @@ import {
   Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
@@ -78,6 +79,15 @@ export default function DictationScreen() {
     hasPermission,
     requestPermission,
   } = useAudioRecorder();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      (async () => {
+        const s = await loadSettings();
+        setSettings(s);
+      })();
+    }, [])
+  );
 
   useEffect(() => {
     let sub: { remove: () => void } | undefined;
@@ -938,9 +948,9 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#1B1714',
+    backgroundColor: '#121217',
     borderWidth: 1,
-    borderColor: 'rgba(233, 160, 99, 0.25)',
+    borderColor: 'rgba(63, 174, 110, 0.25)',
   },
   logoImage: {
     width: '100%',
@@ -992,7 +1002,7 @@ const styles = StyleSheet.create({
     borderColor: Theme.colors.border,
   },
   keyBtnHighlight: {
-    borderColor: 'rgba(217, 164, 65, 0.45)',
+    borderColor: Theme.colors.borderHighlight,
     backgroundColor: Theme.colors.amberMuted,
   },
   keyDot: {
@@ -1017,7 +1027,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     backgroundColor: Theme.colors.cyanSubtle,
     borderWidth: 1,
-    borderColor: 'rgba(233, 160, 99, 0.2)',
+    borderColor: 'rgba(63, 174, 110, 0.2)',
     marginBottom: 16,
   },
   pulseDot: {
@@ -1088,7 +1098,7 @@ const styles = StyleSheet.create({
     height: 138,
     borderRadius: 69,
     borderWidth: 1,
-    borderColor: 'rgba(233, 160, 99, 0.12)',
+    borderColor: 'rgba(63, 174, 110, 0.12)',
   },
   outerPulseRingActive: {
     borderColor: 'rgba(229, 72, 77, 0.35)',
@@ -1099,7 +1109,7 @@ const styles = StyleSheet.create({
     height: 116,
     borderRadius: 58,
     borderWidth: 1.5,
-    borderColor: 'rgba(233, 160, 99, 0.28)',
+    borderColor: 'rgba(63, 174, 110, 0.28)',
   },
   pulseRingActive: {
     borderColor: 'rgba(229, 72, 77, 0.55)',

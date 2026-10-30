@@ -63,7 +63,7 @@ export const OverlayPermissionModal: React.FC<OverlayPermissionModalProps> = ({
           <LinearGradient
             colors={
               isOverlay
-                ? ['rgba(233, 160, 99, 0.18)', 'rgba(208, 132, 72, 0.02)']
+                ? ['rgba(63, 174, 110, 0.18)', 'rgba(0, 153, 87, 0.02)']
                 : ['rgba(201, 151, 112, 0.18)', 'rgba(181, 135, 96, 0.02)']
             }
             start={{ x: 0.5, y: 0 }}
@@ -78,17 +78,17 @@ export const OverlayPermissionModal: React.FC<OverlayPermissionModalProps> = ({
                 styles.iconAura,
                 {
                   backgroundColor: isOverlay
-                    ? 'rgba(233, 160, 99, 0.15)'
-                    : 'rgba(201, 151, 112, 0.15)',
-                  shadowColor: isOverlay ? '#E9A063' : '#C99770',
+                    ? 'rgba(63, 174, 110, 0.15)'
+                    : 'rgba(79, 148, 248, 0.15)',
+                  shadowColor: isOverlay ? '#3fae6e' : '#4f94f8',
                 },
               ]}
             />
             <LinearGradient
               colors={
                 isOverlay
-                  ? ['#E9A063', '#D08448']
-                  : ['#DFAF82', '#B58760']
+                  ? ['#3fae6e', '#009957']
+                  : ['#4f94f8', '#377FE6']
               }
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
@@ -121,15 +121,15 @@ export const OverlayPermissionModal: React.FC<OverlayPermissionModalProps> = ({
                     styles.stepBadge,
                     {
                       borderColor: isOverlay
-                        ? 'rgba(233, 160, 99, 0.4)'
-                        : 'rgba(201, 151, 112, 0.4)',
+                        ? 'rgba(63, 174, 110, 0.4)'
+                        : 'rgba(79, 148, 248, 0.4)',
                     },
                   ]}
                 >
                   <Text
                     style={[
                       styles.stepNum,
-                      { color: isOverlay ? Theme.colors.cyan : Theme.colors.purple },
+                      { color: isOverlay ? Theme.colors.cyan : Theme.colors.blue },
                     ]}
                   >
                     {st.num}
@@ -166,8 +166,8 @@ export const OverlayPermissionModal: React.FC<OverlayPermissionModalProps> = ({
               <LinearGradient
                 colors={
                   isOverlay
-                    ? ['#E9A063', '#D08448']
-                    : ['#C99770', '#B58760']
+                    ? ['#3fae6e', '#009957']
+                    : ['#4f94f8', '#377FE6']
                 }
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0.8 }}
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     borderRadius: 26,
     padding: 24,
     borderWidth: 1,
-    borderColor: 'rgba(233, 160, 99, 0.16)',
+    borderColor: 'rgba(63, 174, 110, 0.16)',
     alignItems: 'center',
     overflow: 'hidden',
     shadowColor: '#000',
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#151210',
+    backgroundColor: '#08080A',
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',

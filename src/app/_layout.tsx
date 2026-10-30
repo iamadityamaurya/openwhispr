@@ -45,11 +45,11 @@ export default function RootLayout() {
         ...DarkTheme,
         colors: {
           ...DarkTheme.colors,
-          primary: '#E9A063',
-          background: '#151210',
-          card: '#211C18',
-          text: '#F7F1E6',
-          border: 'rgba(255, 244, 226, 0.08)',
+          primary: '#3fae6e',
+          background: '#08080A',
+          card: '#121217',
+          text: '#F4F4F6',
+          border: 'rgba(255, 255, 255, 0.08)',
         },
       }}
     >
