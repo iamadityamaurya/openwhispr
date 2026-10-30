@@ -123,7 +123,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   autoSpeak: false,
   ttsRate: 1.0,
   ttsPitch: 1.0,
-  overlayEnabled: false,
+  overlayEnabled: true,
   smartKeyboardMode: true,
   keyboardOffset: 48,
   keyboardPosition: 'right',

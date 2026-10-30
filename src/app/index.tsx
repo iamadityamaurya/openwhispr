@@ -96,8 +96,20 @@ export default function DictationScreen() {
       const s = await loadSettings();
       setSettings(s);
       await NativeFloatingBubble.syncSettings(s);
-      const isRunning = await NativeFloatingBubble.isRunning();
+      let isRunning = await NativeFloatingBubble.isRunning();
+      if (!isRunning && s.overlayEnabled) {
+        const hasOverlay = await NativeFloatingBubble.hasOverlayPermission();
+        if (hasOverlay) {
+          try {
+            await NativeFloatingBubble.startService();
+            isRunning = true;
+          } catch (err) {
+            console.warn('Failed to auto-start floating bubble service:', err);
+          }
+        }
+      }
       setShowFloatingWidget(isRunning || s.overlayEnabled);
+
       const h = await loadHistory();
       setHistory(h);
 

@@ -463,27 +463,6 @@ export default function AiSetupScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* RECOMMENDED HERO BANNER */}
-        <View style={styles.recommendBanner}>
-          <LinearGradient
-            colors={['rgba(255, 255, 255, 0.04)', 'rgba(255, 255, 255, 0.01)']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.recommendGradient}
-          />
-          <View style={styles.recommendHeader}>
-            <View style={[styles.recommendIconBox, { backgroundColor: 'rgba(255, 255, 255, 0.06)' }]}>
-              <Ionicons name="flash" size={16} color={Theme.colors.cyan} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.recommendTitle}>Fastest Free Setup</Text>
-              <Text style={styles.recommendDesc}>
-                Get a free key from <Text style={{ color: Theme.colors.cyan, fontFamily: Theme.fonts.semiBold }}>Groq</Text> or{' '}
-                <Text style={{ color: '#93B884', fontFamily: Theme.fonts.semiBold }}>Google Gemini</Text> for 100% free transcription and text cleanup.
-              </Text>
-            </View>
-          </View>
-        </View>
 
         {/* ACTIVE ENGINES SUMMARY BAR */}
         <View style={styles.activeEnginesBarMerged}>
@@ -517,17 +496,33 @@ export default function AiSetupScreen() {
             <View style={styles.cardTitleCol}>
               <View style={styles.cardTitleRow}>
                 <Text style={styles.cardTitle}>Surplus Intelligence</Text>
-                <View style={[styles.pillBadge, { backgroundColor: 'rgba(128, 87, 200, 0.15)', borderColor: 'rgba(128, 87, 200, 0.4)' }]}>
-                  <Text style={[styles.pillBadgeText, { color: '#A78BFA' }]}>Featured · Decentralized AI</Text>
-                </View>
               </View>
-              <Text style={styles.cardDesc}>
-                Decentralized GPU marketplace with Venice Whisper and DeepSeek V4 flash inference.
-              </Text>
+              <TouchableOpacity
+                style={[
+                  styles.openConfigBtn,
+                  expandedCards.surplus && styles.openConfigBtnActive,
+                ]}
+                onPress={() => toggleCardExpanded('surplus')}
+                activeOpacity={0.75}
+              >
+                <Ionicons
+                  name={expandedCards.surplus ? 'chevron-up' : 'settings-outline'}
+                  size={13}
+                  color={expandedCards.surplus ? Theme.colors.cyan : Theme.colors.textSecondary}
+                />
+                <Text
+                  style={[
+                    styles.openConfigBtnText,
+                    expandedCards.surplus && styles.openConfigBtnTextActive,
+                  ]}
+                >
+                  {expandedCards.surplus ? 'Hide' : 'Configure'}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
 
-          {/* Quick Select & Open Action Bar */}
+          {/* Quick Select Action Bar */}
           <View style={styles.cardActionRow}>
             <View style={styles.cardActionLeft}>
               {/* STT Select */}
@@ -580,25 +575,8 @@ export default function AiSetupScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
-
-            <TouchableOpacity
-              style={[
-                styles.openConfigBtn,
-                expandedCards.surplus && styles.openConfigBtnActive,
-              ]}
-              onPress={() => toggleCardExpanded('surplus')}
-              activeOpacity={0.75}
-            >
-              <Ionicons
-                name={expandedCards.surplus ? 'chevron-up' : 'options-outline'}
-                size={14}
-                color={Theme.colors.textPrimary}
-              />
-              <Text style={styles.openConfigBtnText}>
-                {expandedCards.surplus ? 'Close' : 'Open'}
-              </Text>
-            </TouchableOpacity>
           </View>
+
 
           {/* Collapsible Filling Options */}
           {expandedCards.surplus && (
@@ -862,17 +840,33 @@ export default function AiSetupScreen() {
             <View style={styles.cardTitleCol}>
               <View style={styles.cardTitleRow}>
                 <Text style={styles.cardTitle}>Groq Cloud</Text>
-                <View style={[styles.pillBadge, { backgroundColor: 'rgba(63, 174, 110, 0.15)', borderColor: 'rgba(63, 174, 110, 0.4)' }]}>
-                  <Text style={[styles.pillBadgeText, { color: Theme.colors.cyan }]}>Recommended · Free</Text>
-                </View>
               </View>
-              <Text style={styles.cardDesc}>
-                Whisper large-v3 turbo audio transcription & LLaMA 3.3 70B formatting with near-zero latency.
-              </Text>
+              <TouchableOpacity
+                style={[
+                  styles.openConfigBtn,
+                  expandedCards.groq && styles.openConfigBtnActive,
+                ]}
+                onPress={() => toggleCardExpanded('groq')}
+                activeOpacity={0.75}
+              >
+                <Ionicons
+                  name={expandedCards.groq ? 'chevron-up' : 'settings-outline'}
+                  size={13}
+                  color={expandedCards.groq ? Theme.colors.cyan : Theme.colors.textSecondary}
+                />
+                <Text
+                  style={[
+                    styles.openConfigBtnText,
+                    expandedCards.groq && styles.openConfigBtnTextActive,
+                  ]}
+                >
+                  {expandedCards.groq ? 'Hide' : 'Configure'}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
 
-          {/* Quick Select & Open Action Bar */}
+          {/* Quick Select Action Bar */}
           <View style={styles.cardActionRow}>
             <View style={styles.cardActionLeft}>
               {/* STT Select */}
@@ -923,26 +917,8 @@ export default function AiSetupScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
-
-            {/* Open / Close Settings Toggle */}
-            <TouchableOpacity
-              style={[
-                styles.openConfigBtn,
-                expandedCards.groq && styles.openConfigBtnActive,
-              ]}
-              onPress={() => toggleCardExpanded('groq')}
-              activeOpacity={0.75}
-            >
-              <Ionicons
-                name={expandedCards.groq ? 'chevron-up' : 'options-outline'}
-                size={14}
-                color={Theme.colors.textPrimary}
-              />
-              <Text style={styles.openConfigBtnText}>
-                {expandedCards.groq ? 'Close' : 'Open'}
-              </Text>
-            </TouchableOpacity>
           </View>
+
 
           {/* Collapsible Filling Options */}
           {expandedCards.groq && (
@@ -1209,17 +1185,33 @@ export default function AiSetupScreen() {
             <View style={styles.cardTitleCol}>
               <View style={styles.cardTitleRow}>
                 <Text style={styles.cardTitle}>Google Gemini</Text>
-                <View style={[styles.pillBadge, { backgroundColor: 'rgba(147, 184, 132, 0.15)', borderColor: 'rgba(147, 184, 132, 0.4)' }]}>
-                  <Text style={[styles.pillBadgeText, { color: '#93B884' }]}>Free Tier Available</Text>
-                </View>
               </View>
-              <Text style={styles.cardDesc}>
-                Google's cutting-edge models for intelligent, fluid text styling and formatting.
-              </Text>
+              <TouchableOpacity
+                style={[
+                  styles.openConfigBtn,
+                  expandedCards.gemini && styles.openConfigBtnActive,
+                ]}
+                onPress={() => toggleCardExpanded('gemini')}
+                activeOpacity={0.75}
+              >
+                <Ionicons
+                  name={expandedCards.gemini ? 'chevron-up' : 'settings-outline'}
+                  size={13}
+                  color={expandedCards.gemini ? Theme.colors.cyan : Theme.colors.textSecondary}
+                />
+                <Text
+                  style={[
+                    styles.openConfigBtnText,
+                    expandedCards.gemini && styles.openConfigBtnTextActive,
+                  ]}
+                >
+                  {expandedCards.gemini ? 'Hide' : 'Configure'}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
 
-          {/* Quick Select & Open Action Bar */}
+          {/* Quick Select Action Bar */}
           <View style={styles.cardActionRow}>
             <View style={styles.cardActionLeft}>
               <TouchableOpacity
@@ -1246,25 +1238,8 @@ export default function AiSetupScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
-
-            <TouchableOpacity
-              style={[
-                styles.openConfigBtn,
-                expandedCards.gemini && styles.openConfigBtnActive,
-              ]}
-              onPress={() => toggleCardExpanded('gemini')}
-              activeOpacity={0.75}
-            >
-              <Ionicons
-                name={expandedCards.gemini ? 'chevron-up' : 'options-outline'}
-                size={14}
-                color={Theme.colors.textPrimary}
-              />
-              <Text style={styles.openConfigBtnText}>
-                {expandedCards.gemini ? 'Close' : 'Open'}
-              </Text>
-            </TouchableOpacity>
           </View>
+
 
           {/* Collapsible Filling Options */}
           {expandedCards.gemini && (
@@ -1478,17 +1453,33 @@ export default function AiSetupScreen() {
             <View style={styles.cardTitleCol}>
               <View style={styles.cardTitleRow}>
                 <Text style={styles.cardTitle}>Deepgram Nova</Text>
-                <View style={[styles.pillBadge, { backgroundColor: 'rgba(214, 169, 124, 0.15)', borderColor: 'rgba(214, 169, 124, 0.4)' }]}>
-                  <Text style={[styles.pillBadgeText, { color: '#D6A97C' }]}>Specialized STT</Text>
-                </View>
               </View>
-              <Text style={styles.cardDesc}>
-                Industry-standard speech recognition with smart formatting, casing, and punctuate features.
-              </Text>
+              <TouchableOpacity
+                style={[
+                  styles.openConfigBtn,
+                  expandedCards.deepgram && styles.openConfigBtnActive,
+                ]}
+                onPress={() => toggleCardExpanded('deepgram')}
+                activeOpacity={0.75}
+              >
+                <Ionicons
+                  name={expandedCards.deepgram ? 'chevron-up' : 'settings-outline'}
+                  size={13}
+                  color={expandedCards.deepgram ? Theme.colors.cyan : Theme.colors.textSecondary}
+                />
+                <Text
+                  style={[
+                    styles.openConfigBtnText,
+                    expandedCards.deepgram && styles.openConfigBtnTextActive,
+                  ]}
+                >
+                  {expandedCards.deepgram ? 'Hide' : 'Configure'}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
 
-          {/* Quick Select & Open Action Bar */}
+          {/* Quick Select Action Bar */}
           <View style={styles.cardActionRow}>
             <View style={styles.cardActionLeft}>
               <TouchableOpacity
@@ -1515,25 +1506,8 @@ export default function AiSetupScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
-
-            <TouchableOpacity
-              style={[
-                styles.openConfigBtn,
-                expandedCards.deepgram && styles.openConfigBtnActive,
-              ]}
-              onPress={() => toggleCardExpanded('deepgram')}
-              activeOpacity={0.75}
-            >
-              <Ionicons
-                name={expandedCards.deepgram ? 'chevron-up' : 'options-outline'}
-                size={14}
-                color={Theme.colors.textPrimary}
-              />
-              <Text style={styles.openConfigBtnText}>
-                {expandedCards.deepgram ? 'Close' : 'Open'}
-              </Text>
-            </TouchableOpacity>
           </View>
+
 
           {/* Collapsible Filling Options */}
           {expandedCards.deepgram && (
@@ -1752,17 +1726,33 @@ export default function AiSetupScreen() {
             <View style={styles.cardTitleCol}>
               <View style={styles.cardTitleRow}>
                 <Text style={styles.cardTitle}>OpenAI</Text>
-                <View style={[styles.pillBadge, { backgroundColor: 'rgba(255, 255, 255, 0.08)', borderColor: 'rgba(255, 255, 255, 0.15)' }]}>
-                  <Text style={[styles.pillBadgeText, { color: Theme.colors.textPrimary }]}>Official API</Text>
-                </View>
               </View>
-              <Text style={styles.cardDesc}>
-                OpenAI's official Whisper speech recognition & GPT-4o-mini formatting endpoints.
-              </Text>
+              <TouchableOpacity
+                style={[
+                  styles.openConfigBtn,
+                  expandedCards.openai && styles.openConfigBtnActive,
+                ]}
+                onPress={() => toggleCardExpanded('openai')}
+                activeOpacity={0.75}
+              >
+                <Ionicons
+                  name={expandedCards.openai ? 'chevron-up' : 'settings-outline'}
+                  size={13}
+                  color={expandedCards.openai ? Theme.colors.cyan : Theme.colors.textSecondary}
+                />
+                <Text
+                  style={[
+                    styles.openConfigBtnText,
+                    expandedCards.openai && styles.openConfigBtnTextActive,
+                  ]}
+                >
+                  {expandedCards.openai ? 'Hide' : 'Configure'}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
 
-          {/* Quick Select & Open Action Bar */}
+          {/* Quick Select Action Bar */}
           <View style={styles.cardActionRow}>
             <View style={styles.cardActionLeft}>
               {/* STT Select */}
@@ -1813,25 +1803,8 @@ export default function AiSetupScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
-
-            <TouchableOpacity
-              style={[
-                styles.openConfigBtn,
-                expandedCards.openai && styles.openConfigBtnActive,
-              ]}
-              onPress={() => toggleCardExpanded('openai')}
-              activeOpacity={0.75}
-            >
-              <Ionicons
-                name={expandedCards.openai ? 'chevron-up' : 'options-outline'}
-                size={14}
-                color={Theme.colors.textPrimary}
-              />
-              <Text style={styles.openConfigBtnText}>
-                {expandedCards.openai ? 'Close' : 'Open'}
-              </Text>
-            </TouchableOpacity>
           </View>
+
 
           {/* Collapsible Filling Options */}
           {expandedCards.openai && (
@@ -2130,17 +2103,33 @@ export default function AiSetupScreen() {
             <View style={styles.cardTitleCol}>
               <View style={styles.cardTitleRow}>
                 <Text style={styles.cardTitle}>Custom Endpoint</Text>
-                <View style={[styles.pillBadge, { backgroundColor: 'rgba(56, 189, 248, 0.15)', borderColor: 'rgba(56, 189, 248, 0.4)' }]}>
-                  <Text style={[styles.pillBadgeText, { color: '#38BDF8' }]}>Local & Private</Text>
-                </View>
               </View>
-              <Text style={styles.cardDesc}>
-                Connect to local Ollama, vLLM, LM Studio, or private OpenAI-compatible servers.
-              </Text>
+              <TouchableOpacity
+                style={[
+                  styles.openConfigBtn,
+                  expandedCards.custom && styles.openConfigBtnActive,
+                ]}
+                onPress={() => toggleCardExpanded('custom')}
+                activeOpacity={0.75}
+              >
+                <Ionicons
+                  name={expandedCards.custom ? 'chevron-up' : 'settings-outline'}
+                  size={13}
+                  color={expandedCards.custom ? Theme.colors.cyan : Theme.colors.textSecondary}
+                />
+                <Text
+                  style={[
+                    styles.openConfigBtnText,
+                    expandedCards.custom && styles.openConfigBtnTextActive,
+                  ]}
+                >
+                  {expandedCards.custom ? 'Hide' : 'Configure'}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
 
-          {/* Quick Select & Open Action Bar */}
+          {/* Quick Select Action Bar */}
           <View style={styles.cardActionRow}>
             <View style={styles.cardActionLeft}>
               {/* STT Select */}
@@ -2193,25 +2182,8 @@ export default function AiSetupScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
-
-            <TouchableOpacity
-              style={[
-                styles.openConfigBtn,
-                expandedCards.custom && styles.openConfigBtnActive,
-              ]}
-              onPress={() => toggleCardExpanded('custom')}
-              activeOpacity={0.75}
-            >
-              <Ionicons
-                name={expandedCards.custom ? 'chevron-up' : 'options-outline'}
-                size={14}
-                color={Theme.colors.textPrimary}
-              />
-              <Text style={styles.openConfigBtnText}>
-                {expandedCards.custom ? 'Close' : 'Open'}
-              </Text>
-            </TouchableOpacity>
           </View>
+
 
           {/* Collapsible Filling Options */}
           {expandedCards.custom && (
@@ -2545,7 +2517,7 @@ const styles = StyleSheet.create({
   },
   cardHeader: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: 12,
     marginBottom: 10,
   },
@@ -2558,13 +2530,17 @@ const styles = StyleSheet.create({
   },
   cardTitleCol: {
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   cardTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 3,
+    flex: 1,
   },
+
+
   cardTitle: {
     color: Theme.colors.textPrimary,
     fontSize: 16,
@@ -3094,23 +3070,27 @@ const styles = StyleSheet.create({
   openConfigBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   openConfigBtnActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(63, 174, 110, 0.12)',
+    borderColor: 'rgba(63, 174, 110, 0.35)',
   },
   openConfigBtnText: {
-    color: Theme.colors.textPrimary,
-    fontSize: 11.5,
+    color: Theme.colors.textSecondary,
+    fontSize: 11,
     fontFamily: Theme.fonts.semiBold,
   },
+  openConfigBtnTextActive: {
+    color: Theme.colors.cyan,
+  },
+
   cardExpandedSection: {
     marginTop: 14,
     paddingTop: 14,
