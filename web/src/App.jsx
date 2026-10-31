@@ -276,6 +276,11 @@ export default function App() {
   // Animated letter wobble triggers
   const [letterHover, setLetterHover] = useState(null)
 
+  // Scroll animations & states
+  const [scrollProgress, setScrollProgress] = useState(0)
+  const [isScrolled, setIsScrolled] = useState(false)
+  const [activeNavSection, setActiveNavSection] = useState('')
+
   // Sync theme with HTML document
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
@@ -316,6 +321,77 @@ export default function App() {
     return () => clearInterval(timer)
   }, [isRecording])
 
+  // Track scroll position for top progress bar, sticky header elevation, and back-to-top button
+  useEffect(() => {
+    let ticking = false
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const totalHeight = document.documentElement.scrollHeight - window.innerHeight
+          if (totalHeight > 0) {
+            const currentProgress = (window.scrollY / totalHeight) * 100
+            setScrollProgress(Math.min(100, Math.max(0, currentProgress)))
+          }
+          setIsScrolled(window.scrollY > 40)
+          ticking = false
+        })
+        ticking = true
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll()
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // IntersectionObserver for scroll-reveal animations across sections & cards
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-revealed')
+            observer.unobserve(entry.target)
+          }
+        })
+      },
+      {
+        threshold: 0.08,
+        rootMargin: '0px 0px -40px 0px',
+      }
+    )
+
+    const revealElements = document.querySelectorAll('.scroll-reveal')
+    revealElements.forEach((el) => observer.observe(el))
+
+    return () => observer.disconnect()
+  }, [])
+
+  // IntersectionObserver for active section scroll-spy in sticky nav
+  useEffect(() => {
+    const sectionIds = ['preview', 'personas', 'engines', 'architecture', 'faq']
+    const sectionElements = sectionIds
+      .map((id) => document.getElementById(id))
+      .filter(Boolean)
+
+    const spyObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveNavSection(entry.target.id)
+          }
+        })
+      },
+      {
+        threshold: 0.2,
+        rootMargin: '-15% 0px -50% 0px',
+      }
+    )
+
+    sectionElements.forEach((el) => spyObserver.observe(el))
+    return () => spyObserver.disconnect()
+  }, [])
+
   const currentPersona =
     PERSONAS.find((p) => p.id === selectedPersona) || PERSONAS[0]
   const currentTransform =
@@ -335,8 +411,16 @@ export default function App() {
 
   return (
     <div className="maus-root">
+      {/* ── TOP SCROLL PROGRESS BAR ── */}
+      <div className="scroll-progress-track">
+        <div
+          className="scroll-progress-bar"
+          style={{ width: `${scrollProgress}%` }}
+        />
+      </div>
+
       {/* ── STICKY BACKDROP HEADER ── */}
-      <header className="maus-header">
+      <header className={`maus-header ${isScrolled ? 'is-scrolled' : ''}`}>
         <div className="maus-header-inner">
           <a href="#" className="maus-brand">
             <span className="maus-brand-icon">
@@ -351,11 +435,41 @@ export default function App() {
           </a>
 
           <nav className="maus-nav">
-            <a href="#preview">App Preview</a>
-            <a href="#personas">5 Personas</a>
-            <a href="#engines">AI Engines</a>
-            <a href="#architecture">Security</a>
-            <a href="#faq">FAQ</a>
+            <a
+              href="#preview"
+              className={activeNavSection === 'preview' ? 'is-active' : ''}
+            >
+              App Preview
+              {activeNavSection === 'preview' && <span className="nav-active-indicator" />}
+            </a>
+            <a
+              href="#personas"
+              className={activeNavSection === 'personas' ? 'is-active' : ''}
+            >
+              5 Personas
+              {activeNavSection === 'personas' && <span className="nav-active-indicator" />}
+            </a>
+            <a
+              href="#engines"
+              className={activeNavSection === 'engines' ? 'is-active' : ''}
+            >
+              AI Engines
+              {activeNavSection === 'engines' && <span className="nav-active-indicator" />}
+            </a>
+            <a
+              href="#architecture"
+              className={activeNavSection === 'architecture' ? 'is-active' : ''}
+            >
+              Security
+              {activeNavSection === 'architecture' && <span className="nav-active-indicator" />}
+            </a>
+            <a
+              href="#faq"
+              className={activeNavSection === 'faq' ? 'is-active' : ''}
+            >
+              FAQ
+              {activeNavSection === 'faq' && <span className="nav-active-indicator" />}
+            </a>
           </nav>
 
           <div className="maus-header-actions">
@@ -607,7 +721,7 @@ export default function App() {
             </p>
 
             {/* Direct On-Screen QR Code + Download Card */}
-            <div id="install-qr" className="hero-onscreen-qr-card">
+            <div id="install-qr" className="hero-onscreen-qr-card scroll-reveal reveal-scale-up">
               <div className="hero-qr-media">
                 <div className="hero-qr-box">
                   <QRCode
@@ -681,7 +795,7 @@ export default function App() {
         </section>
 
         {/* ── MAUSBOT APP PREVIEW WINDOW (.app-preview) ── */}
-        <section id="preview" className="maus-preview-section">
+        <section id="preview" className="maus-preview-section scroll-reveal reveal-fade-up">
           <div className="app-preview-figure">
             <div className="app-preview">
               {/* Left Column: 5 Persona Modes (MausBot ap-sidebar style) */}
@@ -948,7 +1062,7 @@ export default function App() {
 
         {/* ── SECTION: 5 PERSONA ENGINES BREAKDOWN ── */}
         <section id="personas" className="maus-section maus-section-border">
-          <div className="maus-section-header">
+          <div className="maus-section-header scroll-reveal">
             <span className="maus-subhead-pill">5 TRANSFORMATION ENGINES</span>
             <h2 className="maus-heading">
               Context-Aware Speech Transformations
@@ -959,7 +1073,7 @@ export default function App() {
           </div>
 
           {/* Interactive Persona Tabs */}
-          <div className="transform-tabs-bar">
+          <div className="transform-tabs-bar scroll-reveal delay-1">
             {PERSONAS.map((p) => {
               const isActive = p.id === activeTransformId
               return (
@@ -988,7 +1102,7 @@ export default function App() {
           {/* Featured Side-by-Side Dual Transformation Stage */}
           <div className="transform-showcase-stage">
             {/* Left Panel: Raw Spoken Input */}
-            <div className="transform-panel transform-panel-raw">
+            <div className="transform-panel transform-panel-raw scroll-reveal reveal-fade-left delay-2">
               <div className="transform-panel-header">
                 <div className="flex items-center gap-2">
                   <span className="transform-audio-wave">
@@ -1038,7 +1152,7 @@ export default function App() {
             </div>
 
             {/* Right Panel: Polished Text Injection */}
-            <div className="transform-panel transform-panel-clean">
+            <div className="transform-panel transform-panel-clean scroll-reveal reveal-fade-right delay-2">
               <div className="transform-panel-header">
                 <div className="flex items-center gap-2">
                   <span className="transform-check-icon">✓</span>
@@ -1073,13 +1187,13 @@ export default function App() {
 
           {/* Balanced 5-Card Grid (Click any card to inspect) */}
           <div className="transform-cards-grid">
-            {PERSONAS.map((p) => {
+            {PERSONAS.map((p, idx) => {
               const isSelected = p.id === activeTransformId
               return (
                 <div
                   key={p.id}
                   onClick={() => setActiveTransformId(p.id)}
-                  className={`transform-card-item ${isSelected ? 'is-selected' : ''}`}
+                  className={`transform-card-item scroll-reveal delay-${(idx % 3) + 1} ${isSelected ? 'is-selected' : ''}`}
                 >
                   <div className="transform-card-top">
                     <span className="transform-card-icon">{p.icon}</span>
@@ -1106,7 +1220,7 @@ export default function App() {
 
         {/* ── SECTION: REAL AI ENGINES & PROVIDERS (api.ts) ── */}
         <section id="engines" className="maus-section">
-          <div className="maus-section-header">
+          <div className="maus-section-header scroll-reveal">
             <span className="maus-subhead-pill">BYOK ARCHITECTURE</span>
             <h2 className="maus-heading">
               Supported STT & LLM Engines
@@ -1118,7 +1232,7 @@ export default function App() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {ENGINES.map((group, idx) => (
-              <div key={idx} className="maus-engine-card">
+              <div key={idx} className={`maus-engine-card scroll-reveal delay-${idx + 1}`}>
                 <h3 className="text-xl font-bold text-fg mb-4 flex items-center gap-2">
                   <span className="text-emerald">●</span>
                   {group.type}
@@ -1143,7 +1257,7 @@ export default function App() {
 
         {/* ── SECTION: FEATURES GRID (MausBot Bento) ── */}
         <section className="maus-section">
-          <div className="maus-section-header">
+          <div className="maus-section-header scroll-reveal">
             <span className="maus-subhead-pill">CORE CAPABILITIES</span>
             <h2 className="maus-heading">
               Engineered for Speed, Clarity, & Privacy.
@@ -1154,8 +1268,8 @@ export default function App() {
           </div>
 
           <div className="maus-feature-grid">
-            {FEATURES.map((feat) => (
-              <div key={feat.num} className="maus-feat-card">
+            {FEATURES.map((feat, idx) => (
+              <div key={feat.num} className={`maus-feat-card scroll-reveal delay-${(idx % 3) + 1}`}>
                 <div className="flex items-center justify-between mb-4">
                   <span className="maus-card-num font-mono text-emerald font-bold">{feat.num}</span>
                   <span className={`maus-feat-badge badge-${feat.badgeColor}`}>{feat.badge}</span>
@@ -1170,7 +1284,7 @@ export default function App() {
 
         {/* ── SECTION: ANDROID QUICK SETTINGS SHADE TILE ── */}
         <section className="maus-section maus-section-border">
-          <div className="tile-spotlight-card">
+          <div className="tile-spotlight-card scroll-reveal reveal-scale-up">
             <div className="tile-spotlight-content">
               <span className="maus-subhead-pill">SYSTEM NATIVE</span>
               <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-fg mb-3">
@@ -1228,7 +1342,7 @@ export default function App() {
 
         {/* ── SECTION: ARCHITECTURE & ZERO-TRUST SECURITY ── */}
         <section id="architecture" className="maus-section">
-          <div className="maus-section-header">
+          <div className="maus-section-header scroll-reveal">
             <span className="maus-subhead-pill">SECURITY BY DESIGN</span>
             <h2 className="maus-heading">
               Hardware Keystore. Direct TLS BYOK.
@@ -1238,7 +1352,7 @@ export default function App() {
             </p>
           </div>
 
-          <div className="arch-flow-box">
+          <div className="arch-flow-box scroll-reveal reveal-fade-up">
             <div className="arch-step">
               <div className="arch-step-circle text-emerald">01</div>
               <b className="text-fg text-sm block mb-1">Android AudioRecord</b>
@@ -1267,7 +1381,7 @@ export default function App() {
 
         {/* ── SECTION: MULTILINGUAL MARQUEE (Hello from OpenWhispr) ── */}
         <section className="maus-section maus-section-border">
-          <div className="text-center max-w-2xl mx-auto mb-10">
+          <div className="text-center max-w-2xl mx-auto mb-10 scroll-reveal">
             <span className="maus-subhead-pill">MULTILINGUAL VOICE</span>
             <h2 className="maus-heading">
               Speak in Any Language. Output in Pristine English.
@@ -1277,7 +1391,7 @@ export default function App() {
             </p>
           </div>
 
-          <div className="multilingual-strip">
+          <div className="multilingual-strip scroll-reveal reveal-fade-up delay-1">
             <span className="lang-tag tag-green">Hola (Spanish)</span>
             <span className="lang-tag tag-orange">नमस्ते (Hindi)</span>
             <span className="lang-tag tag-blue">Bonjour (French)</span>
@@ -1291,7 +1405,7 @@ export default function App() {
 
         {/* ── SECTION: FAQ ACCORDION ── */}
         <section id="faq" className="maus-section">
-          <div className="maus-section-header">
+          <div className="maus-section-header scroll-reveal">
             <span className="maus-subhead-pill">FAQ</span>
             <h2 className="maus-heading">Frequently Asked Questions</h2>
             <p className="maus-lead">
@@ -1299,7 +1413,7 @@ export default function App() {
             </p>
           </div>
 
-          <div className="faq-accordion">
+          <div className="faq-accordion scroll-reveal delay-1">
             {FAQS.map((faq, i) => {
               const isOpen = openFaq === i
               return (
@@ -1328,7 +1442,7 @@ export default function App() {
 
         {/* ── BOTTOM CTA SECTION ── */}
         <section className="maus-bottom-cta">
-          <div className="maus-cta-inner">
+          <div className="maus-cta-inner scroll-reveal reveal-scale-up">
             <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-fg mb-4">
               Type at the speed of thought.
             </h2>
@@ -1422,7 +1536,18 @@ export default function App() {
         </div>
       </footer>
 
-
+      {/* ── FLOATING SCROLL TO TOP BUTTON ── */}
+      <button
+        type="button"
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        className={`scroll-to-top-btn ${isScrolled ? 'is-visible' : ''}`}
+        title="Scroll to top"
+        aria-label="Scroll to top"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="18 15 12 9 6 15" />
+        </svg>
+      </button>
     </div>
   )
 }
