@@ -218,9 +218,7 @@ export default function SettingsScreen() {
     if (!isSearching) return true;
     return (
       m.label.toLowerCase().includes(query) ||
-      m.tagline.toLowerCase().includes(query) ||
-      m.badge.toLowerCase().includes(query) ||
-      m.targetApp.toLowerCase().includes(query) ||
+      m.shortLabel.toLowerCase().includes(query) ||
       'persona'.includes(query) ||
       'tone'.includes(query)
     );
@@ -228,9 +226,8 @@ export default function SettingsScreen() {
 
   // Section visibility checks
   const showAiPromoSection =
-    (activeCategory === 'all' || isSearching) &&
-    (!isSearching ||
-      query.includes('model') ||
+    isSearching &&
+    (query.includes('model') ||
       query.includes('engine') ||
       query.includes('groq') ||
       query.includes('deepgram') ||
@@ -468,25 +465,14 @@ export default function SettingsScreen() {
 
       {/* Fixed Sticky Header with Search & Navigation Bar */}
       <View style={[styles.stickyHeader, { paddingTop: Math.max(insets.top, 12) }]}>
-        {/* Top Row: Title, Subtitle & Edit Keys Button */}
+        {/* Top Row: Title & Subtitle */}
         <View style={styles.headerTopRow}>
-          <View style={{ flex: 1, marginRight: 10 }}>
-            <Text style={styles.headerTitle}>Preferences & Personas</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.headerTitle}>Settings</Text>
             <Text style={styles.headerSubtitle} numberOfLines={1}>
-              Tone personas, floating mic & exclusion shield
+              Assistant preferences & tone settings
             </Text>
           </View>
-          <TouchableOpacity
-            style={styles.keyManageBtn}
-            onPress={() => {
-              Haptics.selectionAsync();
-              router.push('/ai');
-            }}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="sparkles" size={13} color={Theme.colors.cyan} />
-            <Text style={styles.keyManageText}>AI Models & Keys</Text>
-          </TouchableOpacity>
         </View>
 
         {/* Live Search Input Bar */}
@@ -494,7 +480,7 @@ export default function SettingsScreen() {
           <Ionicons name="search" size={15} color={Theme.colors.textMuted} style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search engines, keys, opacity, apps..."
+            placeholder="Search settings..."
             placeholderTextColor={Theme.colors.textMuted}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -642,12 +628,8 @@ export default function SettingsScreen() {
         {showPersonasSection && (
           <>
             <View style={[styles.sectionHeader, { marginTop: showAiPromoSection ? 12 : 0 }]}>
-              <Text style={styles.sectionTitle}>Tone & Persona</Text>
-              <Text style={styles.sectionCountText}>{filteredPersonas.length} modes</Text>
+              <Text style={styles.sectionTitle}>TONE & PERSONA</Text>
             </View>
-            <Text style={styles.sectionSubtitle}>
-              Choose how OpenWhispr cleans and shapes your words before they land in your apps.
-            </Text>
 
             <View style={styles.personaGrid}>
               {filteredPersonas.map((mode) => {
@@ -662,43 +644,30 @@ export default function SettingsScreen() {
                     onPress={() => handleSelectCleanupMode(mode.id)}
                     activeOpacity={0.8}
                   >
-                    <View style={styles.personaCardHeader}>
-                      <View style={styles.personaCardTitleGroup}>
-                        <View style={[styles.personaIconBox, isActive && styles.personaIconBoxActive]}>
-                          <Ionicons
-                            name={mode.ionIcon as any}
-                            size={19}
-                            color={isActive ? Theme.colors.cyan : Theme.colors.textSecondary}
-                          />
-                        </View>
-                        <View style={{ flex: 1 }}>
-                          <View style={styles.personaCardLabelRow}>
-                            <Text
-                              style={[
-                                styles.personaCardLabel,
-                                isActive && styles.personaCardLabelActive,
-                              ]}
-                            >
-                              {mode.label}
-                            </Text>
-                            <View style={styles.personaContextBadge}>
-                              <Text style={styles.personaContextText}>{mode.badge}</Text>
-                            </View>
-                          </View>
-                          <Text style={styles.personaCardTarget}>{mode.targetApp}</Text>
-                        </View>
+                    <View style={styles.personaCardRow}>
+                      <View style={[styles.personaIconBox, isActive && styles.personaIconBoxActive]}>
+                        <Ionicons
+                          name={mode.ionIcon as any}
+                          size={18}
+                          color={isActive ? Theme.colors.cyan : Theme.colors.textSecondary}
+                        />
                       </View>
-
+                      <Text
+                        style={[
+                          styles.personaCardLabel,
+                          isActive && styles.personaCardLabelActive,
+                        ]}
+                      >
+                        {mode.label}
+                      </Text>
                       {isActive ? (
                         <View style={styles.activeTickCircle}>
-                          <Ionicons name="checkmark-sharp" size={14} color="#08080A" />
+                          <Ionicons name="checkmark-sharp" size={13} color="#08080A" />
                         </View>
                       ) : (
                         <View style={styles.inactiveTickCircle} />
                       )}
                     </View>
-
-                    <Text style={styles.personaCardTagline}>{mode.tagline}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -709,12 +678,9 @@ export default function SettingsScreen() {
         {/* SECTION 3: Capsule & Keyboard Docking */}
         {showCapsuleSection && (
           <>
-            <View style={[styles.sectionHeader, { marginTop: (showAiPromoSection || showPersonasSection) ? 24 : 0 }]}>
-              <Text style={styles.sectionTitle}>Capsule & Keyboard Docking</Text>
+            <View style={[styles.sectionHeader, { marginTop: (showAiPromoSection || showPersonasSection) ? 20 : 0 }]}>
+              <Text style={styles.sectionTitle}>CAPSULE & DOCKING</Text>
             </View>
-            <Text style={styles.sectionSubtitle}>
-              Control the floating microphone bubble, resting opacity, and smart keyboard clearance.
-            </Text>
 
             <View style={styles.cardContainer}>
               {/* Floating bubble master switch */}
@@ -725,12 +691,12 @@ export default function SettingsScreen() {
                 {settings.overlayEnabled && (
                   <View style={styles.liveServicePill}>
                     <View style={styles.pulseDot} />
-                    <Text style={styles.liveServiceText}>Running</Text>
+                    <Text style={styles.liveServiceText}>Active</Text>
                   </View>
                 )}
               </View>
               <Text style={styles.tileSubtitle}>
-                A background service that gives you hands-free dictation over any app.
+                Hands-free floating dictation button over any app.
               </Text>
             </View>
             <Switch
@@ -779,7 +745,7 @@ export default function SettingsScreen() {
                 </View>
               </View>
               <Text style={styles.tileSubtitle}>
-                Shows the floating mic above your keyboard while typing, hides when it closes.
+                Docks directly above your keyboard while typing.
               </Text>
             </View>
             <Switch
@@ -904,7 +870,7 @@ export default function SettingsScreen() {
             </View>
 
             <Text style={styles.tileSubtitle}>
-              Fine-tune idle transparency so the pill never obstructs background text. Snaps to 100% solid while recording.
+              Adjust resting transparency when idle.
             </Text>
 
             {/* Stepped Opacity Pills */}
@@ -952,33 +918,6 @@ export default function SettingsScreen() {
                 );
               })}
             </View>
-
-            {/* Live Visual Preview Card */}
-            <View style={styles.opacityPreviewCard}>
-              <Text style={styles.opacityPreviewLabel}>LIVE PREVIEW OVER BACKGROUND TEXT</Text>
-              <View style={styles.opacityPreviewMockScreen}>
-                <View style={styles.opacityMockContent}>
-                  <Text style={styles.opacityMockText}>The quick brown fox jumps over the lazy dog. Voice dictation that feels magical and seamless.</Text>
-                </View>
-                {/* Miniature Capsule Pill at exact selected opacity */}
-                <View
-                  style={[
-                    styles.previewCapsulePill,
-                    { opacity: settings.floatingBubbleOpacity ?? 0.70 },
-                  ]}
-                >
-                  <View style={styles.previewCapsuleLeft}>
-                    <Text style={styles.previewCapsuleEmoji}>✨</Text>
-                    <Text style={styles.previewCapsuleLabel}>Natural</Text>
-                    <Ionicons name="chevron-down" size={9} color="#CCCCCC" />
-                  </View>
-                  <View style={styles.previewCapsuleDivider} />
-                  <View style={styles.previewCapsuleMic}>
-                    <Ionicons name="mic" size={11} color="#000000" />
-                  </View>
-                </View>
-              </View>
-            </View>
           </View>
         </View>
       </>
@@ -987,12 +926,9 @@ export default function SettingsScreen() {
         {/* SECTION 4: Security, Shield & Apps */}
         {showShieldSection && (
           <>
-            <View style={[styles.sectionHeader, { marginTop: (showAiPromoSection || showPersonasSection || showCapsuleSection) ? 24 : 0 }]}>
-              <Text style={styles.sectionTitle}>Security, Shield & Apps</Text>
+            <View style={[styles.sectionHeader, { marginTop: (showAiPromoSection || showPersonasSection || showCapsuleSection) ? 20 : 0 }]}>
+              <Text style={styles.sectionTitle}>SECURITY & PERMISSIONS</Text>
             </View>
-            <Text style={styles.sectionSubtitle}>
-              Payment app tapjacking defense, custom app exclusions, and Android permissions.
-            </Text>
 
             <View style={styles.cardContainer}>
               {/* Auto-Persona Switching (Zero-Tap) */}
@@ -1019,12 +955,12 @@ export default function SettingsScreen() {
                       { color: (settings.autoPersonaSwitch ?? true) ? Theme.colors.green : Theme.colors.amber },
                     ]}
                   >
-                    {(settings.autoPersonaSwitch ?? true) ? '⚡ Auto-Adaptive' : 'Manual only'}
+                    {(settings.autoPersonaSwitch ?? true) ? 'Auto' : 'Manual'}
                   </Text>
                 </View>
               </View>
               <Text style={styles.tileSubtitle}>
-                Automatically detects which app is in the foreground and adapts tone & vocabulary with zero taps.
+                Automatically detects active foreground app to match tone.
               </Text>
             </View>
             <Switch
@@ -1038,46 +974,6 @@ export default function SettingsScreen() {
             />
           </View>
 
-          {/* App Mapping Grid */}
-          {(settings.autoPersonaSwitch ?? true) && (
-            <View style={styles.appMappingContainer}>
-              <Text style={styles.appMappingHeader}>INTELLIGENT APP ROUTING</Text>
-              <View style={styles.appMappingGrid}>
-                {[
-                  {
-                    icon: 'chatbubbles',
-                    persona: 'Casual Chat',
-                    apps: 'WhatsApp, Telegram, Signal, Discord, Messages',
-                    tag: 'Emoji & Slang',
-                  },
-                  {
-                    icon: 'mail',
-                    persona: 'Work Email',
-                    apps: 'Gmail, Outlook, LinkedIn, Yahoo, Spark',
-                    tag: 'Formal Polish',
-                  },
-                  {
-                    icon: 'checkbox',
-                    persona: 'Action Notes',
-                    apps: 'Notion, Google Keep, Obsidian, Todoist, Notes',
-                    tag: 'Bullet & Checkbox',
-                  },
-                ].map((item, idx) => (
-                  <View key={idx} style={styles.appMappingCard}>
-                    <View style={styles.appMappingCardTop}>
-                      <Ionicons name={item.icon as any} size={14} color="#3fae6e" />
-                      <Text style={styles.appMappingPersona}>{item.persona}</Text>
-                      <View style={styles.appMappingTagBadge}>
-                        <Text style={styles.appMappingTagText}>{item.tag}</Text>
-                      </View>
-                    </View>
-                    <Text style={styles.appMappingAppsList}>{item.apps}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          )}
-
           <View style={styles.divider} />
 
           {/* Android Quick Settings Shade Tile */}
@@ -1085,23 +981,10 @@ export default function SettingsScreen() {
             <View style={styles.tileInfo}>
               <View style={styles.tileTitleRow}>
                 <Ionicons name="albums-outline" size={17} color="#3fae6e" style={{ marginRight: 6 }} />
-                <Text style={styles.tileTitle}>Android Quick Settings Tile</Text>
-                <View
-                  style={[
-                    styles.tagBadge,
-                    {
-                      borderColor: 'rgba(147, 184, 132, 0.4)',
-                      backgroundColor: Theme.colors.greenMuted,
-                    },
-                  ]}
-                >
-                  <Text style={[styles.tagBadgeText, { color: Theme.colors.green }]}>
-                    Ready in Shade
-                  </Text>
-                </View>
+                <Text style={styles.tileTitle}>Quick Settings Tile</Text>
               </View>
               <Text style={styles.tileSubtitle}>
-                Swipe down your Android notification shade, tap Edit (pencil icon), and add the "OpenWhispr" tile for instant 1-tap floating mic control from any screen or game.
+                Available in Android notification shade for 1-tap floating mic control.
               </Text>
             </View>
           </View>
@@ -1133,12 +1016,12 @@ export default function SettingsScreen() {
                       { color: (settings.pauseOnPaymentApps ?? true) ? '#4ADE80' : Theme.colors.amber },
                     ]}
                   >
-                    {(settings.pauseOnPaymentApps ?? true) ? 'Shield Active' : 'Off'}
+                    {(settings.pauseOnPaymentApps ?? true) ? 'Active' : 'Off'}
                   </Text>
                 </View>
               </View>
               <Text style={styles.tileSubtitle}>
-                Automatically hides the floating bubble inside payment, banking, and UPI apps (Google Pay, PhonePe, Paytm, BHIM, Cash App, Chase, etc.) so they never block transactions or show screen overlay warnings.
+                Hides floating button inside banking and payment apps for security.
               </Text>
             </View>
             <Switch
@@ -1151,24 +1034,6 @@ export default function SettingsScreen() {
               thumbColor="#F7F1E6"
             />
           </View>
-
-          {/* Protected Payment Apps Showcase */}
-          {(settings.pauseOnPaymentApps ?? true) && (
-            <View style={styles.paymentAppsContainer}>
-              <View style={styles.paymentAppsHeaderRow}>
-                <Text style={styles.paymentAppsHeader}>PROTECTED PAYMENT & BANKING APPS</Text>
-                <Text style={styles.paymentAppsCount}>20+ Pre-Configured</Text>
-              </View>
-              <View style={styles.paymentChipsRow}>
-                {['Google Pay', 'PhonePe', 'Paytm', 'BHIM UPI', 'CRED', 'PayPal', 'Cash App', 'Banking Apps'].map((app, i) => (
-                  <View key={i} style={styles.paymentChip}>
-                    <Ionicons name="lock-closed" size={10} color="#4ADE80" style={{ marginRight: 4 }} />
-                    <Text style={styles.paymentChipText}>{app}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          )}
 
           <View style={styles.divider} />
 
@@ -2063,8 +1928,9 @@ const styles = StyleSheet.create({
   },
   personaCard: {
     backgroundColor: Theme.colors.cardGlass,
-    borderRadius: 18,
-    padding: 14,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     borderWidth: 1.2,
     borderColor: Theme.colors.border,
   },
@@ -2072,17 +1938,9 @@ const styles = StyleSheet.create({
     borderColor: Theme.colors.borderActive,
     backgroundColor: 'rgba(63, 174, 110, 0.05)',
   },
-  personaCardHeader: {
+  personaCardRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-  },
-  personaCardTitleGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    flex: 1,
   },
   personaIconBox: {
     width: 36,
@@ -2098,45 +1956,15 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.colors.cyanSubtle,
     borderColor: Theme.colors.borderActive,
   },
-  personaCardLabelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
   personaCardLabel: {
     color: Theme.colors.textPrimary,
     fontSize: 15,
     fontFamily: Theme.fonts.semiBold,
+    flex: 1,
+    marginLeft: 12,
   },
   personaCardLabelActive: {
     color: Theme.colors.cyanBright,
-  },
-  personaContextBadge: {
-    backgroundColor: 'rgba(255, 246, 230, 0.05)',
-    borderWidth: 1,
-    borderColor: Theme.colors.border,
-    paddingHorizontal: 6,
-    paddingVertical: 1.5,
-    borderRadius: 6,
-  },
-  personaContextText: {
-    color: Theme.colors.textMuted,
-    fontSize: 10,
-    fontFamily: Theme.fonts.mono,
-  },
-  personaCardTarget: {
-    color: Theme.colors.textMuted,
-    fontSize: 11,
-    fontFamily: Theme.fonts.regular,
-    marginTop: 1,
-  },
-  personaCardTagline: {
-    color: Theme.colors.textSecondary,
-    fontSize: 12.5,
-    fontFamily: Theme.fonts.regular,
-    lineHeight: 17,
-    marginTop: 2,
-    paddingLeft: 32,
   },
   pillButtonFive: {
     flex: 1,
@@ -2157,187 +1985,7 @@ const styles = StyleSheet.create({
     color: '#141210',
     fontFamily: Theme.fonts.semiBold,
   },
-  opacityPreviewCard: {
-    marginTop: 14,
-    backgroundColor: '#161412',
-    borderRadius: 14,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  opacityPreviewLabel: {
-    color: Theme.colors.textMuted,
-    fontSize: 9.5,
-    fontFamily: Theme.fonts.mono,
-    letterSpacing: 0.5,
-    marginBottom: 8,
-  },
-  opacityPreviewMockScreen: {
-    position: 'relative',
-    height: 64,
-    backgroundColor: '#0D0C0A',
-    borderRadius: 10,
-    padding: 8,
-    justifyContent: 'center',
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.04)',
-  },
-  opacityMockContent: {
-    opacity: 0.55,
-  },
-  opacityMockText: {
-    color: '#D4CDC3',
-    fontSize: 10,
-    lineHeight: 14,
-    fontFamily: Theme.fonts.mono,
-  },
-  previewCapsulePill: {
-    position: 'absolute',
-    right: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1E1E20',
-    borderRadius: 20,
-    borderWidth: 1.5,
-    borderColor: '#38383A',
-    paddingHorizontal: 3,
-    paddingVertical: 3,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
-    elevation: 6,
-  },
-  previewCapsuleLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 6,
-    paddingVertical: 4,
-    gap: 4,
-  },
-  previewCapsuleEmoji: {
-    fontSize: 11,
-  },
-  previewCapsuleLabel: {
-    color: '#FFFFFF',
-    fontSize: 11,
-    fontFamily: Theme.fonts.semiBold,
-  },
-  previewCapsuleDivider: {
-    width: 1,
-    height: 14,
-    backgroundColor: '#38383A',
-    marginHorizontal: 1,
-  },
-  previewCapsuleMic: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 2,
-  },
-  appMappingContainer: {
-    marginTop: 10,
-    backgroundColor: '#181512',
-    borderRadius: 14,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(63, 174, 110, 0.15)',
-  },
-  appMappingHeader: {
-    color: '#3fae6e',
-    fontSize: 10,
-    fontFamily: Theme.fonts.mono,
-    letterSpacing: 0.5,
-    marginBottom: 8,
-  },
-  appMappingGrid: {
-    gap: 8,
-  },
-  appMappingCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: 10,
-    padding: 9,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  appMappingCardTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 3,
-  },
-  appMappingPersona: {
-    color: Theme.colors.textPrimary,
-    fontSize: 12,
-    fontFamily: Theme.fonts.semiBold,
-  },
-  appMappingTagBadge: {
-    marginLeft: 'auto',
-    backgroundColor: 'rgba(63, 174, 110, 0.12)',
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    borderRadius: 4,
-  },
-  appMappingTagText: {
-    color: '#3fae6e',
-    fontSize: 9.5,
-    fontFamily: Theme.fonts.mono,
-  },
-  appMappingAppsList: {
-    color: Theme.colors.textMuted,
-    fontSize: 10.5,
-    fontFamily: Theme.fonts.regular,
-    lineHeight: 14,
-  },
-  paymentAppsContainer: {
-    marginTop: 10,
-    backgroundColor: '#131A14',
-    borderRadius: 14,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(74, 222, 128, 0.2)',
-  },
-  paymentAppsHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  paymentAppsHeader: {
-    color: '#4ADE80',
-    fontSize: 10,
-    fontFamily: Theme.fonts.mono,
-    letterSpacing: 0.5,
-  },
-  paymentAppsCount: {
-    color: '#86EFAC',
-    fontSize: 9.5,
-    fontFamily: Theme.fonts.mono,
-  },
-  paymentChipsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  paymentChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(74, 222, 128, 0.1)',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(74, 222, 128, 0.25)',
-  },
-  paymentChipText: {
-    color: '#D1FAE5',
-    fontSize: 10.5,
-    fontFamily: Theme.fonts.medium,
-  },
+
   manageExcludedBtn: {
     flexDirection: 'row',
     alignItems: 'center',

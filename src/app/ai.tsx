@@ -229,11 +229,23 @@ export default function AiSetupScreen() {
   // Active Engine tab switcher ('stt' | 'llm')
   const [activeEngineTab, setActiveEngineTab] = useState<'stt' | 'llm'>('stt');
 
+  // Highlighted API key field state for auto-scroll/focus visual guidance
+  const [highlightedKey, setHighlightedKey] = useState<string | null>(null);
+
+  const triggerKeyHighlight = (provider: string) => {
+    setHighlightedKey(provider);
+    setTimeout(() => {
+      setHighlightedKey((cur) => (cur === provider ? null : cur));
+    }, 4500);
+  };
+
   const handleSelectStt = async (provider: SttProvider, name: string, isConfigured: boolean) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     await handleUpdate({ sttProvider: provider });
     if (!isConfigured) {
-      showToast(`${name} selected as active STT. Please enter API key below.`);
+      setExpandedCards((prev) => ({ ...prev, [provider]: true }));
+      triggerKeyHighlight(provider);
+      showToast(`${name} selected. Please enter API key below to activate.`);
     } else {
       showToast(`${name} is now your active Speech-to-Text engine`);
     }
@@ -243,9 +255,47 @@ export default function AiSetupScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     await handleUpdate({ llmProvider: provider });
     if (!isConfigured) {
-      showToast(`${name} selected as active LLM. Please enter API key below.`);
+      setExpandedCards((prev) => ({ ...prev, [provider]: true }));
+      triggerKeyHighlight(provider);
+      showToast(`${name} selected. Please enter API key below to activate.`);
     } else {
       showToast(`${name} is now your active Cleanup LLM engine`);
+    }
+  };
+
+  const handleSelectModelPill = async (
+    provider: 'surplus' | 'groq' | 'gemini' | 'deepgram' | 'openai' | 'custom',
+    type: 'stt' | 'llm',
+    patch: Partial<AppSettings>,
+    providerName: string,
+    modelName: string
+  ) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    let isConfigured = false;
+    if (provider === 'surplus') isConfigured = !!settings.surplusApiKey?.trim();
+    else if (provider === 'groq') isConfigured = !!settings.groqApiKey?.trim();
+    else if (provider === 'gemini') isConfigured = !!settings.geminiApiKey?.trim();
+    else if (provider === 'deepgram') isConfigured = !!settings.deepgramApiKey?.trim();
+    else if (provider === 'openai') isConfigured = !!settings.openaiApiKey?.trim();
+    else if (provider === 'custom') {
+      isConfigured =
+        type === 'stt' ? !!settings.customSttBaseUrl?.trim() : !!settings.customLlmBaseUrl?.trim();
+    }
+
+    const fullPatch: Partial<AppSettings> = {
+      ...patch,
+      ...(type === 'stt' ? { sttProvider: provider as SttProvider } : { llmProvider: provider as LlmProvider }),
+    };
+
+    await handleUpdate(fullPatch);
+    setExpandedCards((prev) => ({ ...prev, [provider]: true }));
+
+    if (!isConfigured) {
+      triggerKeyHighlight(provider);
+      showToast(`${modelName} selected. Please enter ${providerName} API key.`);
+    } else {
+      showToast(`${modelName} selected as active ${type === 'stt' ? 'STT' : 'LLM'}`);
     }
   };
 
@@ -255,6 +305,21 @@ export default function AiSetupScreen() {
       const s = await loadSettings();
       setSettings(s);
       setHasLoaded(true);
+      // Auto-open active provider if missing API key
+      const activeSttKey =
+        s.sttProvider === 'surplus'
+          ? s.surplusApiKey
+          : s.sttProvider === 'groq'
+          ? s.groqApiKey
+          : s.sttProvider === 'deepgram'
+          ? s.deepgramApiKey
+          : s.sttProvider === 'openai'
+          ? s.openaiApiKey
+          : s.customSttBaseUrl;
+      if (!activeSttKey?.trim()) {
+        setExpandedCards((prev) => ({ ...prev, [s.sttProvider]: true }));
+        triggerKeyHighlight(s.sttProvider);
+      }
     } catch (err) {
       console.error('Failed to load settings in AI tab:', err);
     }
@@ -420,33 +485,48 @@ export default function AiSetupScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.statusChipsScroll}
         >
-          {configuredProviders.map((p) => (
-            <View
-              key={p.name}
-              style={[
-                styles.statusChip,
-                p.configured && styles.statusChipActive,
-              ]}
-            >
-              <View
+          {configuredProviders.map((p) => {
+            const cardKey = p.name.toLowerCase();
+            return (
+              <TouchableOpacity
+                key={p.name}
                 style={[
-                  styles.statusChipDot,
-                  { backgroundColor: p.configured ? '#93B884' : 'rgba(255, 255, 255, 0.2)' },
+                  styles.statusChip,
+                  p.configured && styles.statusChipActive,
+                  expandedCards[cardKey] && styles.statusChipExpanded,
                 ]}
-              />
-              <Text
-                style={[
-                  styles.statusChipText,
-                  p.configured && styles.statusChipTextActive,
-                ]}
+                onPress={() => {
+                  Haptics.selectionAsync();
+                  setExpandedCards((prev) => ({ ...prev, [cardKey]: !prev[cardKey] }));
+                  if (!p.configured) {
+                    triggerKeyHighlight(cardKey);
+                    showToast(`Configure ${p.name} API key below`);
+                  }
+                }}
+                activeOpacity={0.7}
               >
-                {p.name}
-              </Text>
-              {p.configured && (
-                <Ionicons name="checkmark" size={11} color="#93B884" style={{ marginLeft: 2 }} />
-              )}
-            </View>
-          ))}
+                <View
+                  style={[
+                    styles.statusChipDot,
+                    { backgroundColor: p.configured ? '#93B884' : 'rgba(255, 255, 255, 0.2)' },
+                  ]}
+                />
+                <Text
+                  style={[
+                    styles.statusChipText,
+                    p.configured && styles.statusChipTextActive,
+                  ]}
+                >
+                  {p.name}
+                </Text>
+                {p.configured ? (
+                  <Ionicons name="checkmark" size={11} color="#93B884" style={{ marginLeft: 2 }} />
+                ) : (
+                  <Ionicons name="key-outline" size={10} color={Theme.colors.amber} style={{ marginLeft: 2 }} />
+                )}
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
       </View>
 
@@ -466,7 +546,17 @@ export default function AiSetupScreen() {
 
         {/* ACTIVE ENGINES SUMMARY BAR */}
         <View style={styles.activeEnginesBarMerged}>
-          <View style={styles.activeEngineCol}>
+          <TouchableOpacity
+            style={styles.activeEngineCol}
+            onPress={() => {
+              const prov = settings.sttProvider;
+              setExpandedCards((prev) => ({ ...prev, [prov]: true }));
+              const isConfig = configuredProviders.find(p => p.name.toLowerCase() === prov)?.configured;
+              if (!isConfig) triggerKeyHighlight(prov);
+              Haptics.selectionAsync();
+            }}
+            activeOpacity={0.7}
+          >
             <Text style={styles.activeEngineLabel}>ACTIVE SPEECH-TO-TEXT</Text>
             <View style={styles.activeEngineValRow}>
               <View style={[styles.activeStatusDot, { backgroundColor: '#93B884' }]} />
@@ -474,9 +564,19 @@ export default function AiSetupScreen() {
                 {getActiveSttLabel(settings)}
               </Text>
             </View>
-          </View>
+          </TouchableOpacity>
           <View style={styles.activeEnginesDivider} />
-          <View style={styles.activeEngineCol}>
+          <TouchableOpacity
+            style={styles.activeEngineCol}
+            onPress={() => {
+              const prov = settings.llmProvider;
+              setExpandedCards((prev) => ({ ...prev, [prov]: true }));
+              const isConfig = configuredProviders.find(p => p.name.toLowerCase() === prov)?.configured;
+              if (!isConfig) triggerKeyHighlight(prov);
+              Haptics.selectionAsync();
+            }}
+            activeOpacity={0.7}
+          >
             <Text style={styles.activeEngineLabel}>ACTIVE CLEANUP LLM</Text>
             <View style={styles.activeEngineValRow}>
               <View style={[styles.activeStatusDot, { backgroundColor: '#3fae6e' }]} />
@@ -484,7 +584,7 @@ export default function AiSetupScreen() {
                 {getActiveLlmLabel(settings)}
               </Text>
             </View>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* 1. SURPLUS INTELLIGENCE */}
@@ -591,7 +691,13 @@ export default function AiSetupScreen() {
               </TouchableOpacity>
 
               <Text style={styles.inputLabel}>SURPLUS API KEY</Text>
-              <View style={styles.inputWrap}>
+              {highlightedKey === 'surplus' && !settings.surplusApiKey?.trim() && (
+                <View style={styles.keyRequiredBadge}>
+                  <Ionicons name="alert-circle-outline" size={13} color="#FBBF24" />
+                  <Text style={styles.keyRequiredText}>API key required — paste or enter your Surplus key</Text>
+                </View>
+              )}
+              <View style={[styles.inputWrap, highlightedKey === 'surplus' && styles.inputWrapHighlighted]}>
                 <TextInput
                   style={styles.input}
                   value={settings.surplusApiKey}
@@ -637,7 +743,15 @@ export default function AiSetupScreen() {
                     <TouchableOpacity
                       key={m.id}
                       style={[styles.modelPill, isSelected && styles.modelPillActive]}
-                      onPress={() => handleUpdate({ surplusSttModel: m.id })}
+                      onPress={() =>
+                        handleSelectModelPill(
+                          'surplus',
+                          'stt',
+                          { surplusSttModel: m.id },
+                          'Surplus',
+                          m.name.replace(' (Venice)', '')
+                        )
+                      }
                       activeOpacity={0.7}
                     >
                       <Text style={[styles.modelPillText, isSelected && styles.modelPillTextActive]}>
@@ -716,7 +830,15 @@ export default function AiSetupScreen() {
                     <TouchableOpacity
                       key={m.id}
                       style={[styles.modelPill, isSelected && styles.modelPillActive]}
-                      onPress={() => handleUpdate({ surplusLlmModel: m.id })}
+                      onPress={() =>
+                        handleSelectModelPill(
+                          'surplus',
+                          'llm',
+                          { surplusLlmModel: m.id },
+                          'Surplus',
+                          m.name
+                        )
+                      }
                       activeOpacity={0.7}
                     >
                       <Text style={[styles.modelPillText, isSelected && styles.modelPillTextActive]}>
@@ -935,7 +1057,13 @@ export default function AiSetupScreen() {
 
               {/* Key Input */}
               <Text style={styles.inputLabel}>GROQ API KEY</Text>
-              <View style={styles.inputWrap}>
+              {highlightedKey === 'groq' && !settings.groqApiKey?.trim() && (
+                <View style={styles.keyRequiredBadge}>
+                  <Ionicons name="alert-circle-outline" size={13} color="#FBBF24" />
+                  <Text style={styles.keyRequiredText}>API key required — paste or enter your Groq key</Text>
+                </View>
+              )}
+              <View style={[styles.inputWrap, highlightedKey === 'groq' && styles.inputWrapHighlighted]}>
                 <TextInput
                   style={styles.input}
                   value={settings.groqApiKey}
@@ -981,7 +1109,15 @@ export default function AiSetupScreen() {
                     <TouchableOpacity
                       key={m.id}
                       style={[styles.modelPill, isSelected && styles.modelPillActive]}
-                      onPress={() => handleUpdate({ groqWhisperModel: m.id })}
+                      onPress={() =>
+                        handleSelectModelPill(
+                          'groq',
+                          'stt',
+                          { groqWhisperModel: m.id },
+                          'Groq',
+                          m.name.replace('Whisper ', '')
+                        )
+                      }
                       activeOpacity={0.7}
                     >
                       <Text style={[styles.modelPillText, isSelected && styles.modelPillTextActive]}>
@@ -1060,7 +1196,15 @@ export default function AiSetupScreen() {
                     <TouchableOpacity
                       key={m.id}
                       style={[styles.modelPill, isSelected && styles.modelPillActive]}
-                      onPress={() => handleUpdate({ groqLlmModel: m.id })}
+                      onPress={() =>
+                        handleSelectModelPill(
+                          'groq',
+                          'llm',
+                          { groqLlmModel: m.id },
+                          'Groq',
+                          m.name
+                        )
+                      }
                       activeOpacity={0.7}
                     >
                       <Text style={[styles.modelPillText, isSelected && styles.modelPillTextActive]}>
@@ -1254,7 +1398,13 @@ export default function AiSetupScreen() {
               </TouchableOpacity>
 
               <Text style={styles.inputLabel}>GEMINI API KEY</Text>
-              <View style={styles.inputWrap}>
+              {highlightedKey === 'gemini' && !settings.geminiApiKey?.trim() && (
+                <View style={styles.keyRequiredBadge}>
+                  <Ionicons name="alert-circle-outline" size={13} color="#FBBF24" />
+                  <Text style={styles.keyRequiredText}>API key required — paste or enter your Gemini key</Text>
+                </View>
+              )}
+              <View style={[styles.inputWrap, highlightedKey === 'gemini' && styles.inputWrapHighlighted]}>
                 <TextInput
                   style={styles.input}
                   value={settings.geminiApiKey}
@@ -1305,7 +1455,15 @@ export default function AiSetupScreen() {
                     <TouchableOpacity
                       key={m.id}
                       style={[styles.modelPill, isSelected && styles.modelPillActive]}
-                      onPress={() => handleUpdate({ geminiModel: m.id })}
+                      onPress={() =>
+                        handleSelectModelPill(
+                          'gemini',
+                          'llm',
+                          { geminiModel: m.id },
+                          'Gemini',
+                          m.label
+                        )
+                      }
                       activeOpacity={0.7}
                     >
                       <Text style={[styles.modelPillText, isSelected && styles.modelPillTextActive]}>
@@ -1522,7 +1680,13 @@ export default function AiSetupScreen() {
               </TouchableOpacity>
 
               <Text style={styles.inputLabel}>DEEPGRAM API KEY</Text>
-              <View style={styles.inputWrap}>
+              {highlightedKey === 'deepgram' && !settings.deepgramApiKey?.trim() && (
+                <View style={styles.keyRequiredBadge}>
+                  <Ionicons name="alert-circle-outline" size={13} color="#FBBF24" />
+                  <Text style={styles.keyRequiredText}>API key required — paste or enter your Deepgram key</Text>
+                </View>
+              )}
+              <View style={[styles.inputWrap, highlightedKey === 'deepgram' && styles.inputWrapHighlighted]}>
                 <TextInput
                   style={styles.input}
                   value={settings.deepgramApiKey}
@@ -1574,7 +1738,15 @@ export default function AiSetupScreen() {
                     <TouchableOpacity
                       key={m.id}
                       style={[styles.modelPill, isSelected && styles.modelPillActive]}
-                      onPress={() => handleUpdate({ deepgramModel: m.id })}
+                      onPress={() =>
+                        handleSelectModelPill(
+                          'deepgram',
+                          'stt',
+                          { deepgramModel: m.id },
+                          'Deepgram',
+                          m.label
+                        )
+                      }
                       activeOpacity={0.7}
                     >
                       <Text style={[styles.modelPillText, isSelected && styles.modelPillTextActive]}>
@@ -1819,7 +1991,13 @@ export default function AiSetupScreen() {
               </TouchableOpacity>
 
               <Text style={styles.inputLabel}>OPENAI API KEY</Text>
-              <View style={styles.inputWrap}>
+              {highlightedKey === 'openai' && !settings.openaiApiKey?.trim() && (
+                <View style={styles.keyRequiredBadge}>
+                  <Ionicons name="alert-circle-outline" size={13} color="#FBBF24" />
+                  <Text style={styles.keyRequiredText}>API key required — paste or enter your OpenAI key</Text>
+                </View>
+              )}
+              <View style={[styles.inputWrap, highlightedKey === 'openai' && styles.inputWrapHighlighted]}>
                 <TextInput
                   style={styles.input}
                   value={settings.openaiApiKey}
@@ -1865,7 +2043,15 @@ export default function AiSetupScreen() {
                     <TouchableOpacity
                       key={m}
                       style={[styles.modelPill, isSelected && styles.modelPillActive]}
-                      onPress={() => handleUpdate({ openaiWhisperModel: m })}
+                      onPress={() =>
+                        handleSelectModelPill(
+                          'openai',
+                          'stt',
+                          { openaiWhisperModel: m },
+                          'OpenAI',
+                          `${m} (Official)`
+                        )
+                      }
                       activeOpacity={0.7}
                     >
                       <Text style={[styles.modelPillText, isSelected && styles.modelPillTextActive]}>
@@ -1951,7 +2137,15 @@ export default function AiSetupScreen() {
                     <TouchableOpacity
                       key={m.id}
                       style={[styles.modelPill, isSelected && styles.modelPillActive]}
-                      onPress={() => handleUpdate({ openaiLlmModel: m.id })}
+                      onPress={() =>
+                        handleSelectModelPill(
+                          'openai',
+                          'llm',
+                          { openaiLlmModel: m.id },
+                          'OpenAI',
+                          m.label
+                        )
+                      }
                       activeOpacity={0.7}
                     >
                       <Text style={[styles.modelPillText, isSelected && styles.modelPillTextActive]}>
@@ -2189,7 +2383,13 @@ export default function AiSetupScreen() {
           {expandedCards.custom && (
             <View style={styles.cardExpandedSection}>
               <Text style={styles.inputLabel}>LLM BASE URL (OPENAI COMPATIBLE)</Text>
-              <View style={styles.inputWrap}>
+              {highlightedKey === 'custom' && !settings.customLlmBaseUrl?.trim() && (
+                <View style={styles.keyRequiredBadge}>
+                  <Ionicons name="alert-circle-outline" size={13} color="#FBBF24" />
+                  <Text style={styles.keyRequiredText}>Endpoint URL required — enter your server URL</Text>
+                </View>
+              )}
+              <View style={[styles.inputWrap, highlightedKey === 'custom' && styles.inputWrapHighlighted]}>
                 <TextInput
                   style={styles.input}
                   value={settings.customLlmBaseUrl}
@@ -2453,6 +2653,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(147, 184, 132, 0.08)',
     borderColor: 'rgba(147, 184, 132, 0.3)',
   },
+  statusChipExpanded: {
+    borderColor: Theme.colors.cyan,
+  },
   statusChipDot: {
     width: 5,
     height: 5,
@@ -2598,6 +2801,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     height: 44,
     marginBottom: 14,
+  },
+  inputWrapHighlighted: {
+    borderColor: '#F59E0B',
+    borderWidth: 1.5,
+    backgroundColor: 'rgba(245, 158, 11, 0.08)',
+  },
+  keyRequiredBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.35)',
+  },
+  keyRequiredText: {
+    color: '#FBBF24',
+    fontSize: 11,
+    fontFamily: Theme.fonts.medium,
   },
   input: {
     flex: 1,

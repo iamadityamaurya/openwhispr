@@ -599,7 +599,6 @@ export default function DictationScreen() {
               <Ionicons name="sparkles" size={12} color={Theme.colors.cyan} />
               <Text style={styles.personaSectionTitle}>TONE & PERSONA</Text>
             </View>
-            <Text style={styles.personaActiveTag}>{currentPersona.targetApp}</Text>
           </View>
 
           <ScrollView
