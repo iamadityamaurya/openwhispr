@@ -399,11 +399,11 @@ export default function App() {
         <div className="maus-header-inner">
           <a href="#" className="maus-brand">
             <span className="maus-brand-icon">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="2" y="6" width="20" height="12" rx="6" />
-                <circle cx="17" cy="12" r="3" fill="currentColor" />
-                <path d="M7 10v4" />
-              </svg>
+              <img
+                src="/openwhisper-logo.png"
+                alt="OpenWhispr Logo"
+                className="maus-brand-img"
+              />
             </span>
             <span className="maus-brand-text">OpenWhispr</span>
             <span className="maus-brand-badge font-mono">Android 14+</span>
@@ -1423,7 +1423,12 @@ export default function App() {
       {/* ── MINIMALIST FOOTER ── */}
       <footer className="maus-footer">
         <div className="maus-footer-inner">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
+            <img
+              src="/openwhisper-logo.png"
+              alt="OpenWhispr Logo"
+              className="footer-brand-img"
+            />
             <span className="text-fg font-semibold">OpenWhispr</span>
             <span className="text-muted text-xs font-mono">• MIT License</span>
           </div>
