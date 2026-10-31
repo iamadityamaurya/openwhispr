@@ -745,6 +745,7 @@ body {
   align-items: center;
   gap: 8px;
   padding: 12px 22px;
+  border-radius: 999px;
   color: var(--bg);
   text-decoration: none;
   font-size: 14px;
@@ -752,6 +753,12 @@ body {
   background: var(--fg);
   border: none;
   cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.hero-btn-primary:hover {
+  transform: translateY(-1px);
+  opacity: 0.92;
 }
 
 .hero-btn-dropdown {
@@ -1831,6 +1838,192 @@ body {
   border-radius: 14px;
   background: #ffffff;
   border: 1px solid var(--line);
+}
+
+/* ==========================================================================
+   DIRECT ON-SCREEN QR CODE COMPONENTS (Hero & Bottom Section)
+   ========================================================================== */
+.hero-onscreen-qr-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  max-width: 540px;
+  margin: 14px auto 14px;
+  padding: 16px 20px;
+  border-radius: 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--line-strong);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  position: relative;
+  text-align: left;
+}
+
+@media (min-width: 580px) {
+  .hero-onscreen-qr-card {
+    flex-direction: row;
+    align-items: center;
+    gap: 22px;
+    padding: 18px 22px;
+  }
+}
+
+.hero-onscreen-qr-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.12), 0 0 20px var(--accent-subtle);
+  transform: translateY(-2px);
+}
+
+.hero-qr-media {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+
+.hero-qr-box {
+  padding: 8px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1.5px solid var(--line-strong);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.hero-qr-box:hover {
+  transform: scale(1.04);
+}
+
+.hero-qr-caption {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--fg-muted);
+  font-family: var(--font-mono);
+}
+
+.hero-qr-pulse {
+  width: 6.5px;
+  height: 6.5px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+  animation: qr-pulse-glow 2s infinite ease-in-out;
+}
+
+@keyframes qr-pulse-glow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+.hero-qr-details {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+@media (min-width: 580px) {
+  .hero-qr-details {
+    align-items: flex-start;
+    text-align: left;
+  }
+}
+
+.hero-qr-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.hero-qr-pill {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border: 1px solid rgba(var(--accent-rgb), 0.25);
+  font-family: var(--font-mono);
+}
+
+.hero-qr-version {
+  font-size: 11px;
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.hero-qr-size {
+  font-size: 11px;
+  color: var(--fg-muted);
+}
+
+.hero-qr-heading {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--fg);
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+
+.hero-qr-desc {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--fg-muted);
+  margin-bottom: 12px;
+}
+
+.hero-qr-btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+@media (min-width: 580px) {
+  .hero-qr-btn-group {
+    justify-content: flex-start;
+  }
+}
+
+.hero-qr-filesize {
+  font-size: 11px;
+  opacity: 0.75;
+  margin-left: 2px;
+}
+
+.bottom-onscreen-qr-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  max-width: 580px;
+  margin: 0 auto;
+  padding: 22px 26px;
+  border-radius: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--line-strong);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
+  text-align: left;
+}
+
+@media (min-width: 580px) {
+  .bottom-onscreen-qr-card {
+    flex-direction: row;
+    gap: 24px;
+  }
 }
 
 /* ==========================================================================

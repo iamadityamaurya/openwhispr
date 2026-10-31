@@ -233,8 +233,6 @@ export default function App() {
   // FAQ open item
   const [openFaq, setOpenFaq] = useState(0)
 
-  // QR Modal
-  const [showQrModal, setShowQrModal] = useState(false)
   const [copiedKey, setCopiedKey] = useState(false)
 
   // Animated letter wobble triggers
@@ -354,15 +352,15 @@ export default function App() {
               <span className="font-mono">★ Star</span>
             </a>
 
-            <button
-              onClick={() => setShowQrModal(true)}
+            <a
+              href="#install-qr"
               className="maus-btn-pill"
             >
               <span>Download APK</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 5v14M19 12l-7 7-7-7" />
               </svg>
-            </button>
+            </a>
           </div>
         </div>
       </header>
@@ -568,45 +566,61 @@ export default function App() {
               No filler words. Zero tap persona switching.
             </p>
 
-            {/* Action Buttons Row */}
-            <div className="hero-cta-row">
-              <div className="hero-split-btn">
-                <a
-                  href={DOWNLOAD_URL}
-                  className="hero-btn-primary"
-                  download
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="7 10 12 15 17 10" />
-                    <line x1="12" y1="15" x2="12" y2="3" />
-                  </svg>
-                  <span>Download APK (Free)</span>
-                </a>
-                <button
-                  type="button"
-                  onClick={() => setShowQrModal(true)}
-                  className="hero-btn-dropdown"
-                  title="Scan QR Code to install"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <rect x="3" y="3" width="7" height="7" rx="1" />
-                    <rect x="14" y="3" width="7" height="7" rx="1" />
-                    <rect x="14" y="14" width="7" height="7" rx="1" />
-                    <rect x="3" y="14" width="7" height="7" rx="1" />
-                  </svg>
-                </button>
+            {/* Direct On-Screen QR Code + Download Card */}
+            <div id="install-qr" className="hero-onscreen-qr-card">
+              <div className="hero-qr-media">
+                <div className="hero-qr-box">
+                  <QRCode
+                    value={DOWNLOAD_URL}
+                    size={112}
+                    bgColor="#FFFFFF"
+                    fgColor="#000000"
+                    level="M"
+                  />
+                </div>
+                <div className="hero-qr-caption">
+                  <span className="hero-qr-pulse" />
+                  <span>Scan to Sideload</span>
+                </div>
               </div>
 
-              <a
-                href="#preview"
-                className="hero-btn-secondary"
-              >
-                <span>Interactive Preview</span>
-                <span className="font-mono text-xs px-2 py-0.5 rounded-full bg-accent-subtle text-accent font-semibold">
-                  Live Demo
-                </span>
-              </a>
+              <div className="hero-qr-details">
+                <div className="hero-qr-badge-row">
+                  <span className="hero-qr-pill">OFFICIAL RELEASE</span>
+                  <span className="hero-qr-version font-mono">v1.0.0 APK</span>
+                  <span className="hero-qr-size font-mono">106 MB</span>
+                </div>
+
+                <h3 className="hero-qr-heading">Scan with your phone camera</h3>
+                <p className="hero-qr-desc">
+                  Point any Android camera or Google Lens at this code to install OpenWhispr directly on your device.
+                </p>
+
+                <div className="hero-qr-btn-group">
+                  <a
+                    href={DOWNLOAD_URL}
+                    className="hero-btn-primary"
+                    download
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    <span>Direct Download APK</span>
+                  </a>
+
+                  <a
+                    href="#preview"
+                    className="hero-btn-secondary"
+                  >
+                    <span>Interactive Preview</span>
+                    <span className="font-mono text-xs px-2 py-0.5 rounded-full bg-accent-subtle text-accent font-semibold">
+                      Live
+                    </span>
+                  </a>
+                </div>
+              </div>
             </div>
 
             <p className="hero-foot-note">
@@ -1162,27 +1176,55 @@ export default function App() {
               Join developers, founders, and professionals speaking freely on Android without filler words. Free, open source, and privacy first.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a
-                href={DOWNLOAD_URL}
-                className="hero-btn-primary"
-                download
-              >
-                <span>Download APK (Direct)</span>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="7 10 12 15 17 10" />
-                  <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
-              </a>
+            <div className="bottom-onscreen-qr-card">
+              <div className="hero-qr-media">
+                <div className="hero-qr-box">
+                  <QRCode
+                    value={DOWNLOAD_URL}
+                    size={118}
+                    bgColor="#FFFFFF"
+                    fgColor="#000000"
+                    level="M"
+                  />
+                </div>
+                <div className="hero-qr-caption">
+                  <span className="hero-qr-pulse" />
+                  <span>Scan with Phone</span>
+                </div>
+              </div>
 
-              <button
-                type="button"
-                onClick={() => setShowQrModal(true)}
-                className="hero-btn-secondary"
-              >
-                <span>Scan QR for Phone</span>
-              </button>
+              <div className="hero-qr-details">
+                <div className="hero-qr-badge-row">
+                  <span className="hero-qr-pill">DIRECT SIDELOAD</span>
+                  <span className="hero-qr-version font-mono">v1.0.0 Production</span>
+                </div>
+                <h3 className="hero-qr-heading">Install OpenWhispr in seconds</h3>
+                <p className="hero-qr-desc">
+                  Point any phone camera or Google Lens here to download and install the official APK directly, or click below.
+                </p>
+
+                <div className="hero-qr-btn-group">
+                  <a
+                    href={DOWNLOAD_URL}
+                    className="hero-btn-primary"
+                    download
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    <span>Download APK (106 MB)</span>
+                  </a>
+                  <button
+                    type="button"
+                    onClick={handleCopyInstall}
+                    className="hero-btn-secondary text-xs"
+                  >
+                    {copiedKey ? '✓ Copied Git URL' : 'Copy Git Repository URL'}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -1220,56 +1262,7 @@ export default function App() {
         </div>
       </footer>
 
-      {/* ── QR CODE MODAL ── */}
-      {showQrModal && (
-        <div className="maus-modal-overlay" onClick={() => setShowQrModal(false)}>
-          <div className="maus-modal-card" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              className="maus-modal-close"
-              onClick={() => setShowQrModal(false)}
-            >
-              ✕
-            </button>
-            <div className="text-center mb-6">
-              <span className="maus-subhead-pill">ANDROID SIDELOAD</span>
-              <h3 className="text-xl font-bold text-fg mt-2">Scan with your phone</h3>
-              <p className="text-xs text-muted mt-1">
-                Point your Android camera at the QR code to download the latest release APK directly.
-              </p>
-            </div>
 
-            <div className="qr-container">
-              <div className="qr-box">
-                <QRCode
-                  value={DOWNLOAD_URL}
-                  size={190}
-                  bgColor="#FFFFFF"
-                  fgColor="#000000"
-                  level="M"
-                />
-              </div>
-            </div>
-
-            <div className="mt-6 flex flex-col gap-2">
-              <a
-                href={DOWNLOAD_URL}
-                className="hero-btn-primary w-full justify-center"
-                download
-              >
-                Direct Download APK
-              </a>
-              <button
-                type="button"
-                onClick={handleCopyInstall}
-                className="hero-btn-secondary w-full justify-center text-xs"
-              >
-                {copiedKey ? '✓ Copied Git URL' : 'Copy Git Repository URL'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
