@@ -181,14 +181,6 @@ const FEATURES = [
     badge: 'Secure Enclave',
     badgeColor: 'coral',
   },
-  {
-    num: '07',
-    title: 'Payment App Auto-Shield',
-    subtitle: 'Tapjacking Protection',
-    desc: 'Auto-hides inside banking & UPI apps so overlays never block payments.',
-    badge: 'Payment Safe',
-    badgeColor: 'green',
-  },
 ]
 
 // Real STT & LLM Engines supported in api.ts
