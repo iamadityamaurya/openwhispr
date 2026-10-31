@@ -27,6 +27,15 @@ const PERSONAS = [
     color: '#009957',
     colorLight: 'var(--color-green-light)',
     raw: 'um so can you uh send me the project report by thursday wait no friday period',
+    rawParts: [
+      { text: 'um', isRemoved: true },
+      { text: ' so can you ' },
+      { text: 'uh', isRemoved: true },
+      { text: ' send me the project report by ' },
+      { text: 'thursday wait no', isRemoved: true },
+      { text: ' friday' },
+      { text: ' period', isRemoved: true },
+    ],
     cleaned: 'Can you send me the project report by Friday.',
     removed: ['um', 'uh', 'thursday wait no', 'period'],
     added: ['Punctuation conversion', 'Self-correction handling', 'Preserved speaker cadence'],
@@ -42,6 +51,16 @@ const PERSONAS = [
     color: '#009957',
     colorLight: 'var(--color-green-light)',
     raw: 'hey basically yeah are we still like meeting up at 3pm or are you gonna be late haha thumbs up',
+    rawParts: [
+      { text: 'hey ' },
+      { text: 'basically yeah', isRemoved: true },
+      { text: ' are we still ' },
+      { text: 'like', isRemoved: true },
+      { text: ' meeting up at 3pm or are you gonna be late ' },
+      { text: 'haha', isRemoved: true },
+      { text: ' ' },
+      { text: 'thumbs up', isRemoved: true },
+    ],
     cleaned: 'Hey! Are we still meeting up at 3:00 PM or are you gonna be late? 😂 👍',
     removed: ['basically yeah', 'like', 'haha', 'thumbs up'],
     added: ['Conversational warmth', '3:00 PM time format', 'Natural emoji conversion 😂 👍'],
@@ -57,6 +76,13 @@ const PERSONAS = [
     color: '#377FE6',
     colorLight: 'var(--color-blue-light)',
     raw: 'hi team uh quick update on the q3 deployment we need to kinda hold off until engineering merges the security fixes best regards',
+    rawParts: [
+      { text: 'hi team ' },
+      { text: 'uh', isRemoved: true },
+      { text: ' quick update on the q3 deployment we need to ' },
+      { text: 'kinda', isRemoved: true },
+      { text: ' hold off until engineering merges the security fixes best regards' },
+    ],
     cleaned: 'Hi Team,\n\nQuick update on the Q3 deployment: we need to hold off until Engineering merges the security fixes.\n\nBest regards,',
     removed: ['uh', 'kinda'],
     added: ['Executive paragraph structure', 'Capitalized Q3 & Engineering', 'Professional salutation & sign-off'],
@@ -72,7 +98,15 @@ const PERSONAS = [
     color: '#E78531',
     colorLight: 'var(--color-orange-light)',
     raw: 'okay so action items first implement biometric auth second adjust keyboard clearance to 48dp and submit release apk by friday 5pm',
-    cleaned: '• Implement biometric auth\n• Adjust keyboard clearance to 48dp\n• Submit release APK by **Friday 5:00 PM**',
+    rawParts: [
+      { text: 'okay so action items first', isRemoved: true },
+      { text: ' implement biometric auth ' },
+      { text: 'second', isRemoved: true },
+      { text: ' adjust keyboard clearance to 48dp ' },
+      { text: 'and', isRemoved: true },
+      { text: ' submit release apk by friday 5pm' },
+    ],
+    cleaned: '• Implement biometric auth\n• Adjust keyboard clearance to 48dp\n• Submit release APK by Friday 5:00 PM',
     removed: ['okay so action items first', 'second', 'and'],
     added: ['Markdown bullet points', 'Strong imperative action verbs', 'Bold deadline emphasis'],
     systemRule: 'Transforms stream-of-consciousness rambles into clean Markdown bullets and actionable tasks with bolded deliverables.',
@@ -87,6 +121,9 @@ const PERSONAS = [
     color: '#8057C8',
     colorLight: 'var(--color-purple-light)',
     raw: 'por favor envía el informe financiero antes de las cinco de la tarde muchas gracias',
+    rawParts: [
+      { text: 'por favor envía el informe financiero antes de las cinco de la tarde muchas gracias', isForeign: true },
+    ],
     cleaned: 'Please send the financial report before 5:00 PM today. Thank you very much!',
     removed: ['Spanish source speech', 'Conversational pauses'],
     added: ['Direct English translation', 'Standard 5:00 PM format', 'Clean punctuation'],
@@ -234,6 +271,7 @@ export default function App() {
   const [openFaq, setOpenFaq] = useState(0)
 
   const [copiedKey, setCopiedKey] = useState(false)
+  const [activeTransformId, setActiveTransformId] = useState('natural')
 
   // Animated letter wobble triggers
   const [letterHover, setLetterHover] = useState(null)
@@ -280,6 +318,8 @@ export default function App() {
 
   const currentPersona =
     PERSONAS.find((p) => p.id === selectedPersona) || PERSONAS[0]
+  const currentTransform =
+    PERSONAS.find((p) => p.id === activeTransformId) || PERSONAS[0]
 
   const activeOpacityDecimal = isRecording ? 1.0 : restingOpacity / 100
 
@@ -909,38 +949,158 @@ export default function App() {
         {/* ── SECTION: 5 PERSONA ENGINES BREAKDOWN ── */}
         <section id="personas" className="maus-section maus-section-border">
           <div className="maus-section-header">
-            <span className="maus-subhead-pill">5 CLEANUP PERSONAS</span>
+            <span className="maus-subhead-pill">5 TRANSFORMATION ENGINES</span>
             <h2 className="maus-heading">
               Context-Aware Speech Transformations
             </h2>
             <p className="maus-lead">
-              Extracted directly from OpenWhispr’s native prompts engine. Each mode enforces precise cleanup rules tuned for the application you are speaking into.
+              Extracted directly from OpenWhispr’s native prompts engine. Select a persona below to see how raw, rambling speech is instantly cleaned and tailored for the application you are speaking into.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {PERSONAS.map((p) => (
-              <div key={p.id} className="maus-feat-card">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">{p.icon}</span>
-                    <h3 className="text-lg font-bold text-fg">{p.label}</h3>
-                  </div>
+          {/* Interactive Persona Tabs */}
+          <div className="transform-tabs-bar">
+            {PERSONAS.map((p) => {
+              const isActive = p.id === activeTransformId
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setActiveTransformId(p.id)}
+                  className={`transform-tab-btn ${isActive ? 'is-active' : ''}`}
+                >
+                  <span className="transform-tab-icon">{p.icon}</span>
+                  <span className="transform-tab-label">{p.label}</span>
                   <span
-                    className="text-xs font-mono font-semibold px-2 py-0.5 rounded-full"
-                    style={{ color: p.color, background: `${p.color}15`, border: `1px solid ${p.color}35` }}
+                    className="transform-tab-badge"
+                    style={{
+                      color: isActive ? 'var(--bg)' : p.color,
+                      backgroundColor: isActive ? 'rgba(255, 255, 255, 0.2)' : `${p.color}15`,
+                    }}
                   >
-                    {p.badge}
+                    {p.shortLabel}
                   </span>
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Featured Side-by-Side Dual Transformation Stage */}
+          <div className="transform-showcase-stage">
+            {/* Left Panel: Raw Spoken Input */}
+            <div className="transform-panel transform-panel-raw">
+              <div className="transform-panel-header">
+                <div className="flex items-center gap-2">
+                  <span className="transform-audio-wave">
+                    <span className="wave-bar" />
+                    <span className="wave-bar" />
+                    <span className="wave-bar" />
+                    <span className="wave-bar" />
+                  </span>
+                  <span className="transform-panel-title">Raw Speech Input</span>
                 </div>
-                <p className="text-xs font-mono text-muted mb-3">{p.targetApp}</p>
-                <p className="text-sm text-muted leading-relaxed mb-4">{p.systemRule}</p>
-                <div className="p-3 rounded-lg bg-subtle border border-line text-xs font-mono">
-                  <div className="text-muted mb-1"><span className="text-coral">Raw:</span> "{p.raw.slice(0, 48)}..."</div>
-                  <div className="text-fg"><span className="text-emerald">Clean:</span> "{p.cleaned.split('\n')[0].slice(0, 48)}..."</div>
+                <span className="transform-tag transform-tag-raw">Unfiltered Audio</span>
+              </div>
+
+              <div className="transform-transcript-box">
+                <div className="transform-text-raw">
+                  {currentTransform.rawParts ? (
+                    currentTransform.rawParts.map((part, idx) => (
+                      part.isRemoved ? (
+                        <span key={idx} className="raw-removed-token" title="Stripped by AI">
+                          {part.text}
+                        </span>
+                      ) : part.isForeign ? (
+                        <span key={idx} className="raw-foreign-token">
+                          "{part.text}"
+                          <span className="raw-lang-badge">🇪🇸 Spanish Detected</span>
+                        </span>
+                      ) : (
+                        <span key={idx}>{part.text}</span>
+                      )
+                    ))
+                  ) : (
+                    <span>"{currentTransform.raw}"</span>
+                  )}
+                </div>
+
+                <div className="transform-box-footer">
+                  <span className="text-xs font-mono text-muted">
+                    🎯 Target: <span className="text-fg font-semibold">{currentTransform.targetApp}</span>
+                  </span>
+                  {currentTransform.removed.length > 0 && (
+                    <span className="text-xs font-mono text-coral font-medium">
+                      ✕ {currentTransform.removed.length} elements refined
+                    </span>
+                  )}
                 </div>
               </div>
-            ))}
+            </div>
+
+            {/* Right Panel: Polished Text Injection */}
+            <div className="transform-panel transform-panel-clean">
+              <div className="transform-panel-header">
+                <div className="flex items-center gap-2">
+                  <span className="transform-check-icon">✓</span>
+                  <span className="transform-panel-title">Cleaned & Formatted</span>
+                </div>
+                <span className="transform-tag transform-tag-clean">
+                  Injected into {currentTransform.targetApp.split('/')[0].trim()}
+                </span>
+              </div>
+
+              <div className="transform-transcript-box">
+                <div className="transform-text-clean">
+                  {currentTransform.cleaned.split('\n').map((line, idx) => (
+                    <div key={idx} className={line.startsWith('•') ? 'transform-bullet-line' : ''}>
+                      {line}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="transform-box-footer">
+                  <div className="transform-feat-badges">
+                    {currentTransform.added.map((feat, idx) => (
+                      <span key={idx} className="transform-feat-pill">
+                        <span className="text-emerald font-bold">+</span> {feat}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Balanced 5-Card Grid (Click any card to inspect) */}
+          <div className="transform-cards-grid">
+            {PERSONAS.map((p) => {
+              const isSelected = p.id === activeTransformId
+              return (
+                <div
+                  key={p.id}
+                  onClick={() => setActiveTransformId(p.id)}
+                  className={`transform-card-item ${isSelected ? 'is-selected' : ''}`}
+                >
+                  <div className="transform-card-top">
+                    <span className="transform-card-icon">{p.icon}</span>
+                    <span
+                      className="transform-card-badge"
+                      style={{ color: p.color, background: `${p.color}15`, borderColor: `${p.color}35` }}
+                    >
+                      {p.shortLabel}
+                    </span>
+                  </div>
+                  <h4 className="transform-card-name">{p.label}</h4>
+                  <p className="transform-card-app font-mono">{p.targetApp.split('/')[0].trim()}</p>
+                  <p className="transform-card-rule">{p.systemRule}</p>
+                  <div className="transform-card-action">
+                    <span className="transform-card-link">
+                      {isSelected ? '● Active in Stage' : 'Inspect Mode →'}
+                    </span>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </section>
 
