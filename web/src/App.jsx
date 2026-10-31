@@ -3,8 +3,8 @@ import QRCode from 'react-qr-code'
 import './App.css'
 
 const DOWNLOAD_URL =
-  'https://github.com/YOUR_USERNAME/openwisper-android/releases/latest/download/OpenWhispr.apk'
-const GITHUB_URL = 'https://github.com/YOUR_USERNAME/openwisper-android'
+  'https://github.com/iamadityamaurya/openwhispr/releases/latest/download/OpenWisper-Production.apk'
+const GITHUB_URL = 'https://github.com/iamadityamaurya/openwhispr'
 
 // Rotating words in hero tagline (like MausBot hero-swap)
 const SWAP_WORDS = [
@@ -286,7 +286,7 @@ export default function App() {
   const activeOpacityDecimal = isRecording ? 1.0 : restingOpacity / 100
 
   const handleCopyInstall = () => {
-    navigator.clipboard.writeText('git clone https://github.com/YOUR_USERNAME/openwisper-android.git')
+    navigator.clipboard.writeText('git clone https://github.com/iamadityamaurya/openwhispr.git')
     setCopiedKey(true)
     setTimeout(() => setCopiedKey(false), 2000)
   }
@@ -374,7 +374,7 @@ export default function App() {
             {/* Top Product Hunt / Release Coral Banner */}
           <div className="maus-badge-row">
             <a
-              href="https://github.com/YOUR_USERNAME/openwisper-android"
+              href={GITHUB_URL}
               target="_blank"
               rel="noreferrer"
               className="maus-coral-banner"
