@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import QRCode from 'react-qr-code'
+import logoImg from './assets/openwhispr-logo.png'
 import './App.css'
 
 const DOWNLOAD_URL =
@@ -400,7 +401,7 @@ export default function App() {
           <a href="#" className="maus-brand">
             <span className="maus-brand-icon">
               <img
-                src="/openwhisper-logo.png"
+                src={logoImg}
                 alt="OpenWhispr Logo"
                 className="maus-brand-img"
               />
@@ -1425,7 +1426,7 @@ export default function App() {
         <div className="maus-footer-inner">
           <div className="flex items-center gap-2.5">
             <img
-              src="/openwhisper-logo.png"
+              src={logoImg}
               alt="OpenWhispr Logo"
               className="footer-brand-img"
             />
