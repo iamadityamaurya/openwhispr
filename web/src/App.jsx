@@ -3,7 +3,7 @@ import QRCode from 'react-qr-code'
 import './App.css'
 
 const DOWNLOAD_URL =
-  'https://github.com/iamadityamaurya/openwhispr/releases/latest/download/OpenWisper-Production.apk'
+  'https://github.com/iamadityamaurya/openwhispr/releases/download/v1.0.0/OpenWisper-Production.apk'
 const GITHUB_URL = 'https://github.com/iamadityamaurya/openwhispr'
 
 // Rotating words in hero tagline (like MausBot hero-swap)
