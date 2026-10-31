@@ -1155,38 +1155,6 @@ export default function App() {
               </div>
             </div>
           </div>
-
-          {/* Balanced 5-Card Grid (Click any card to inspect) */}
-          <div className="transform-cards-grid">
-            {PERSONAS.map((p, idx) => {
-              const isSelected = p.id === activeTransformId
-              return (
-                <div
-                  key={p.id}
-                  onClick={() => setActiveTransformId(p.id)}
-                  className={`transform-card-item scroll-reveal delay-${(idx % 3) + 1} ${isSelected ? 'is-selected' : ''}`}
-                >
-                  <div className="transform-card-top">
-                    <span className="transform-card-icon">{p.icon}</span>
-                    <span
-                      className="transform-card-badge"
-                      style={{ color: p.color, background: `${p.color}15`, borderColor: `${p.color}35` }}
-                    >
-                      {p.shortLabel}
-                    </span>
-                  </div>
-                  <h4 className="transform-card-name">{p.label}</h4>
-                  <p className="transform-card-app font-mono">{p.targetApp.split('/')[0].trim()}</p>
-                  <p className="transform-card-rule">{p.systemRule}</p>
-                  <div className="transform-card-action">
-                    <span className="transform-card-link">
-                      {isSelected ? '● Active in Stage' : 'Inspect Mode →'}
-                    </span>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
         </section>
 
         {/* ── SECTION: REAL AI ENGINES & PROVIDERS (api.ts) ── */}
