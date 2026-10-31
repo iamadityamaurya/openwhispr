@@ -39,7 +39,7 @@ const PERSONAS = [
     cleaned: 'Can you send me the project report by Friday.',
     removed: ['um', 'uh', 'thursday wait no', 'period'],
     added: ['Punctuation conversion', 'Self-correction handling', 'Preserved speaker cadence'],
-    systemRule: 'Removes fillers and self-corrections while preserving your exact voice, formality, and technical terms.',
+    systemRule: 'Removes fillers and self-corrections while preserving your natural cadence.',
   },
   {
     id: 'casual',
@@ -64,7 +64,7 @@ const PERSONAS = [
     cleaned: 'Hey! Are we still meeting up at 3:00 PM or are you gonna be late? 😂 👍',
     removed: ['basically yeah', 'like', 'haha', 'thumbs up'],
     added: ['Conversational warmth', '3:00 PM time format', 'Natural emoji conversion 😂 👍'],
-    systemRule: 'Keeps informal slang, personal warmth, and relaxed cadence with automatic emoji conversion for emotional cues.',
+    systemRule: 'Warm chat tone with natural emoji conversion.',
   },
   {
     id: 'email',
@@ -86,7 +86,7 @@ const PERSONAS = [
     cleaned: 'Hi Team,\n\nQuick update on the Q3 deployment: we need to hold off until Engineering merges the security fixes.\n\nBest regards,',
     removed: ['uh', 'kinda'],
     added: ['Executive paragraph structure', 'Capitalized Q3 & Engineering', 'Professional salutation & sign-off'],
-    systemRule: 'Elevates rambling dictation into clear, authoritative executive correspondence with capitalized proper nouns and clean formatting.',
+    systemRule: 'Executive paragraphs with clean professional structure.',
   },
   {
     id: 'notes',
@@ -109,7 +109,7 @@ const PERSONAS = [
     cleaned: '• Implement biometric auth\n• Adjust keyboard clearance to 48dp\n• Submit release APK by Friday 5:00 PM',
     removed: ['okay so action items first', 'second', 'and'],
     added: ['Markdown bullet points', 'Strong imperative action verbs', 'Bold deadline emphasis'],
-    systemRule: 'Transforms stream-of-consciousness rambles into clean Markdown bullets and actionable tasks with bolded deliverables.',
+    systemRule: 'Extracts clean Markdown action items and bullet points.',
   },
   {
     id: 'translate_en',
@@ -127,66 +127,66 @@ const PERSONAS = [
     cleaned: 'Please send the financial report before 5:00 PM today. Thank you very much!',
     removed: ['Spanish source speech', 'Conversational pauses'],
     added: ['Direct English translation', 'Standard 5:00 PM format', 'Clean punctuation'],
-    systemRule: 'Detects foreign languages (Spanish, Hindi, French, German, Japanese, Portuguese, Arabic, Hinglish) and translates into fluent English.',
+    systemRule: 'Instant translation into fluent, punctuated English.',
   },
 ]
 
-// Real features matching my-app architecture
+// Core capabilities
 const FEATURES = [
   {
     num: '01',
-    title: 'Dual-Button Capsule Pill',
-    subtitle: 'Option 1 Layout (FloatingBubbleView.kt)',
-    desc: 'Ergonomic native floating capsule docked directly above your active keyboard. Left button cycles or opens the persona selector; right button triggers voice recording.',
-    badge: 'Subtle & Non-Intrusive',
+    title: 'Dual-Button Capsule',
+    subtitle: 'Docked Floating Pill',
+    desc: 'Rests above your active keyboard with 1-tap persona and mic controls.',
+    badge: 'Non-Intrusive',
     badgeColor: 'green',
   },
   {
     num: '02',
-    title: 'Resting Opacity (30% to 100%)',
-    subtitle: 'Configurable Transparency (restingAlpha)',
-    desc: 'Rests at 70% opacity over chat feeds without blocking underlying content. Smoothly animates to 100% solid contrast the moment you touch it to dictate.',
-    badge: 'Fine-Tuned Comfort',
+    title: 'Resting Opacity',
+    subtitle: '30% to 100% Transparency',
+    desc: 'Semi-transparent over feeds; snaps to 100% solid contrast when touched.',
+    badge: 'Ergonomic',
     badgeColor: 'blue',
   },
   {
     num: '03',
-    title: 'Zero-Tap Auto-Persona',
-    subtitle: 'Foreground Sensed (WhisperAccessibilityService.kt)',
-    desc: 'Accessibility service monitors foreground package events: switches to Casual in WhatsApp/Telegram, Work Email in Gmail/Outlook, and Action Notes in Notion/Keep.',
+    title: 'Zero-Tap Auto-Sense',
+    subtitle: 'Foreground App Detection',
+    desc: 'Auto-switches to Casual in WhatsApp, Email in Gmail, and Bullets in Notion.',
     badge: 'Context Aware',
     badgeColor: 'orange',
   },
   {
     num: '04',
-    title: 'Smart Keyboard Auto-Docking',
-    subtitle: 'Input Focus Clearance (48dp Clearance)',
-    desc: 'Senses soft keyboard bounds via AccessibilityWindowInfo. Automatically floats above your keyboard (24dp, 48dp, 80dp, 120dp offsets) and hides when keyboard is closed.',
-    badge: 'Intelligent Dock',
+    title: 'Keyboard Auto-Docking',
+    subtitle: '48dp Clearance',
+    desc: 'Floats neatly above keyboard bounds and auto-hides when closed.',
+    badge: 'Smart Dock',
     badgeColor: 'purple',
   },
   {
     num: '05',
-    title: 'Android Quick Settings Tile',
-    subtitle: 'System Shade Service (OpenWhisprTileService.kt)',
-    desc: 'Pull down your Android notification shade from anywhere to instantly summon or dismiss the floating capsule without opening the app launcher.',
-    badge: 'System Native',
+    title: 'Quick Settings Shade Tile',
+    subtitle: 'Android Notification Tile',
+    desc: 'Pull down notification shade from anywhere to toggle the floating capsule.',
+    badge: 'Native Tile',
     badgeColor: 'teal',
   },
   {
     num: '06',
     title: 'Hardware Keystore AES-256',
-    subtitle: 'Zero-Trust BYOK Storage',
-    desc: 'Your Deepgram, Gemini, Groq, or OpenAI API keys are encrypted with hardware-backed Android Keystore AES-256-GCM. Stored strictly on device, never synced.',
-    badge: 'On-Device Security',
+    subtitle: 'Zero-Trust BYOK',
+    desc: 'API keys stay encrypted in your device hardware enclave. Never synced.',
+    badge: 'Secure Enclave',
     badgeColor: 'coral',
   },
   {
     num: '07',
-    title: 'Payment App Auto-Pause Shield',
-    subtitle: 'Tapjacking Protection (FloatingBubbleService.kt)',
-    desc: 'Payment, UPI, and banking apps (Google Pay, PhonePe, Paytm, BHIM, Chase, etc.) block overlays for security. OpenWhispr auto-detects payment apps and instantly hides the overlay so transactions are never blocked.',
-    badge: 'Tapjacking Safe',
+    title: 'Payment App Auto-Shield',
+    subtitle: 'Tapjacking Protection',
+    desc: 'Auto-hides inside banking & UPI apps so overlays never block payments.',
+    badge: 'Payment Safe',
     badgeColor: 'green',
   },
 ]
@@ -196,58 +196,41 @@ const ENGINES = [
   {
     type: 'Speech-to-Text (STT)',
     items: [
-      { name: 'Deepgram Nova-3', desc: 'Ultra-fast streaming transcription with smart formatting & punctuation', tag: 'Recommended' },
-      { name: 'Groq Whisper V3 Turbo', desc: 'LPU high-throughput inference for sub-second speech processing', tag: 'Ultra-Fast' },
-      { name: 'OpenAI Whisper-1', desc: 'Industry benchmark for nuanced accents and multilingual audio', tag: 'Standard' },
-      { name: 'Surplus Intelligence', desc: 'Decentralized GPU marketplace running Venice Whisper Large V3', tag: 'Web3 AI' },
-      { name: 'Custom STT Endpoint', desc: 'Connect your local Ollama, vLLM, or self-hosted Whisper instance', tag: 'Self-Hosted' },
+      { name: 'Deepgram Nova-3', desc: 'Ultra-fast streaming transcription & punctuation', tag: 'Recommended' },
+      { name: 'Groq Whisper V3 Turbo', desc: 'Sub-second LPU speech inference', tag: 'Ultra-Fast' },
+      { name: 'OpenAI Whisper-1', desc: 'Accurate multilingual transcription', tag: 'Standard' },
+      { name: 'Surplus Intelligence', desc: 'Decentralized Venice Whisper Large V3', tag: 'Web3 AI' },
+      { name: 'Custom STT Endpoint', desc: 'Local Ollama, vLLM, or self-hosted', tag: 'Self-Hosted' },
     ],
   },
   {
     type: 'Tone & Cleanup LLM',
     items: [
-      { name: 'Groq Llama 3.3 70B', desc: 'Instantaneous transcript refinement and tone transformation', tag: 'Recommended' },
-      { name: 'Google Gemini 2.5 Flash', desc: 'Generous free tier with superior contextual understanding', tag: 'High Quota' },
-      { name: 'OpenAI GPT-4o-mini', desc: 'Lightweight, dependable corporate email and note extraction', tag: 'Balanced' },
-      { name: 'Surplus DeepSeek V4', desc: 'Decentralized reasoning and markdown structure extraction', tag: 'Decentralized' },
-      { name: 'Local Ollama / LM Studio', desc: '100% offline cleanup using DeepSeek-Chat, Llama 3, or Mistral', tag: 'Zero-Cloud' },
+      { name: 'Groq Llama 3.3 70B', desc: 'Instant tone transformation', tag: 'Recommended' },
+      { name: 'Google Gemini 2.5 Flash', desc: 'High quota & contextual refinement', tag: 'High Quota' },
+      { name: 'OpenAI GPT-4o-mini', desc: 'Dependable email & notes structuring', tag: 'Balanced' },
+      { name: 'Surplus DeepSeek V4', desc: 'Decentralized reasoning & markdown', tag: 'Decentralized' },
+      { name: 'Local Ollama / LM Studio', desc: '100% offline cleanup on device', tag: 'Zero-Cloud' },
     ],
   },
 ]
 
-
 const FAQS = [
   {
-    q: 'How does OpenWhispr differ from standard keyboard voice typing?',
-    a: 'Stock voice keyboards transcribe raw fillers ("um", "like", "you know") without formatting or context. OpenWhispr passes your speech through 5 specialized persona engines (Natural Clean, Casual Chat, Work Email, Action Notes, Instant English) to deliver executive-grade, perfectly punctuated text injected directly into your focused input field via Android Accessibility.',
+    q: 'How does OpenWhispr work?',
+    a: 'OpenWhispr floats above your keyboard. It records speech, strips filler words, applies tone formatting with your chosen AI, and pastes clean text directly into your active input field.',
   },
   {
-    q: 'What is the Dual-Button Capsule Pill design?',
-    a: 'Instead of an obstructive round orb, the compact capsule rests seamlessly right above your active keyboard (FloatingBubbleView.kt). The left button allows 1-tap persona switching (or auto-switches based on the foreground app), while the right button acts as a high-contrast recording trigger.',
+    q: 'Where do my voice and API keys go?',
+    a: 'Directly from your phone to your AI provider over TLS. There are no middleman servers. API keys are encrypted in your Android Hardware Keystore (AES-256-GCM).',
   },
   {
-    q: 'How does Zero-Tap Auto-Persona switching work?',
-    a: 'The WhisperAccessibilityService monitors Android window events. When you open WhatsApp, Telegram, or Discord, it automatically switches to Casual Chat. When you switch to Gmail, Outlook, or LinkedIn, it transitions to Work Email. When you open Notion or Google Keep, it extracts structured Markdown bullet points.',
+    q: 'How does automatic persona switching work?',
+    a: 'OpenWhispr detects your foreground app: Casual in WhatsApp or Discord, Work Email in Gmail, and Bullet Notes in Notion. You can also switch manually in 1 tap.',
   },
   {
-    q: 'Does the floating capsule distract from reading background content?',
-    a: 'Not at all. You can set the resting opacity anywhere between 30% and 100% (default 70%). At 70%, background text and UI are clearly visible beneath the capsule. The moment you touch it to dictate, it smoothly snaps to 100% solid contrast.',
-  },
-  {
-    q: 'What is Smart Keyboard Mode (48dp Clearance)?',
-    a: 'OpenWhispr inspects active accessibility windows for TYPE_INPUT_METHOD. It automatically docks the capsule at your configured clearance (24dp, 48dp, 80dp, or 120dp) right above the keyboard top, and can be configured to only show when typing.',
-  },
-  {
-    q: 'What is the Android Quick Settings Tile?',
-    a: 'OpenWhispr includes an Android Quick Tile service (OpenWhisprTileService.kt). Pull down your notification shade from any screen and tap the OpenWhispr tile to immediately hide or summon the floating capsule across all apps, without needing to open the app launcher.',
-  },
-  {
-    q: 'Does OpenWhispr interfere with banking or payment apps like Google Pay or PhonePe?',
-    a: 'No. Payment, banking, and UPI apps enforce tapjacking security (filterTouchesWhenObscured) which blocks user interaction whenever any third-party screen overlay is active. OpenWhispr includes a smart Payment App Shield that automatically detects payment and banking apps (Google Pay, PhonePe, Paytm, BHIM, Cash App, PayPal, Chase, Wells Fargo, etc.) and completely hides/suppresses the floating bubble while you are inside the app. You can also exclude any custom app using the Excluded Apps Blacklist in Settings.',
-  },
-  {
-    q: 'Where do my API keys and voice recordings go?',
-    a: 'OpenWhispr connects directly from your phone to your configured AI provider (Deepgram, Gemini, Groq, OpenAI, Surplus, or local Ollama) over encrypted TLS. No middleman servers exist. Your API keys are encrypted using hardware-backed Android Keystore AES-256-GCM.',
+    q: 'Does it interfere with banking or UPI apps?',
+    a: 'No. The floating capsule automatically hides inside payment apps (Google Pay, PhonePe, banking) to prevent tapjacking, and resumes when you exit.',
   },
 ]
 
@@ -715,9 +698,7 @@ export default function App() {
             </h1>
 
             <p className="hero-subtext">
-              An open source Android floating voice companion that listens to your rambling speech and
-              instantly injects executive-grade, perfectly formatted text into WhatsApp, Gmail, Notion, and any other app.
-              No filler words. Zero tap persona switching.
+              Speak freely into any app. OpenWhispr strips fillers, cleans tone, and injects text instantly.
             </p>
 
             {/* Direct On-Screen QR Code + Download Card */}
@@ -745,9 +726,9 @@ export default function App() {
                   <span className="hero-qr-size font-mono">106 MB</span>
                 </div>
 
-                <h3 className="hero-qr-heading">Scan with your phone camera</h3>
+                <h3 className="hero-qr-heading">Scan to Install</h3>
                 <p className="hero-qr-desc">
-                  Point any Android camera or Google Lens at this code to install OpenWhispr directly on your device.
+                  Point your phone camera to download the APK directly.
                 </p>
 
                 <div className="hero-qr-btn-group">
@@ -761,32 +742,25 @@ export default function App() {
                       <polyline points="7 10 12 15 17 10" />
                       <line x1="12" y1="15" x2="12" y2="3" />
                     </svg>
-                    <span>Direct Download APK</span>
+                    <span>Download APK</span>
                   </a>
 
                   <a
                     href="#preview"
                     className="hero-btn-secondary"
                   >
-                    <span>Interactive Preview</span>
-                    <span className="font-mono text-xs px-2 py-0.5 rounded-full bg-accent-subtle text-accent font-semibold">
-                      Live
-                    </span>
+                    <span>Try Simulator</span>
                   </a>
                 </div>
               </div>
             </div>
-
-            <p className="hero-foot-note">
-              Android 14+ • Deepgram Nova-3 & Groq Llama 3.3 70B • Hardware Keystore AES-256
-            </p>
           </div>
         </div>
 
           {/* Scroll Down Indicator */}
           <div className="hero-scroll-hint">
             <a href="#preview" className="hero-scroll-link" aria-label="Scroll to preview">
-              <span>Explore Interactive Live Capsule</span>
+              <span>Explore Live Capsule</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 5v14M19 12l-7 7-7-7" />
               </svg>
@@ -1011,7 +985,7 @@ export default function App() {
               </div>
             </div>
             <figcaption className="text-center text-xs text-muted mt-3">
-              Interactive dual-capsule simulation running live. Tap the capsule buttons above to test persona switching and voice capture.
+              Live simulator — tap capsule buttons above to test.
             </figcaption>
           </div>
         </section>
@@ -1067,9 +1041,6 @@ export default function App() {
             <h2 className="maus-heading">
               Context-Aware Speech Transformations
             </h2>
-            <p className="maus-lead">
-              Extracted directly from OpenWhispr’s native prompts engine. Select a persona below to see how raw, rambling speech is instantly cleaned and tailored for the application you are speaking into.
-            </p>
           </div>
 
           {/* Interactive Persona Tabs */}
@@ -1223,10 +1194,10 @@ export default function App() {
           <div className="maus-section-header scroll-reveal">
             <span className="maus-subhead-pill">BYOK ARCHITECTURE</span>
             <h2 className="maus-heading">
-              Supported STT & LLM Engines
+              Supported AI Providers
             </h2>
             <p className="maus-lead">
-              Plug in your existing API credentials or run fully offline. OpenWhispr routes requests directly over TLS without proprietary proxy servers.
+              Direct TLS BYOK. No middleman servers.
             </p>
           </div>
 
@@ -1258,13 +1229,10 @@ export default function App() {
         {/* ── SECTION: FEATURES GRID (MausBot Bento) ── */}
         <section className="maus-section">
           <div className="maus-section-header scroll-reveal">
-            <span className="maus-subhead-pill">CORE CAPABILITIES</span>
+            <span className="maus-subhead-pill">CAPABILITIES</span>
             <h2 className="maus-heading">
-              Engineered for Speed, Clarity, & Privacy.
+              Built for Android Speed
             </h2>
-            <p className="maus-lead">
-              Every detail is designed to make your daily typing effortless across all Android messaging and productivity apps.
-            </p>
           </div>
 
           <div className="maus-feature-grid">
@@ -1287,24 +1255,21 @@ export default function App() {
           <div className="tile-spotlight-card scroll-reveal reveal-scale-up">
             <div className="tile-spotlight-content">
               <span className="maus-subhead-pill">SYSTEM NATIVE</span>
-              <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-fg mb-3">
-                Android Quick Settings Shade Tile.
+              <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-fg mb-4">
+                Quick Settings Shade Tile
               </h2>
-              <p className="text-muted text-sm sm:text-base leading-relaxed mb-6">
-                OpenWhisprTileService.kt integrates into your Android quick settings pull-down shade. Toggle the floating capsule on or off with a single tap from any screen without switching apps.
-              </p>
               <ul className="tile-points-list">
                 <li>
                   <span className="tile-check bg-emerald text-white">✓</span>
-                  <span>Instant system-wide summon or dismiss from notification shade</span>
+                  <span>1-tap summon or dismiss from notification shade</span>
                 </li>
                 <li>
                   <span className="tile-check bg-emerald text-white">✓</span>
-                  <span>Zero battery drain when inactive; wakes background service on tap</span>
+                  <span>Zero battery drain when idle</span>
                 </li>
                 <li>
                   <span className="tile-check bg-emerald text-white">✓</span>
-                  <span>BootReceiver.kt automatically restores capsule after device restart</span>
+                  <span>Restores automatically on device restart</span>
                 </li>
               </ul>
             </div>
@@ -1343,52 +1308,46 @@ export default function App() {
         {/* ── SECTION: ARCHITECTURE & ZERO-TRUST SECURITY ── */}
         <section id="architecture" className="maus-section">
           <div className="maus-section-header scroll-reveal">
-            <span className="maus-subhead-pill">SECURITY BY DESIGN</span>
+            <span className="maus-subhead-pill">ZERO-TRUST SECURITY</span>
             <h2 className="maus-heading">
-              Hardware Keystore. Direct TLS BYOK.
+              Hardware Keystore • Direct TLS
             </h2>
-            <p className="maus-lead">
-              Your voice and sensitive thoughts should never pass through a proprietary third-party proxy. OpenWhispr connects directly from your phone to your selected AI provider.
-            </p>
           </div>
 
           <div className="arch-flow-box scroll-reveal reveal-fade-up">
             <div className="arch-step">
               <div className="arch-step-circle text-emerald">01</div>
-              <b className="text-fg text-sm block mb-1">Android AudioRecord</b>
-              <p className="text-xs text-muted">16kHz PCM audio recorded in local RAM buffer</p>
+              <b className="text-fg text-sm block mb-1">Local AudioRecord</b>
+              <p className="text-xs text-muted">16kHz PCM buffer in RAM</p>
             </div>
             <div className="arch-arrow text-emerald">→</div>
             <div className="arch-step">
               <div className="arch-step-circle text-blue">02</div>
               <b className="text-fg text-sm block mb-1">Direct Cloud TLS</b>
-              <p className="text-xs text-muted">Direct stream to Deepgram / Gemini / Groq endpoint</p>
+              <p className="text-xs text-muted">Stream directly to endpoint</p>
             </div>
             <div className="arch-arrow text-blue">→</div>
             <div className="arch-step">
               <div className="arch-step-circle text-purple">03</div>
               <b className="text-fg text-sm block mb-1">Hardware Keystore</b>
-              <p className="text-xs text-muted">API key decrypted in secure hardware enclave</p>
+              <p className="text-xs text-muted">AES-256 on-device enclave</p>
             </div>
             <div className="arch-arrow text-purple">→</div>
             <div className="arch-step">
               <div className="arch-step-circle text-emerald">04</div>
-              <b className="text-fg text-sm block mb-1">Accessibility Inject</b>
-              <p className="text-xs text-muted">ACTION_SET_TEXT pastes into focused field in 0.38s</p>
+              <b className="text-fg text-sm block mb-1">Instant Injection</b>
+              <p className="text-xs text-muted">Pasted into focused field</p>
             </div>
           </div>
         </section>
 
         {/* ── SECTION: MULTILINGUAL MARQUEE (Hello from OpenWhispr) ── */}
         <section className="maus-section maus-section-border">
-          <div className="text-center max-w-2xl mx-auto mb-10 scroll-reveal">
+          <div className="text-center max-w-2xl mx-auto mb-8 scroll-reveal">
             <span className="maus-subhead-pill">MULTILINGUAL VOICE</span>
             <h2 className="maus-heading">
-              Speak in Any Language. Output in Pristine English.
+              Speak Any Language. Output in English.
             </h2>
-            <p className="maus-lead">
-              Switch to Instant English mode (TRANSLATE_EN_SYSTEM_PROMPT) and dictate comfortably in your native tongue. OpenWhispr translates and formats simultaneously.
-            </p>
           </div>
 
           <div className="multilingual-strip scroll-reveal reveal-fade-up delay-1">
@@ -1408,9 +1367,6 @@ export default function App() {
           <div className="maus-section-header scroll-reveal">
             <span className="maus-subhead-pill">FAQ</span>
             <h2 className="maus-heading">Frequently Asked Questions</h2>
-            <p className="maus-lead">
-              Everything you need to know about OpenWhispr, privacy, setup, and permissions.
-            </p>
           </div>
 
           <div className="faq-accordion scroll-reveal delay-1">
@@ -1443,11 +1399,11 @@ export default function App() {
         {/* ── BOTTOM CTA SECTION ── */}
         <section className="maus-bottom-cta">
           <div className="maus-cta-inner scroll-reveal reveal-scale-up">
-            <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-fg mb-4">
+            <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-fg mb-3">
               Type at the speed of thought.
             </h2>
-            <p className="text-muted text-base sm:text-lg max-w-xl mx-auto mb-8">
-              Join developers, founders, and professionals speaking freely on Android without filler words. Free, open source, and privacy first.
+            <p className="text-muted text-base max-w-lg mx-auto mb-8">
+              Open source, zero tracking, and built for Android.
             </p>
 
             <div className="bottom-onscreen-qr-card">
@@ -1463,18 +1419,18 @@ export default function App() {
                 </div>
                 <div className="hero-qr-caption">
                   <span className="hero-qr-pulse" />
-                  <span>Scan with Phone</span>
+                  <span>Scan to Install</span>
                 </div>
               </div>
 
               <div className="hero-qr-details">
                 <div className="hero-qr-badge-row">
                   <span className="hero-qr-pill">DIRECT SIDELOAD</span>
-                  <span className="hero-qr-version font-mono">v1.0.0 Production</span>
+                  <span className="hero-qr-version font-mono">v1.0.0 APK</span>
                 </div>
-                <h3 className="hero-qr-heading">Install OpenWhispr in seconds</h3>
+                <h3 className="hero-qr-heading">Install in seconds</h3>
                 <p className="hero-qr-desc">
-                  Point any phone camera or Google Lens here to download and install the official APK directly, or click below.
+                  Scan with your camera or tap below to download.
                 </p>
 
                 <div className="hero-qr-btn-group">
@@ -1495,7 +1451,7 @@ export default function App() {
                     onClick={handleCopyInstall}
                     className="hero-btn-secondary text-xs"
                   >
-                    {copiedKey ? '✓ Copied Git URL' : 'Copy Git Repository URL'}
+                    {copiedKey ? '✓ Copied Git URL' : 'Copy Git URL'}
                   </button>
                 </div>
               </div>
