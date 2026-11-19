@@ -407,7 +407,6 @@ export default function App() {
               />
             </span>
             <span className="maus-brand-text">OpenWhispr</span>
-            <span className="maus-brand-badge font-mono">Android 14+</span>
           </a>
 
           <nav className="maus-nav">
@@ -514,7 +513,7 @@ export default function App() {
               rel="noreferrer"
               className="maus-coral-banner"
             >
-              <span className="maus-coral-tag">Open Source Android</span>
+              <span className="maus-coral-tag">Android 14+ • Open Source</span>
               <span className="maus-coral-text">Floating AI Voice Dictation • BYOK & Hardware Keystore</span>
               <span className="maus-coral-arrow">↗</span>
             </a>

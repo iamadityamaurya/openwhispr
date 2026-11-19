@@ -192,14 +192,16 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
+  gap: 16px;
 }
 
 .maus-brand {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   text-decoration: none;
   color: var(--fg);
+  flex-shrink: 0;
 }
 
 .maus-brand-icon {
@@ -242,6 +244,7 @@ body {
   font-size: 19.5px;
   font-weight: 750;
   letter-spacing: -0.025em;
+  white-space: nowrap;
 }
 
 .maus-brand-badge {
@@ -253,17 +256,27 @@ body {
   border: 1px solid var(--accent);
   color: var(--accent);
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .maus-nav {
   display: none;
   align-items: center;
-  gap: 26px;
+  gap: 22px;
 }
 
-@media (min-width: 820px) {
+@media (min-width: 900px) {
   .maus-nav {
     display: flex;
+  }
+}
+
+@media (min-width: 900px) and (max-width: 1080px) {
+  .maus-nav {
+    gap: 14px;
+  }
+  .maus-nav a {
+    font-size: 13px;
   }
 }
 
@@ -274,6 +287,7 @@ body {
   text-decoration: none;
   font-weight: 500;
   padding: 6px 2px;
+  white-space: nowrap;
   transition: color 0.15s ease;
 }
 
@@ -313,6 +327,7 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-shrink: 0;
 }
 
 /* Theme Toggle Button */
