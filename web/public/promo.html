@@ -1,0 +1,1192 @@
+<!doctype html>
+<html lang="en">
+<!-- Made with the Bang Motion skill - https://github.com/bangtutorial/bang-motion -->
+<head>
+<meta charset="utf-8">
+<title>OpenWhispr — Voice Dictation, Refined (30s Promo)</title>
+<!--
+  ===== STYLE BRIEF (Bang Motion SKILL.md Hukum #3) =====
+  Tema/produk + 3 kata sifat : OpenWhispr · Sovereign, instantaneous, cinematic
+  Konsep (opener-konsep.md)   : Konsep 15 + 16 (Klaim -> cara -> hasil & Ekosistem UI hidup)
+  Sidik jari struktur         : konsep-15+16 · 5 adegan (30s) · floating capsule pill + 3D phone + BYOK AI vault · pembuka: capsule drop & audio burst · penutup: 3D logo emblem + CTA web
+  Palet (dari brand)          : Utama: #009957 (OpenWhispr Emerald) · Latar: #08090C (Dark Obsidian Carbon) · Aksen: #3fae6e / #4EFA9E (Glow) · AI Badges: #10A37F (OpenAI), #F55036 (Groq), #D97706 (Anthropic), #388BFD (Gemini)
+  Font display / pendamping   : Plus Jakarta Sans (900 / 800 / 600) / JetBrains Mono (Tech/BYOK)
+  Bahasa latar                : Sinematik gelap bergradien radial bernapas + noise grain halus
+  Tanda tangan gerak (objek)  : Floating Capsule Morph & live equalizer bars + 3D Persona Flip
+  Gerak latar (§7c)           : Kamera bernapas (scale 1.0 -> 1.05) + ambient audio ring pulse deterministik tl.time()
+  Permukaan latar (§7d)       : 3 lapis: Obsidian #08090C + radial horizon emerald glow + SVG fine noise grain
+  Momen istimewa              : (1) The Filler Vaporizer (kata filler disilang neon merah lalu lenyap jadi partikel emerald)
+                                (2) Universal BYOK AI Vault (carousel 6 provider AI OpenAI/Groq/Anthropic/Gemini/DeepSeek/Ollama mengunci ke Hardware Keystore)
+  ========================================================
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<style>
+:root {
+  --base: #08090C;
+  --base-surface: #0E1015;
+  --accent: #009957;
+  --accent-lit: #3fae6e;
+  --accent-bright: #4EFA9E;
+  --accent-subtle: rgba(0, 153, 87, 0.14);
+  --blue: #377FE6;
+  --blue-lit: #61A0FF;
+  --orange: #E78531;
+  --red: #FF4D4D;
+  --ink: #F4F4F6;
+  --ink-muted: #8E929E;
+  --ink-dim: #505461;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body {
+  width: 100%; height: 100%;
+  background: #000;
+  overflow: hidden;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+#filters { position: fixed; width: 0; height: 0; opacity: 0; pointer-events: none; }
+
+/* 1920x1080 fixed stage scaled to viewport */
+#stage {
+  position: fixed; left: 50%; top: 50%;
+  width: 1920px; height: 1080px;
+  transform: translate(-50%, -50%) scale(1);
+  overflow: hidden;
+  background: var(--base);
+}
+
+#world {
+  position: absolute; inset: 0;
+  will-change: transform;
+}
+
+/* Background layers (§7d) */
+.bg-gradient {
+  position: absolute; inset: 0;
+  background: radial-gradient(85% 65% at 50% 115%, rgba(0, 153, 87, 0.24) 0%, rgba(0, 153, 87, 0.06) 50%, transparent 80%),
+              radial-gradient(55% 45% at 50% -10%, rgba(55, 127, 230, 0.14) 0%, transparent 70%),
+              linear-gradient(180deg, #07080A 0%, #090B0E 100%);
+}
+
+.bg-canvas {
+  position: absolute; inset: 0;
+  width: 1920px; height: 1080px;
+  pointer-events: none;
+}
+
+.bg-grain {
+  position: absolute; inset: 0;
+  opacity: 0.045;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+.vignette {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, transparent 55%, rgba(4, 5, 8, 0.78) 100%);
+}
+
+/* Typography styles */
+.hero-title {
+  font-size: 86px;
+  font-weight: 900;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+  color: #FFFFFF;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.hero-sub {
+  font-size: 32px;
+  font-weight: 500;
+  color: var(--ink-muted);
+  letter-spacing: -0.01em;
+  text-align: center;
+  max-width: 1200px;
+  line-height: 1.4;
+}
+
+.mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Highlight badge */
+.hl-pill {
+  display: inline-block;
+  padding: 0.08em 0.38em;
+  border-radius: 999px;
+  background: rgba(0, 153, 87, 0.18);
+  border: 1px solid rgba(78, 250, 158, 0.4);
+  color: var(--accent-bright);
+}
+
+.hl-pill-blue {
+  background: rgba(55, 127, 230, 0.18);
+  border-color: rgba(97, 160, 255, 0.4);
+  color: var(--blue-lit);
+}
+
+.hl-pill-gold {
+  background: rgba(231, 133, 49, 0.18);
+  border-color: rgba(245, 170, 95, 0.4);
+  color: #FFAA5F;
+}
+
+/* OpenWhispr Signature Dual-Button Floating Pill */
+.dual-capsule-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  padding: 12px 16px;
+  border-radius: 9999px;
+  background: rgba(18, 21, 28, 0.94);
+  border: 1.5px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 20px 54px rgba(0, 0, 0, 0.8),
+              0 0 0 1px rgba(0, 153, 87, 0.3),
+              0 0 40px rgba(0, 153, 87, 0.25);
+  backdrop-filter: blur(28px);
+  will-change: transform;
+}
+
+.capsule-persona-btn {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 22px; font-weight: 700;
+  color: var(--accent-bright);
+}
+
+.capsule-divider {
+  width: 1.5px; height: 36px;
+  background: rgba(255, 255, 255, 0.14);
+  margin: 0 10px;
+}
+
+.capsule-mic-btn {
+  display: flex; align-items: center; gap: 14px;
+  padding: 10px 26px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(0, 153, 87, 0.4), rgba(0, 153, 87, 0.18));
+  border: 1px solid rgba(78, 250, 158, 0.45);
+  font-size: 22px; font-weight: 700;
+  color: #FFFFFF;
+}
+
+.voice-eq {
+  display: flex; align-items: center; gap: 4px;
+  height: 24px;
+}
+
+.eq-bar {
+  width: 4px;
+  border-radius: 2px;
+  background: var(--accent-bright);
+}
+
+/* ============ ACT 1 ============ */
+#act-1 {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+
+.audio-center-burst {
+  position: relative;
+  width: 600px; height: 160px;
+  display: flex; align-items: center; justify-content: center;
+  gap: 10px;
+  margin-top: 40px;
+}
+
+.burst-bar {
+  width: 8px;
+  height: 40px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, var(--accent-bright), var(--accent));
+  box-shadow: 0 0 18px rgba(0, 153, 87, 0.45);
+}
+
+/* ============ ACT 2: Filler Vaporizer ============ */
+#act-2 {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+
+.speech-transform-card {
+  width: 1180px;
+  padding: 38px 48px;
+  border-radius: 30px;
+  background: rgba(14, 18, 25, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 28px 72px rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(32px);
+  margin-top: 40px;
+  position: relative;
+}
+
+.card-status-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 24px;
+  font-size: 18px;
+  color: var(--ink-muted);
+}
+
+.card-text-output {
+  font-size: 40px;
+  line-height: 1.45;
+  font-weight: 600;
+  color: #FFFFFF;
+  min-height: 90px;
+}
+
+.filler-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 14px;
+  border-radius: 8px;
+  background: rgba(255, 77, 77, 0.18);
+  border: 1px solid rgba(255, 77, 77, 0.4);
+  color: #FFA5A5;
+  font-weight: 600;
+  position: relative;
+  margin: 0 4px;
+}
+
+.filler-strike {
+  position: absolute;
+  left: 0; top: 50%; width: 0%; height: 3px;
+  background: #FF3333;
+  box-shadow: 0 0 10px #FF3333;
+}
+
+/* ============ ACT 3: Android Phone 3D ============ */
+#act-3 {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  perspective: 1600px;
+}
+
+.phone-mockup {
+  width: 530px; height: 930px;
+  border-radius: 56px;
+  background: #0B0E14;
+  border: 11px solid #1D222C;
+  box-shadow: 0 44px 110px rgba(0, 0, 0, 0.88),
+              0 0 0 2px rgba(255, 255, 255, 0.12);
+  position: relative;
+  overflow: hidden;
+  transform-style: preserve-3d;
+}
+
+.phone-notch {
+  position: absolute; top: 16px; left: 50%;
+  transform: translateX(-50%);
+  width: 140px; height: 28px;
+  background: #000;
+  border-radius: 14px;
+  z-index: 30;
+}
+
+.app-screen {
+  position: absolute; inset: 0;
+  padding: 64px 30px 120px 30px;
+  display: flex; flex-direction: column;
+}
+
+.app-header {
+  display: flex; align-items: center; gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.app-avatar {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #25D366, #128C7E);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 20px;
+}
+
+.app-title-group h4 {
+  font-size: 20px; font-weight: 700; color: #FFF;
+}
+.app-title-group p {
+  font-size: 13px; color: var(--accent-bright);
+}
+
+.chat-bubble {
+  align-self: flex-end;
+  max-width: 88%;
+  margin-top: 30px;
+  padding: 18px 22px;
+  border-radius: 22px 22px 4px 22px;
+  background: #005C4B;
+  color: #E9EDEF;
+  font-size: 19px; line-height: 1.45;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+}
+
+.phone-floating-pill {
+  position: absolute;
+  bottom: 38px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+}
+
+/* ============ ACT 4: Universal BYOK AI Vault ============ */
+#act-4 {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+
+.byok-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  width: 1260px;
+  margin-top: 44px;
+}
+
+.byok-card {
+  padding: 26px 30px;
+  border-radius: 22px;
+  background: rgba(16, 20, 28, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.5);
+  display: flex; align-items: center; gap: 20px;
+  backdrop-filter: blur(20px);
+  will-change: transform;
+}
+
+.byok-icon {
+  width: 58px; height: 58px;
+  border-radius: 18px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.byok-info h4 {
+  font-size: 22px; font-weight: 700; color: #FFF; margin-bottom: 4px;
+}
+.byok-info p {
+  font-size: 15px; color: var(--ink-muted);
+}
+
+.keystore-security-bar {
+  margin-top: 34px;
+  display: flex; align-items: center; gap: 20px;
+  padding: 16px 36px;
+  border-radius: 999px;
+  background: rgba(0, 153, 87, 0.12);
+  border: 1.5px solid rgba(78, 250, 158, 0.35);
+  box-shadow: 0 0 32px rgba(0, 153, 87, 0.2);
+}
+
+/* ============ ACT 5: Climax & CTA ============ */
+#act-5 {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+
+.logo-symbol {
+  width: 150px; height: 150px;
+  border-radius: 44px;
+  background: #000;
+  border: 3px solid rgba(255, 255, 255, 0.25);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 90px rgba(0, 153, 87, 0.5),
+              0 24px 48px rgba(0, 0, 0, 0.85);
+  position: relative;
+  margin-bottom: 32px;
+}
+
+.logo-glow-ring {
+  position: absolute; inset: -20px;
+  border-radius: 60px;
+  border: 2px dashed rgba(78, 250, 158, 0.55);
+  pointer-events: none;
+}
+
+.cta-row {
+  display: flex; gap: 24px; align-items: center;
+  margin-top: 44px;
+}
+
+.cta-btn-primary {
+  padding: 20px 42px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--accent-lit), var(--accent));
+  color: #FFFFFF;
+  font-size: 22px; font-weight: 700;
+  letter-spacing: -0.01em;
+  box-shadow: 0 8px 34px rgba(0, 153, 87, 0.45);
+}
+
+.cta-btn-secondary {
+  padding: 20px 40px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #FFFFFF;
+  font-size: 22px; font-weight: 600;
+}
+
+/* Start Screen Overlay (ensures 100% synced audio & video from 0.0s) */
+#start-overlay {
+  position: absolute; inset: 0;
+  background: rgba(4, 5, 8, 0.85);
+  backdrop-filter: blur(16px);
+  display: none; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 90;
+  cursor: pointer;
+}
+#start-overlay.active { display: flex; }
+.start-btn-pill {
+  display: flex; align-items: center; gap: 14px;
+  padding: 18px 36px;
+  border-radius: 999px;
+  background: rgba(0, 153, 87, 0.25);
+  border: 1.5px solid rgba(78, 250, 158, 0.6);
+  box-shadow: 0 0 40px rgba(0, 153, 87, 0.4);
+  font-size: 24px; font-weight: 700; color: #FFF;
+  animation: pulsePill 2s infinite ease-in-out;
+}
+@keyframes pulsePill {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); box-shadow: 0 0 60px rgba(0, 153, 87, 0.6); }
+}
+
+/* Developer Scrub UI (?debug=1) */
+#ui {
+  position: fixed; left: 50%; bottom: 24px;
+  transform: translateX(-50%);
+  display: none; align-items: center; gap: 16px;
+  padding: 12px 24px; border-radius: 18px;
+  background: rgba(14, 16, 22, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  font-size: 14px; color: #A0A6B4; z-index: 100;
+  backdrop-filter: blur(16px);
+}
+#ui.on { display: flex; }
+#ui button {
+  background: #232733; color: #FFF; border: none;
+  padding: 8px 16px; border-radius: 10px; font: inherit; cursor: pointer;
+}
+#ui button:hover { background: #323746; }
+#scrub { width: 440px; accent-color: var(--accent-bright); }
+#clock { font-family: monospace; font-size: 15px; color: #FFF; min-width: 6ch; text-align: right; }
+</style>
+</head>
+<body>
+
+<svg id="filters"><defs></defs></svg>
+<audio id="audio" src="voiceover.mp3" preload="auto"></audio>
+
+<div id="stage">
+  <div id="world">
+    <!-- Background Layers -->
+    <div class="bg-gradient"></div>
+    <canvas id="bgCanvas" class="bg-canvas"></canvas>
+    <div class="bg-grain"></div>
+
+    <!-- ACT 1: The Problem & The Capsule Reveal (0.0s - 5.5s) -->
+    <div id="act-1">
+      <h1 class="hero-title" id="act1-title">Typing is slow.&nbsp;<span class="hl-pill">Voice was broken.</span></h1>
+      <p class="hero-sub" id="act1-sub" style="margin-top: 18px;">Awkward voice notes. Constant backspacing. Speech recognition that never understands you.</p>
+
+      <div class="audio-center-burst" id="act1-burst">
+        <!-- 24 Equalizer bars -->
+      </div>
+
+      <div class="dual-capsule-pill" id="act1-capsule" style="margin-top: 36px; opacity: 0;">
+        <div class="capsule-persona-btn">
+          <span>✨</span>
+          <span>OpenWhispr</span>
+        </div>
+        <div class="capsule-divider"></div>
+        <div class="capsule-mic-btn">
+          <div class="voice-eq" id="act1-eq">
+            <span class="eq-bar" style="height: 16px;"></span>
+            <span class="eq-bar" style="height: 24px;"></span>
+            <span class="eq-bar" style="height: 14px;"></span>
+            <span class="eq-bar" style="height: 20px;"></span>
+          </div>
+          <span>Refining Audio...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACT 2: Speech Transformation & The Filler Vaporizer (5.5s - 12.0s) -->
+    <div id="act-2">
+      <h1 class="hero-title" id="act2-title">Speak naturally.&nbsp;<span class="hl-pill">Zero editing.</span></h1>
+      <p class="hero-sub" id="act2-sub" style="margin-top: 14px;">Speak with rambles, hesitations, and false starts. Watch every filler disappear.</p>
+      
+      <div style="display: flex; flex-direction: column; align-items: center; margin-top: 36px;">
+        <div class="dual-capsule-pill" id="hero-pill">
+          <div class="capsule-persona-btn" id="hero-persona-btn">
+            <span id="persona-icon">✨</span>
+            <span id="persona-label">Natural Clean</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="capsule-divider"></div>
+          <div class="capsule-mic-btn" id="hero-mic-btn">
+            <div class="voice-eq" id="hero-eq">
+              <span class="eq-bar" style="height: 16px;"></span>
+              <span class="eq-bar" style="height: 24px;"></span>
+              <span class="eq-bar" style="height: 14px;"></span>
+              <span class="eq-bar" style="height: 20px;"></span>
+            </div>
+            <span id="mic-label">Listening...</span>
+          </div>
+        </div>
+
+        <div class="speech-transform-card" id="act2-card">
+          <div class="card-status-bar">
+            <span class="mono" id="card-engine-info">● Core AI Transformation • 16kHz PCM Stream</span>
+            <span class="hl-pill" style="font-size: 13px;">Auto-Filter ON</span>
+          </div>
+          <div class="card-text-output" id="card-text-container">
+            <!-- Raw speech transforms here -->
+            <span id="span-raw">
+              <span class="filler-tag" id="f-um">um<span class="filler-strike"></span></span>
+              <span>so can you</span>
+              <span class="filler-tag" id="f-uh">uh<span class="filler-strike"></span></span>
+              <span>send the project report by</span>
+              <span class="filler-tag" id="f-wait">thursday wait no<span class="filler-strike"></span></span>
+              <span>friday</span>
+            </span>
+            <span id="span-cleaned" style="display:none; color: var(--accent-bright);">
+              Can you send me the project report by Friday.
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACT 3: Zero-Tap Auto-Persona Switching (12.0s - 18.5s) -->
+    <div id="act-3">
+      <div style="position: absolute; top: 100px; text-align: center;" id="act3-header">
+        <h1 class="hero-title">One capsule.&nbsp;<span class="hl-pill">Every Android app.</span></h1>
+        <p class="hero-sub" style="margin-top: 14px;">Auto-detects active apps to match your tone—zero taps required.</p>
+      </div>
+
+      <div class="phone-mockup" id="phone">
+        <div class="phone-notch"></div>
+        
+        <!-- App 1: WhatsApp -->
+        <div class="app-screen" id="screen-whatsapp">
+          <div class="app-header">
+            <div class="app-avatar">💬</div>
+            <div class="app-title-group">
+              <h4>WhatsApp</h4>
+              <p>Alex Chen • Online</p>
+            </div>
+          </div>
+          <div class="chat-bubble" id="whatsapp-bubble">
+            Hey! Are we still meeting up at 3:00 PM or are you gonna be late? 😂 👍
+          </div>
+        </div>
+
+        <!-- App 2: Gmail -->
+        <div class="app-screen" id="screen-gmail" style="opacity: 0; background: #0E121A;">
+          <div class="app-header">
+            <div class="app-avatar" style="background: linear-gradient(135deg, #EA4335, #C5221F);">✉️</div>
+            <div class="app-title-group">
+              <h4>Work Email (Gmail)</h4>
+              <p>Engineering Deployment • Draft</p>
+            </div>
+          </div>
+          <div class="chat-bubble" id="gmail-bubble" style="background: #1B2333; color: #FFF; border-radius: 12px; width: 100%; max-width: 100%;">
+            Hi Team,<br><br>Quick update on the Q3 deployment: we need to hold off until Engineering merges the security fixes.<br><br>Best regards,
+          </div>
+        </div>
+
+        <!-- Floating Capsule over phone -->
+        <div class="phone-floating-pill">
+          <div class="dual-capsule-pill" id="phone-pill" style="transform: scale(0.85);">
+            <div class="capsule-persona-btn" id="phone-persona-btn">
+              <span id="phone-p-icon">💬</span>
+              <span id="phone-p-label" style="color: var(--accent-bright);">Casual Chat</span>
+            </div>
+            <div class="capsule-divider"></div>
+            <div class="capsule-mic-btn" style="padding: 6px 16px;">
+              <span style="font-size: 15px;">● Dictate</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACT 4: Universal BYOK — Bring ANY AI API Key! (18.5s - 25.0s) -->
+    <div id="act-4">
+      <h1 class="hero-title" id="act4-title">Bring your own AI.&nbsp;<span class="hl-pill-gold">Any provider.</span></h1>
+      <p class="hero-sub" id="act4-sub" style="margin-top: 14px;">Connect OpenAI, Groq, Anthropic, Gemini, DeepSeek, or local Ollama. Zero markup, zero tracking.</p>
+
+      <div class="byok-grid" id="byok-grid">
+        <!-- 1. OpenAI -->
+        <div class="byok-card">
+          <div class="byok-icon" style="background: rgba(16, 163, 127, 0.15); border: 1px solid rgba(16, 163, 127, 0.4); color: #10A37F;">🟢</div>
+          <div class="byok-info">
+            <h4>OpenAI</h4>
+            <p>Whisper Large-v3 &amp; GPT-4o</p>
+          </div>
+        </div>
+
+        <!-- 2. Groq -->
+        <div class="byok-card">
+          <div class="byok-icon" style="background: rgba(245, 80, 54, 0.15); border: 1px solid rgba(245, 80, 54, 0.4); color: #F55036;">⚡</div>
+          <div class="byok-info">
+            <h4>Groq</h4>
+            <p>&lt; 300ms Ultra-Fast Latency</p>
+          </div>
+        </div>
+
+        <!-- 3. Anthropic -->
+        <div class="byok-card">
+          <div class="byok-icon" style="background: rgba(217, 119, 6, 0.15); border: 1px solid rgba(217, 119, 6, 0.4); color: #D97706;">🟠</div>
+          <div class="byok-info">
+            <h4>Anthropic</h4>
+            <p>Claude 3.5 Sonnet Precision</p>
+          </div>
+        </div>
+
+        <!-- 4. Google Gemini -->
+        <div class="byok-card">
+          <div class="byok-icon" style="background: rgba(56, 139, 253, 0.15); border: 1px solid rgba(56, 139, 253, 0.4); color: #388BFD;">🔵</div>
+          <div class="byok-info">
+            <h4>Google Gemini</h4>
+            <p>Gemini 1.5 Flash Multilingual</p>
+          </div>
+        </div>
+
+        <!-- 5. DeepSeek -->
+        <div class="byok-card">
+          <div class="byok-icon" style="background: rgba(0, 102, 255, 0.15); border: 1px solid rgba(0, 102, 255, 0.4); color: #0066FF;">🐳</div>
+          <div class="byok-info">
+            <h4>DeepSeek</h4>
+            <p>DeepSeek V3 Open Intelligence</p>
+          </div>
+        </div>
+
+        <!-- 6. Ollama Local -->
+        <div class="byok-card">
+          <div class="byok-icon" style="background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.3); color: #FFFFFF;">🦙</div>
+          <div class="byok-info">
+            <h4>Local Ollama</h4>
+            <p>100% Offline Device Models</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="keystore-security-bar" id="act4-security">
+        <span style="font-size: 26px;">🔒</span>
+        <span class="mono" style="font-size: 20px; font-weight: 600; color: #FFF;">
+          Direct Device-to-API • Hardware Keystore Encrypted • Zero Telemetry
+        </span>
+      </div>
+    </div>
+
+    <!-- ACT 5: Climax & CTA (25.0s - 30.0s) -->
+    <div id="act-5">
+      <div class="logo-symbol" id="act5-logo">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="84" height="84">
+          <path d="M32 38a7.5 7.5 0 0 0 7.5-7.5V18a7.5 7.5 0 1 0-15 0v12.5A7.5 7.5 0 0 0 32 38Z" fill="#FFFFFF"/>
+          <path d="M45.5 30.5a13.5 13.5 0 0 1-27 0M32 44v6.5M25.5 50.5h13" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+        </svg>
+        <div class="logo-glow-ring"></div>
+      </div>
+
+      <h1 class="hero-title" id="act5-title" style="font-size: 104px; letter-spacing: -0.04em;">OpenWhispr</h1>
+      <p class="hero-sub" id="act5-sub" style="font-size: 34px; color: var(--accent-bright); margin-top: 10px;">
+        Voice Dictation, Refined.
+      </p>
+
+      <div class="cta-row" id="act5-cta">
+        <div class="cta-btn-primary">Download Production APK (Free)</div>
+        <div class="cta-btn-secondary mono">openwhispr-nine.vercel.app</div>
+      </div>
+    </div>
+
+    <div class="vignette"></div>
+  </div>
+
+  <!-- Start Overlay if browser autoplay requires user gesture -->
+  <div id="start-overlay">
+    <div class="start-btn-pill">
+      <span>▶</span>
+      <span>Click anywhere to start with audio</span>
+    </div>
+  </div>
+</div>
+
+<!-- Debug Scrubber (?debug=1) -->
+<div id="ui">
+  <button id="btn-play">Pause</button>
+  <button id="btn-restart">Restart</button>
+  <input id="scrub" type="range" min="0" max="1000" value="0">
+  <span id="clock">0.00s</span>
+</div>
+
+<script>
+/* ============ INITIALIZATION & DETERMINISTIC CANVAS BG ============ */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+
+const W = 1920, H = 1080;
+const DURATION = 30.0;
+
+// Setup audio burst bars in Act 1
+const burstBox = $('#act1-burst');
+const NUM_BARS = 24;
+const burstBars = [];
+for (let i = 0; i < NUM_BARS; i++) {
+  const b = document.createElement('div');
+  b.className = 'burst-bar';
+  burstBox.appendChild(b);
+  burstBars.push(b);
+}
+
+// Background Canvas (ambient floating waveform rings - strictly deterministic tl.time)
+const canvas = $('#bgCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = W; canvas.height = H;
+
+function renderCanvas(t) {
+  ctx.clearRect(0, 0, W, H);
+  
+  // Ambient pulsing rings centered at bottom horizon
+  const cx = W / 2, cy = H * 0.95;
+  for (let i = 0; i < 5; i++) {
+    const r = ((t * 90 + i * 150) % 800) + 120;
+    const alpha = Math.max(0, 1 - r / 800) * 0.22;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(78, 250, 158, ${alpha})`;
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+  }
+
+  // Act 1 burst bars animation driven by tl.time
+  burstBars.forEach((bar, idx) => {
+    const wave = Math.sin(t * 7.5 + idx * 0.4) * 0.5 + 0.5;
+    const h = 20 + wave * 95;
+    bar.style.height = `${h}px`;
+    bar.style.opacity = `${0.35 + wave * 0.65}`;
+  });
+
+  // Act 1 & 2 equalizer bars
+  const eqBars = $$('.voice-eq .eq-bar');
+  eqBars.forEach((eb, idx) => {
+    const eh = 8 + (Math.sin(t * 13 + idx * 1.3) * 0.5 + 0.5) * 22;
+    eb.style.height = `${eh}px`;
+  });
+}
+
+/* ============ GSAP TIMELINE SETUP ============ */
+const audio = $('#audio');
+
+function syncAudio(shouldPlay = true) {
+  if (!audio) return;
+  if (shouldPlay && !tl.paused()) {
+    audio.currentTime = tl.time();
+    audio.play().catch(() => {});
+  } else {
+    audio.pause();
+  }
+}
+
+const tl = gsap.timeline({
+  paused: true,
+  onComplete: () => {
+    if (audio) {
+      audio.currentTime = 0;
+      audio.play().catch(() => {});
+    }
+    tl.play(0); // Infinite loop without player controls
+  }
+});
+
+const rig = $('#world');
+
+// Breathing camera drift across the entire 30s timeline (§4b)
+tl.fromTo(rig, 
+  { scale: 1.0, transformOrigin: '50% 50%' },
+  { scale: 1.05, duration: DURATION, ease: 'sine.inOut' },
+  0
+);
+
+// Initial state hidden
+gsap.set(['#act-1', '#act-2', '#act-3', '#act-4', '#act-5'], { autoAlpha: 0 });
+
+/* ============ ACT 1: The Problem & The Capsule Reveal (0.0s - 5.5s) ============ */
+tl.set('#act-1', { autoAlpha: 1 }, 0);
+
+tl.fromTo('#act1-title', 
+  { opacity: 0, y: 50, scale: 0.95 },
+  { opacity: 1, y: 0, scale: 1, duration: 1.1, ease: 'power4.out', immediateRender: false },
+  0.2
+);
+
+tl.fromTo('#act1-sub',
+  { opacity: 0, y: 30 },
+  { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out', immediateRender: false },
+  0.6
+);
+
+tl.fromTo('#act1-burst',
+  { opacity: 0, scale: 0.8 },
+  { opacity: 1, scale: 1, duration: 0.9, ease: 'back.out(1.5)', immediateRender: false },
+  1.0
+);
+
+tl.fromTo('#act1-capsule',
+  { opacity: 0, y: 60, scale: 0.8 },
+  { opacity: 1, y: 0, scale: 1, duration: 1.0, ease: 'back.out(1.8)', immediateRender: false },
+  1.8
+);
+
+// Exit Act 1 with motivated push into the capsule
+tl.to('#act-1', {
+  opacity: 0, scale: 1.15, filter: 'blur(10px)',
+  duration: 0.6, ease: 'power3.in'
+}, 5.0);
+
+/* ============ ACT 2: Transformation Engine & Filler Vaporizer (5.5s - 12.0s) ============ */
+tl.set('#act-2', { autoAlpha: 1 }, 5.5);
+
+tl.fromTo('#act2-title',
+  { opacity: 0, y: -40 },
+  { opacity: 1, y: 0, duration: 0.8, ease: 'power4.out', immediateRender: false },
+  5.6
+);
+
+tl.fromTo('#act2-sub',
+  { opacity: 0, y: 20 },
+  { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out', immediateRender: false },
+  5.9
+);
+
+tl.fromTo('#hero-pill',
+  { opacity: 0, scale: 0.5, y: 70 },
+  { opacity: 1, scale: 1, y: 0, duration: 0.9, ease: 'back.out(1.8)', immediateRender: false },
+  6.1
+);
+
+tl.fromTo('#act2-card',
+  { opacity: 0, y: 50, scale: 0.95 },
+  { opacity: 1, y: 0, scale: 1, duration: 0.9, ease: 'power4.out', immediateRender: false },
+  6.4
+);
+
+// SPECIAL MOMENT 1: The Filler Vaporizer at 8.2s
+tl.to('#act2-card .filler-strike', {
+  width: '100%', duration: 0.4, ease: 'power2.out'
+}, 8.2);
+
+tl.to('#mic-label', {
+  duration: 0.2,
+  onStart: () => { $('#mic-label').textContent = 'Processing...'; }
+}, 8.3);
+
+tl.to(['#f-um', '#f-uh', '#f-wait'], {
+  opacity: 0, scale: 0.6, filter: 'blur(8px)', duration: 0.5, ease: 'power2.in'
+}, 8.9);
+
+tl.set('#span-raw', { display: 'none' }, 9.4);
+tl.set('#span-cleaned', { display: 'inline' }, 9.4);
+tl.fromTo('#span-cleaned',
+  { opacity: 0, y: 15 },
+  { opacity: 1, y: 0, duration: 0.6, ease: 'back.out(1.6)', immediateRender: false },
+  9.4
+);
+
+tl.to('#mic-label', {
+  duration: 0.2,
+  onStart: () => { $('#mic-label').textContent = 'Pristine Clean'; }
+}, 9.6);
+
+tl.to('#act-2', {
+  opacity: 0, scale: 0.92, duration: 0.55, ease: 'power2.in'
+}, 11.6);
+
+/* ============ ACT 3: Zero-Tap Auto-Persona Switching (12.0s - 18.5s) ============ */
+tl.set('#act-3', { autoAlpha: 1 }, 12.0);
+
+tl.fromTo('#act3-header',
+  { opacity: 0, y: -30 },
+  { opacity: 1, y: 0, duration: 0.8, ease: 'power4.out', immediateRender: false },
+  12.1
+);
+
+tl.fromTo('#phone',
+  { opacity: 0, y: 150, rotateY: -16, rotateX: 6, scale: 0.86 },
+  { opacity: 1, y: 0, rotateY: -7, rotateX: 3, scale: 1, duration: 1.1, ease: 'power4.out', immediateRender: false },
+  12.3
+);
+
+tl.fromTo('#whatsapp-bubble',
+  { opacity: 0, scale: 0.85, y: 20 },
+  { opacity: 1, scale: 1, y: 0, duration: 0.6, ease: 'back.out(1.7)', immediateRender: false },
+  12.9
+);
+
+// Switch app at 15.2s: WhatsApp -> Gmail (Persona Flip!)
+tl.to('#phone', {
+  rotateY: 7, duration: 0.9, ease: 'power2.inOut'
+}, 15.2);
+
+tl.to('#screen-whatsapp', { opacity: 0, duration: 0.4 }, 15.2);
+tl.to('#screen-gmail', { opacity: 1, duration: 0.5 }, 15.3);
+
+tl.fromTo('#gmail-bubble',
+  { opacity: 0, y: 20 },
+  { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', immediateRender: false },
+  15.5
+);
+
+// 3D Flip of the floating capsule persona badge
+tl.to('#phone-persona-btn', {
+  rotateX: 360,
+  duration: 0.7,
+  ease: 'back.out(1.6)',
+  onStart: () => {
+    $('#phone-p-icon').textContent = '✉️';
+    $('#phone-p-label').textContent = 'Work Email';
+    $('#phone-p-label').style.color = 'var(--blue-lit)';
+  }
+}, 15.3);
+
+tl.to('#act-3', {
+  opacity: 0, scale: 1.12, filter: 'blur(8px)', duration: 0.6, ease: 'power3.in'
+}, 18.0);
+
+/* ============ ACT 4: Universal BYOK — Bring ANY AI API Key! (18.5s - 25.0s) ============ */
+tl.set('#act-4', { autoAlpha: 1 }, 18.5);
+
+tl.fromTo('#act4-title',
+  { opacity: 0, y: -40 },
+  { opacity: 1, y: 0, duration: 0.8, ease: 'power4.out', immediateRender: false },
+  18.6
+);
+
+tl.fromTo('#act4-sub',
+  { opacity: 0, y: 20 },
+  { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out', immediateRender: false },
+  18.9
+);
+
+tl.fromTo('#byok-grid .byok-card',
+  { opacity: 0, y: 50, scale: 0.88 },
+  { opacity: 1, y: 0, scale: 1, duration: 0.8, stagger: 0.1, ease: 'back.out(1.6)', immediateRender: false },
+  19.2
+);
+
+tl.fromTo('#act4-security',
+  { opacity: 0, scale: 0.9, y: 30 },
+  { opacity: 1, scale: 1, y: 0, duration: 0.8, ease: 'back.out(1.8)', immediateRender: false },
+  20.5
+);
+
+tl.to('#act-4', {
+  opacity: 0, scale: 0.92, duration: 0.55, ease: 'power2.in'
+}, 24.5);
+
+/* ============ ACT 5: Climax & CTA (25.0s - 30.0s) ============ */
+tl.set('#act-5', { autoAlpha: 1 }, 25.0);
+
+tl.fromTo('#act5-logo',
+  { opacity: 0, scale: 0.2, rotate: -25 },
+  { opacity: 1, scale: 1, rotate: 0, duration: 1.0, ease: 'back.out(2)', immediateRender: false },
+  25.1
+);
+
+tl.fromTo('#act5-title',
+  { opacity: 0, y: 40, scale: 0.95 },
+  { opacity: 1, y: 0, scale: 1, duration: 0.9, ease: 'power4.out', immediateRender: false },
+  25.5
+);
+
+tl.fromTo('#act5-sub',
+  { opacity: 0, y: 20 },
+  { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', immediateRender: false },
+  25.9
+);
+
+tl.fromTo('#act5-cta',
+  { opacity: 0, y: 30, scale: 0.9 },
+  { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: 'back.out(1.6)', immediateRender: false },
+  26.4
+);
+
+// Subtle fade-to-black at the end of loop
+tl.to('#act-5', {
+  opacity: 0, duration: 0.5, ease: 'power2.in'
+}, 29.5);
+
+/* ============ RENDER LOOP & OPENER INTERFACE ============ */
+function render(t) {
+  renderCanvas(t);
+}
+
+const clock = $('#clock');
+const scrub = $('#scrub');
+let isScrubbing = false;
+
+(function tick() {
+  const t = tl.time();
+  render(t);
+  clock.textContent = t.toFixed(2) + 's';
+  if (!isScrubbing) scrub.value = String((t / DURATION) * 1000);
+  requestAnimationFrame(tick);
+})();
+
+// Responsive fit to screen
+const stage = $('#stage');
+function fit() {
+  const s = Math.min(innerWidth / 1920, innerHeight / 1080);
+  stage.style.transform = `translate(-50%, -50%) scale(${s})`;
+}
+window.addEventListener('resize', fit);
+fit();
+
+// Query params & Autoplay handling
+const Q = new URLSearchParams(location.search);
+if (Q.has('debug')) {
+  $('#ui').classList.add('on');
+}
+
+// Start playback with 100% audio lock
+function startPlayback() {
+  if (!audio) {
+    tl.play(0);
+    return;
+  }
+  
+  audio.currentTime = 0;
+  const p = audio.play();
+  if (p !== undefined) {
+    p.then(() => {
+      // Browser autoplay allowed: start timeline simultaneously from 0.0s
+      tl.play(0);
+    }).catch(() => {
+      // Browser blocked autoplay: show start overlay and hold at 0.0s
+      tl.pause(0);
+      render(0);
+      const overlay = $('#start-overlay');
+      if (overlay) overlay.classList.add('active');
+      
+      const onFirstInteract = () => {
+        if (overlay) overlay.classList.remove('active');
+        window.removeEventListener('click', onFirstInteract);
+        window.removeEventListener('keydown', onFirstInteract);
+        window.removeEventListener('pointerdown', onFirstInteract);
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
+        tl.play(0);
+      };
+      
+      window.addEventListener('click', onFirstInteract, { once: true });
+      window.addEventListener('keydown', onFirstInteract, { once: true });
+      window.addEventListener('pointerdown', onFirstInteract, { once: true });
+    });
+  } else {
+    tl.play(0);
+  }
+}
+
+if (!Q.has('clean')) {
+  startPlayback();
+}
+
+// Interactive scrubber
+scrub.addEventListener('input', () => {
+  isScrubbing = true;
+  const targetTime = (Number(scrub.value) / 1000) * DURATION;
+  tl.pause();
+  tl.time(targetTime);
+  render(targetTime);
+  if (audio) {
+    audio.pause();
+    audio.currentTime = targetTime;
+  }
+});
+scrub.addEventListener('change', () => {
+  isScrubbing = false;
+  if (!Q.has('clean')) {
+    tl.play();
+    syncAudio(true);
+  }
+});
+
+$('#btn-play').addEventListener('click', () => {
+  if (tl.paused()) {
+    tl.play();
+    syncAudio(true);
+    $('#btn-play').textContent = 'Pause';
+  } else {
+    tl.pause();
+    syncAudio(false);
+    $('#btn-play').textContent = 'Play';
+  }
+});
+
+$('#btn-restart').addEventListener('click', () => {
+  if (audio) audio.currentTime = 0;
+  tl.play(0);
+  syncAudio(true);
+  $('#btn-play').textContent = 'Pause';
+});
+
+// Hidden keyboard shortcuts
+window.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') {
+    e.preventDefault();
+    if (tl.paused()) {
+      tl.play();
+      syncAudio(true);
+      $('#btn-play').textContent = 'Pause';
+    } else {
+      tl.pause();
+      syncAudio(false);
+      $('#btn-play').textContent = 'Play';
+    }
+  }
+  if (e.code === 'KeyR') {
+    e.preventDefault();
+    if (audio) audio.currentTime = 0;
+    tl.play(0);
+    syncAudio(true);
+    $('#btn-play').textContent = 'Pause';
+  }
+});
+
+// EXPOSE window.OPENER for Bang Motion scripts (snap.mjs & export-frames.mjs)
+window.OPENER = {
+  W: 1920,
+  H: 1080,
+  DURATION: DURATION,
+  tl: tl,
+  ready: true,
+  seek: (t) => {
+    tl.time(t);
+    render(t);
+    if (audio) audio.currentTime = t;
+  }
+};
+</script>
+</body>
+</html>

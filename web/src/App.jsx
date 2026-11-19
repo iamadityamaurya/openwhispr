@@ -345,7 +345,7 @@ export default function App() {
 
   // IntersectionObserver for active section scroll-spy in sticky nav
   useEffect(() => {
-    const sectionIds = ['preview', 'personas', 'engines', 'architecture', 'faq']
+    const sectionIds = ['promo-video', 'preview', 'personas', 'engines', 'architecture', 'faq']
     const sectionElements = sectionIds
       .map((id) => document.getElementById(id))
       .filter(Boolean)
@@ -411,6 +411,13 @@ export default function App() {
           </a>
 
           <nav className="maus-nav">
+            <a
+              href="#promo-video"
+              className={activeNavSection === 'promo-video' ? 'is-active' : ''}
+            >
+              Watch Film
+              {activeNavSection === 'promo-video' && <span className="nav-active-indicator" />}
+            </a>
             <a
               href="#preview"
               className={activeNavSection === 'preview' ? 'is-active' : ''}
@@ -739,6 +746,16 @@ export default function App() {
                   </a>
 
                   <a
+                    href="#promo-video"
+                    className="hero-btn-film"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                      <polygon points="5 3 19 12 5 21 5 3" />
+                    </svg>
+                    <span>Watch Film (30s)</span>
+                  </a>
+
+                  <a
                     href="#preview"
                     className="hero-btn-secondary"
                   >
@@ -758,6 +775,113 @@ export default function App() {
                 <path d="M12 5v14M19 12l-7 7-7-7" />
               </svg>
             </a>
+          </div>
+        </section>
+
+        {/* ── 30-SECOND PROMO VIDEO SHOWCASE (.maus-promo-section) ── */}
+        <section id="promo-video" className="maus-promo-section scroll-reveal reveal-fade-up">
+          <div className="promo-container">
+            <div className="promo-header-block">
+              <div className="promo-pill-tag">
+                <span className="promo-live-dot" />
+                <span>OFFICIAL 30S FILM</span>
+              </div>
+              <h2 className="promo-heading">
+                Watch OpenWhispr in Action
+              </h2>
+              <p className="promo-subheading">
+                Experience zero-latency voice dictation, instant filler removal, auto-persona switching, and universal BYOK AI encryption — all in 30 seconds.
+              </p>
+            </div>
+
+            <div className="promo-theater-card">
+              <div className="promo-window-bar">
+                <div className="promo-window-dots">
+                  <span className="dot dot-red" />
+                  <span className="dot dot-yellow" />
+                  <span className="dot dot-green" />
+                </div>
+                <div className="promo-window-title font-mono">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polygon points="5 3 19 12 5 21 5 3" />
+                  </svg>
+                  openwhisper-promo-30s.mp4
+                </div>
+                <div className="promo-window-badges">
+                  <span className="promo-badge font-mono">1080P • 30S</span>
+                  <span className="promo-badge-green font-mono">VOICEOVER: BRIAN</span>
+                </div>
+              </div>
+
+              <div className="promo-video-viewport">
+                <video
+                  className="promo-video-element"
+                  src="/openwhisper-promo-30s.mp4"
+                  poster="/promo-poster.jpg"
+                  controls
+                  playsInline
+                  preload="metadata"
+                >
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+
+              <div className="promo-footer-bar">
+                <div className="promo-features-grid">
+                  <div className="promo-feat-item">
+                    <span className="promo-feat-num font-mono">01</span>
+                    <div>
+                      <strong>Dual Floating Capsule</strong>
+                      <span>Single tap for raw STT, double tap for instant AI transformation.</span>
+                    </div>
+                  </div>
+                  <div className="promo-feat-item">
+                    <span className="promo-feat-num font-mono">02</span>
+                    <div>
+                      <strong>Filler Vaporizer</strong>
+                      <span>Eliminates pauses, &ldquo;um&rdquo;, and filler words automatically.</span>
+                    </div>
+                  </div>
+                  <div className="promo-feat-item">
+                    <span className="promo-feat-num font-mono">03</span>
+                    <div>
+                      <strong>Auto-Persona Morph</strong>
+                      <span>WhatsApp casual emoji ↔ Gmail executive memo with zero prompt typing.</span>
+                    </div>
+                  </div>
+                  <div className="promo-feat-item">
+                    <span className="promo-feat-num font-mono">04</span>
+                    <div>
+                      <strong>Universal BYOK AI Vault</strong>
+                      <span>Bring your own OpenAI, Groq, Anthropic, Gemini, DeepSeek, or Local Ollama key.</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="promo-actions-row">
+                  <a
+                    href="/promo.html"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="promo-interactive-btn"
+                  >
+                    <span>Launch 60fps Interactive Engine</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                      <polyline points="15 3 21 3 21 9" />
+                      <line x1="10" y1="14" x2="21" y2="3" />
+                    </svg>
+                  </a>
+                  <a
+                    href={DOWNLOAD_URL}
+                    className="promo-download-btn"
+                    download
+                  >
+                    <span>Download APK (106 MB)</span>
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
